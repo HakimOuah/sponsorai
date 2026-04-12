@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Player {
+  id                 String   @id @default(cuid())
+  firstName          String
+  lastName           String
+  age                Int?
+  nationality        String?
+  club               String
+  league             String
+  position           String?
+  city               String?
+  instagram          String?
+  followersIG        Int?
+  tiktok             String?
+  followersTK        Int?
+  twitter            String?
+  followersX         Int?
+  engagementRate     Float?
+  positioning        String?
+  targetPartnerships String?
+  languages          String?
+  notes              String?
+  imageUrl           String?
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  prospects Prospect[]
+  deals     Deal[]
+  scans     Scan[]
+}
+
+model Company {
+  id                       String   @id @default(cuid())
+  name                     String
+  sector                   String?
+  country                  String?
+  website                  String?
+  description              String?
+  existingSportsSponsoring String?
+  estimatedBudget          String?
+  contactName              String?
+  contactRole              String?
+  contactEmail             String?
+  contactLinkedin          String?
+  contactPhone             String?
+  notes                    String?
+  source                   String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  prospects Prospect[]
+  deals     Deal[]
+  emails    Email[]
+}
+
+model Prospect {
+  id                  String   @id @default(cuid())
+  playerId            String
+  companyId           String
+  score               Int?
+  scoreDetails        Json?
+  rationale           String?
+  recommendedApproach String?
+  partnershipType     String?
+  estimatedValue      String?
+  priority            String?
+  status              String   @default("new")
+  scanId              String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  player  Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  scan    Scan?   @relation(fields: [scanId], references: [id])
+  emails  Email[]
+  deal    Deal?
+
+  @@unique([playerId, companyId])
+}
+
+model Deal {
+  id             String    @id @default(cuid())
+  playerId       String
+  companyId      String
+  prospectId     String    @unique
+  stage          String    @default("lead")
+  value          Float?
+  currency       String    @default("EUR")
+  dealType       String?
+  notes          String?
+  nextAction     String?
+  nextActionDate DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  player   Player   @relation(fields: [playerId], references: [id])
+  company  Company  @relation(fields: [companyId], references: [id])
+  prospect Prospect @relation(fields: [prospectId], references: [id])
+}
+
+model Email {
+  id          String    @id @default(cuid())
+  prospectId  String?
+  companyId   String
+  type        String
+  subject     String
+  body        String
+  status      String    @default("draft")
+  sentAt      DateTime?
+  openedAt    DateTime?
+  repliedAt   DateTime?
+  scheduledAt DateTime?
+  messageId   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  prospect Prospect? @relation(fields: [prospectId], references: [id])
+  company  Company   @relation(fields: [companyId], references: [id])
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  subject   String
+  body      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Scan {
+  id           String   @id @default(cuid())
+  playerId     String
+  status       String   @default("running")
+  brandsFound  Int?
+  brandsScored Int?
+  rawData      Json?
+  scoredData   Json?
+  logs         Json?
+  duration     Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  player    Player     @relation(fields: [playerId], references: [id])
+  prospects Prospect[]
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  type      String
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
