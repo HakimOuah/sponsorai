@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -149,17 +149,18 @@ model EmailTemplate {
 }
 
 model Scan {
-  id           String   @id @default(cuid())
-  playerId     String
-  status       String   @default("running")
-  brandsFound  Int?
-  brandsScored Int?
-  rawData      Json?
-  scoredData   Json?
-  logs         Json?
-  duration     Int?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  playerId           String
+  status             String   @default("running")
+  brandsFound        Int?
+  brandsScored       Int?
+  rawData            Json?
+  scoredData         Json?
+  playerIntelligence Json?
+  logs               Json?
+  duration           Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   player    Player     @relation(fields: [playerId], references: [id])
   prospects Prospect[]
@@ -171,4 +172,15 @@ model ActivityLog {
   message   String
   metadata  Json?
   createdAt DateTime @default(now())
+}
+
+model VeilleRun {
+  id            String   @id @default(cuid())
+  status        String   @default("running")
+  alertsCount   Int?
+  highCount     Int?
+  marketSummary String?
+  alerts        Json?
+  duration      Int?
+  createdAt     DateTime @default(now())
 }

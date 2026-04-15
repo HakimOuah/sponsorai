@@ -47,6 +47,20 @@ export interface ScoreDetails {
   conversion_potential: number;
   accessibility: number;
   timing: number;
+  exclusivity_risk: number;
+  brand_momentum: number;
+}
+
+export interface PlayerIntelligence {
+  recent_stats: string;
+  social_content_style: string;
+  brand_affinities: string[];
+  existing_partnerships: string[];
+  public_image: string;
+  audience_demographics: string;
+  recent_news: string;
+  momentum_score: number;
+  key_values: string[];
 }
 
 export interface ScoutBrand {
