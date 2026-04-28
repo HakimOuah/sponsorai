@@ -21,19 +21,19 @@ export default async function EmailDetailPage({ params }: Props) {
       <div className="flex items-center gap-3 mb-6">
         <Link
           href="/emails"
-          className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white/60 transition-colors"
+          className="flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/60 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Retour
         </Link>
         <div className="h-4 w-px bg-white/[0.08]" />
-        <Mail className="h-5 w-5 text-[#00d4aa]" />
+        <Mail className="h-5 w-5 text-[#3EF2A0]" />
         <h1 className="text-lg font-bold text-white truncate">
           {email.subject}
         </h1>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-6">
+      <div className="app-panel p-6">
         <EmailEditor email={email} />
       </div>
 

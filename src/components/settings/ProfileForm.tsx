@@ -28,37 +28,37 @@ export function ProfileForm({ user }: ProfileFormProps) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1 block">
+          <label className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1 block">
             Nom
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#00d4aa]/30 focus:outline-none"
+            className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/30 focus:outline-none"
           />
         </div>
         <div>
-          <label className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1 block">
+          <label className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1 block">
             Email
           </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#00d4aa]/30 focus:outline-none"
+            className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/30 focus:outline-none"
           />
         </div>
       </div>
 
       {message && (
-        <p className="text-sm text-[#00d4aa]">{message}</p>
+        <p className="text-sm text-[#3EF2A0]">{message}</p>
       )}
 
       <button
         onClick={handleSave}
         disabled={isPending || !hasChanges}
-        className="flex items-center gap-1.5 rounded-lg bg-[#00d4aa] px-4 py-2 text-sm font-semibold text-[#07090f] hover:bg-[#00e4ba] transition-colors disabled:opacity-40"
+        className="flex items-center gap-1.5 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-40"
       >
         {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         Sauvegarder

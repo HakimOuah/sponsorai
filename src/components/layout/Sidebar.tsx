@@ -60,32 +60,32 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-white/[0.08] bg-[#0a0d14] transition-all duration-300",
+        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-[#3EF2A0]/10 bg-[#020403]/95 shadow-[24px_0_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl transition-all duration-300",
         collapsed ? "w-16" : "w-60"
       )}
     >
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2 border-b border-white/[0.08] px-4">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#00d4aa]/10">
-          <Zap className="h-4 w-4 text-[#00d4aa]" />
+      <div className="flex h-16 items-center gap-3 border-b border-[#3EF2A0]/10 px-4">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-[0_0_24px_rgba(62,242,160,0.12)]">
+          <Zap className="h-4 w-4 text-[#3EF2A0]" />
         </div>
         {!collapsed && (
-          <span className="text-lg font-semibold text-white">
-            Sponsor<span className="text-[#00d4aa]">AI</span>
+          <span className="text-base font-semibold tracking-[-0.03em] text-[#F8FAF7]">
+            Vectis<span className="text-[#3EF2A0]">Agency</span>
           </span>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2 py-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-5">
         {navSections.map((section) => (
-          <div key={section.label} className="mb-4">
+          <div key={section.label} className="mb-5">
             {!collapsed && (
-              <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-white/30">
+              <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8FA69E]/70">
                 {section.label}
               </p>
             )}
-            <ul className="space-y-0.5">
+            <ul className="space-y-1">
               {section.items.map((item) => {
                 const isActive =
                   pathname === item.href ||
@@ -97,16 +97,16 @@ export function Sidebar() {
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                        "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all duration-200",
                         isActive
-                          ? "bg-[#00d4aa]/10 text-[#00d4aa]"
-                          : "text-white/60 hover:bg-white/[0.04] hover:text-white"
+                          ? "border-[#3EF2A0]/25 bg-[#3EF2A0]/10 text-[#DDFBEA] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_28px_rgba(62,242,160,0.06)]"
+                          : "border-transparent text-[#8FA69E] hover:border-white/[0.10] hover:bg-white/[0.045] hover:text-[#F8FAF7]"
                       )}
                     >
                       <Icon
                         className={cn(
                           "h-4 w-4 shrink-0",
-                          isActive ? "text-[#00d4aa]" : "text-white/40"
+                          isActive ? "text-[#3EF2A0]" : "text-[#8FA69E]/70"
                         )}
                       />
                       {!collapsed && <span>{item.label}</span>}
@@ -120,10 +120,19 @@ export function Sidebar() {
       </nav>
 
       {/* Collapse toggle */}
-      <div className="border-t border-white/[0.08] p-2">
+      {!collapsed && (
+        <div className="mx-3 mb-3 rounded-3xl border border-[#3EF2A0]/15 bg-[#003F32]/20 p-4">
+          <p className="text-xs font-semibold text-[#DDFBEA]">Pipeline IA</p>
+          <p className="mt-1 text-[11px] leading-5 text-[#8FA69E]">
+            Prospection, scoring et relances sous contrôle.
+          </p>
+        </div>
+      )}
+
+      <div className="border-t border-[#3EF2A0]/10 p-3">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center justify-center rounded-lg p-2 text-white/40 hover:bg-white/[0.04] hover:text-white transition-colors"
+          className="flex w-full items-center justify-center rounded-2xl border border-[#3EF2A0]/10 p-2 text-[#8FA69E] transition-colors hover:bg-white/[0.05] hover:text-[#F8FAF7]"
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />

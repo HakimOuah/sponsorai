@@ -19,18 +19,18 @@ export default async function EditPlayerPage({
     <div>
       <Link
         href={`/players/${player.id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors mb-4"
+        className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         {player.firstName} {player.lastName}
       </Link>
 
       <div className="flex items-center gap-3 mb-6">
-        <Users className="h-6 w-6 text-[#00d4aa]" />
-        <h1 className="text-2xl font-bold text-white">Modifier le joueur</h1>
+        <Users className="h-6 w-6 text-[#3EF2A0]" />
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Modifier le joueur</h1>
       </div>
 
-      <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-6">
+      <div className="app-panel p-6">
         <PlayerForm action={updateAction} player={player} />
       </div>
     </div>

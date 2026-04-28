@@ -93,9 +93,9 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
   };
 
   const confidenceColor: Record<string, string> = {
-    high: "text-[#00d4aa]",
+    high: "text-[#3EF2A0]",
     medium: "text-[#f59e0b]",
-    low: "text-white/30",
+    low: "text-[#8FA69E]",
   };
 
   if (!expanded) {
@@ -116,7 +116,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[#0c1019] p-4 space-y-3">
+    <div className="app-panel p-4 space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Database className="h-4 w-4 text-[#f59e0b]" />
@@ -126,7 +126,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
         </div>
         <button
           onClick={() => setExpanded(false)}
-          className="text-xs text-white/30 hover:text-white/60"
+          className="text-xs text-[#8FA69E] hover:text-white/60"
         >
           Réduire
         </button>
@@ -134,25 +134,25 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
 
       {/* Console logs */}
       {logs.length > 0 && (
-        <div className="rounded-lg bg-[#07090f] p-3 font-mono text-xs max-h-32 overflow-y-auto space-y-1">
+        <div className="rounded-lg bg-[#020403] p-3 font-mono text-xs max-h-32 overflow-y-auto space-y-1">
           {logs.map((l, i) => (
             <div
               key={i}
               className={
                 l.type === "success"
-                  ? "text-[#00d4aa]"
+                  ? "text-[#3EF2A0]"
                   : l.type === "error"
                     ? "text-red-400"
                     : l.type === "data"
-                      ? "text-[#0088ff]"
-                      : "text-white/40"
+                      ? "text-[#DDFBEA]"
+                      : "text-[#8FA69E]"
               }
             >
               {l.message}
             </div>
           ))}
           {loading && (
-            <div className="text-white/20 animate-pulse">En cours...</div>
+            <div className="text-[#8FA69E]/55 animate-pulse">En cours...</div>
           )}
         </div>
       )}
@@ -166,8 +166,8 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
       {done && contacts.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[#00d4aa]" />
-            <span className="text-sm text-[#00d4aa]">
+            <Check className="h-4 w-4 text-[#3EF2A0]" />
+            <span className="text-sm text-[#3EF2A0]">
               {contacts.length} contact{contacts.length > 1 ? "s" : ""} trouvé{contacts.length > 1 ? "s" : ""}
             </span>
           </div>
@@ -175,21 +175,21 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
           {contacts.map((c, i) => (
             <div
               key={i}
-              className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"
+              className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] p-3"
             >
               <div className="flex items-center gap-2 mb-1">
-                <User className="h-3.5 w-3.5 text-white/40" />
+                <User className="h-3.5 w-3.5 text-[#8FA69E]" />
                 <span className="text-sm font-medium text-white">{c.name}</span>
-                <span className="text-xs text-white/40">— {c.role}</span>
+                <span className="text-xs text-[#8FA69E]">— {c.role}</span>
                 <span
-                  className={`ml-auto font-mono text-[10px] ${confidenceColor[c.confidence] || "text-white/30"}`}
+                  className={`ml-auto font-mono text-[10px] ${confidenceColor[c.confidence] || "text-[#8FA69E]"}`}
                 >
                   {c.confidence}
                 </span>
               </div>
               <div className="flex items-center gap-3 text-xs">
                 {c.email && (
-                  <span className="flex items-center gap-1 text-[#0088ff]">
+                  <span className="flex items-center gap-1 text-[#DDFBEA]">
                     <Mail className="h-3 w-3" />
                     {c.email}
                   </span>
@@ -199,19 +199,19 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
                     href={c.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[#0088ff] hover:underline"
+                    className="flex items-center gap-1 text-[#DDFBEA] hover:underline"
                   >
                     <Link2 className="h-3 w-3" />
                     LinkedIn
                   </a>
                 )}
-                <span className="text-white/20 ml-auto">{c.source}</span>
+                <span className="text-[#8FA69E]/55 ml-auto">{c.source}</span>
               </div>
             </div>
           ))}
 
           {insights && (
-            <p className="text-xs text-white/40 italic">{insights}</p>
+            <p className="text-xs text-[#8FA69E] italic">{insights}</p>
           )}
         </div>
       )}
@@ -220,7 +220,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
       {!loading && !done && (
         <button
           onClick={run}
-          className="flex items-center gap-1.5 rounded-lg bg-[#f59e0b] px-4 py-2 text-sm font-semibold text-[#07090f] hover:bg-[#f59e0b]/80 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-[#f59e0b] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#f59e0b]/80 transition-colors"
         >
           <Database className="h-4 w-4" />
           Lancer l&apos;enrichissement
@@ -230,7 +230,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
       {done && (
         <button
           onClick={run}
-          className="text-xs text-white/30 hover:text-white/60"
+          className="text-xs text-[#8FA69E] hover:text-white/60"
         >
           Relancer
         </button>

@@ -31,8 +31,8 @@ export default async function SettingsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Settings className="h-6 w-6 text-[#00d4aa]" />
-        <h1 className="text-2xl font-bold text-white">Paramètres</h1>
+        <Settings className="h-6 w-6 text-[#3EF2A0]" />
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Paramètres</h1>
       </div>
 
       <div className="space-y-6">
@@ -51,10 +51,13 @@ export default async function SettingsPage() {
           <div className="grid grid-cols-2 gap-4 max-w-lg">
             <EnvField label="Host" value={process.env.SMTP_HOST} />
             <EnvField label="Port" value={process.env.SMTP_PORT} />
+            <EnvField label="Secure" value={process.env.SMTP_SECURE} />
             <EnvField label="User" value={process.env.SMTP_USER} />
+            <EnvField label="From" value={process.env.SMTP_FROM} />
+            <EnvField label="Reply-To" value={process.env.SMTP_REPLY_TO} />
             <EnvField label="Password" value={process.env.SMTP_PASS ? "••••••••" : undefined} />
           </div>
-          <p className="mt-3 text-xs text-white/20">
+          <p className="mt-3 text-xs text-[#8FA69E]/55">
             Modifiable dans le fichier .env ou les variables d&apos;environnement du serveur.
           </p>
         </Section>
@@ -73,7 +76,7 @@ export default async function SettingsPage() {
             <EnvField label="Apollo.io API Key" value={undefined} placeholder="Phase 2" />
             <EnvField label="Hunter.io API Key" value={undefined} placeholder="Phase 2" />
           </div>
-          <p className="mt-3 text-xs text-white/20">
+          <p className="mt-3 text-xs text-[#8FA69E]/55">
             Modifiable dans le fichier .env. Ne jamais exposer les clés en front-end.
           </p>
         </Section>
@@ -85,14 +88,14 @@ export default async function SettingsPage() {
             <ConfigCard label="Volume par scan" value="25-30" description="Marques recherchées par scan Scout" />
             <ConfigCard label="Délais relance" value="J+4 / J+10" description="Intervalles entre les relances email" />
           </div>
-          <p className="mt-3 text-xs text-white/20">
+          <p className="mt-3 text-xs text-[#8FA69E]/55">
             Configuration avancée des agents disponible dans une prochaine version.
           </p>
         </Section>
 
         {/* Export */}
         <Section icon={Download} title="Export CSV">
-          <p className="text-sm text-white/40 mb-3">
+          <p className="text-sm text-[#8FA69E] mb-3">
             Téléchargez vos données au format CSV (séparateur point-virgule, UTF-8 BOM).
           </p>
           <ExportButtons />
@@ -112,9 +115,9 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-6">
+    <div className="app-panel p-6">
       <div className="flex items-center gap-2 mb-4">
-        <Icon className="h-4 w-4 text-[#00d4aa]" />
+        <Icon className="h-4 w-4 text-[#3EF2A0]" />
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50">
           {title}
         </h2>
@@ -135,10 +138,10 @@ function EnvField({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
         {label}
       </p>
-      <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 font-mono text-sm">
+      <div className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] px-3 py-2 font-mono text-sm">
         {value ? (
           <span className="text-white/60">{value}</span>
         ) : (
@@ -159,10 +162,10 @@ function ConfigCard({
   description: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-      <p className="text-xs text-white/40 mb-1">{label}</p>
+    <div className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] p-3">
+      <p className="text-xs text-[#8FA69E] mb-1">{label}</p>
       <p className="font-mono text-sm font-bold text-white mb-1">{value}</p>
-      <p className="text-[10px] text-white/20">{description}</p>
+      <p className="text-[10px] text-[#8FA69E]/55">{description}</p>
     </div>
   );
 }

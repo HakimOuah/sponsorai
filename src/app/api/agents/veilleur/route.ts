@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runVeilleur } from "@/lib/agents/veilleur";
+import { isDealStage, prospectStatusForDealStage } from "@/lib/pipeline";
 
 export async function POST(request: NextRequest) {
   const { emailId, replyContent } = await request.json();
@@ -61,14 +62,13 @@ export async function POST(request: NextRequest) {
 
     // Update prospect status based on analysis
     if (email.prospectId) {
-      const statusMap: Record<string, string> = {
-        meeting: "meeting",
-        negotiation: "meeting",
-        offer: "offer",
-        lost: "lost",
-        contacted: "replied",
-      };
-      const newStatus = statusMap[analysis.suggested_stage] || "replied";
+      const suggestedStage = isDealStage(analysis.suggested_stage)
+        ? analysis.suggested_stage
+        : "contacted";
+      const newStatus =
+        suggestedStage === "contacted"
+          ? "replied"
+          : prospectStatusForDealStage(suggestedStage);
 
       await prisma.prospect.update({
         where: { id: email.prospectId },
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         await prisma.deal.update({
           where: { id: email.prospect.deal.id },
           data: {
-            stage: analysis.suggested_stage,
+            stage: suggestedStage,
             nextAction: analysis.next_action,
           },
         });

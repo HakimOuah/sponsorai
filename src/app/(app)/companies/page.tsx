@@ -18,17 +18,28 @@ export default async function CompaniesPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-8 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Building2 className="h-6 w-6 text-[#00d4aa]" />
-          <h1 className="text-2xl font-bold text-white">Entreprises</h1>
-          <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 font-mono text-xs text-white/40">
-            {companies.length}
+          <span className="app-title-icon">
+            <Building2 className="h-5 w-5" />
           </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">
+                Entreprises
+              </h1>
+              <span className="rounded-full border border-[#3EF2A0]/15 bg-[#3EF2A0]/10 px-2.5 py-0.5 font-mono text-xs text-[#3EF2A0]">
+                {companies.length}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-[#8FA69E]">
+              Marques qualifiées, contacts et historique des opportunités.
+            </p>
+          </div>
         </div>
         <Link
           href="/companies/new"
-          className="flex items-center gap-2 rounded-lg bg-[#00d4aa] px-4 py-2 text-sm font-semibold text-[#07090f] hover:bg-[#00e4ba] transition-colors"
+          className="flex items-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] shadow-[0_14px_38px_rgba(62,242,160,0.12)] transition-all hover:-translate-y-0.5 hover:bg-white"
         >
           <Plus className="h-4 w-4" />
           Ajouter
@@ -41,12 +52,12 @@ export default async function CompaniesPage({
       </div>
 
       {companies.length === 0 ? (
-        <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-12 text-center">
+        <div className="app-panel p-12 text-center">
           <Building2 className="mx-auto mb-3 h-10 w-10 text-white/10" />
-          <p className="text-white/40 mb-4">Aucune entreprise trouvée</p>
+          <p className="text-[#8FA69E] mb-4">Aucune entreprise trouvée</p>
           <Link
             href="/companies/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#00d4aa] px-4 py-2 text-sm font-semibold text-[#07090f] hover:bg-[#00e4ba] transition-colors"
+            className="inline-flex items-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] transition-all hover:-translate-y-0.5 hover:bg-white"
           >
             <Plus className="h-4 w-4" />
             Ajouter la première entreprise

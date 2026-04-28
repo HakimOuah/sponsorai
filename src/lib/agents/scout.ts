@@ -40,11 +40,13 @@ export async function runPlayerResearch(
       social_content_style: "Non trouvé",
       brand_affinities: [],
       existing_partnerships: [],
+      brand_conflicts: [],
       public_image: "Non trouvé",
       audience_demographics: "Non trouvé",
       recent_news: "Non trouvé",
       momentum_score: 5,
       key_values: [],
+      commercial_angles: [],
     };
   }
 
@@ -53,9 +55,13 @@ export async function runPlayerResearch(
   log(`  Momentum : ${intelligence.momentum_score}/10`, "data");
   log(`  Partenariats existants : ${intelligence.existing_partnerships?.length || 0} identifiés`, "data");
   log(`  Affinités marques : ${intelligence.brand_affinities?.join(", ") || "aucune"}`, "data");
+  log(`  Angles commerciaux : ${intelligence.commercial_angles?.length || 0}`, "data");
 
   if (intelligence.existing_partnerships?.length > 0) {
     log(`  ⚠ Partenariats à éviter (concurrents) : ${intelligence.existing_partnerships.join(", ")}`, "data");
+  }
+  if (intelligence.brand_conflicts?.length > 0) {
+    log(`  Conflits marques déduits : ${intelligence.brand_conflicts.join(", ")}`, "data");
   }
 
   return intelligence;
@@ -88,6 +94,9 @@ export async function runScout(
   }
   if (intelligence?.existing_partnerships?.length) {
     exclusionSection += `\n\nPARTENARIATS EXISTANTS DU JOUEUR (CONFLITS D'EXCLUSIVITÉ À ÉVITER) :\n${intelligence.existing_partnerships.map((p) => `- ${p} (et tous ses concurrents directs)`).join("\n")}`;
+  }
+  if (intelligence?.brand_conflicts?.length) {
+    exclusionSection += `\n\nMARQUES / CATÉGORIES CONCURRENTES À ÉVITER :\n${intelligence.brand_conflicts.map((p) => `- ${p}`).join("\n")}`;
   }
 
   let searchPrompt = SCOUT_SEARCH_PROMPT

@@ -49,10 +49,10 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
 
   if (draftEmails.length === 0) {
     return (
-      <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-6 text-center">
+      <div className="app-panel p-6 text-center">
         <Send className="h-8 w-8 text-white/10 mx-auto mb-2" />
-        <p className="text-sm text-white/40">Aucun brouillon à envoyer</p>
-        <p className="text-xs text-white/20 mt-1">
+        <p className="text-sm text-[#8FA69E]">Aucun brouillon à envoyer</p>
+        <p className="text-xs text-[#8FA69E]/55 mt-1">
           Générez des emails depuis la page Prospection
         </p>
       </div>
@@ -60,13 +60,13 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-5 space-y-4">
+    <div className="app-panel p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-white">
             {draftEmails.length} brouillon{draftEmails.length > 1 ? "s" : ""} prêt{draftEmails.length > 1 ? "s" : ""}
           </h3>
-          <p className="text-xs text-white/40 mt-0.5">
+          <p className="text-xs text-[#8FA69E] mt-0.5">
             {sendable.length} avec contact email · {noContact.length} sans contact
           </p>
         </div>
@@ -76,7 +76,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
             {confirmAll && (
               <button
                 onClick={() => setConfirmAll(false)}
-                className="text-xs text-white/30 hover:text-white/60"
+                className="text-xs text-[#8FA69E] hover:text-white/60"
               >
                 Annuler
               </button>
@@ -86,8 +86,8 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
               disabled={sending || sendable.length === 0}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 ${
                 confirmAll
-                  ? "bg-[#f59e0b] text-[#07090f] hover:bg-[#f59e0b]/80"
-                  : "bg-[#00d4aa] text-[#07090f] hover:bg-[#00e4ba]"
+                  ? "bg-[#f59e0b] text-[#020403] hover:bg-[#f59e0b]/80"
+                  : "bg-[#3EF2A0] text-[#020403] hover:bg-[#2CFF93]"
               }`}
             >
               {sending ? (
@@ -106,13 +106,13 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
       {/* Progress */}
       {sending && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs text-white/40">
+          <div className="flex items-center gap-2 text-xs text-[#8FA69E]">
             <Loader2 className="h-3 w-3 animate-spin" />
             Envoi en cours… {progress}/{sendable.length}
           </div>
           <div className="h-1.5 rounded-full bg-white/[0.06]">
             <div
-              className="h-full rounded-full bg-[#00d4aa] transition-all"
+              className="h-full rounded-full bg-[#3EF2A0] transition-all"
               style={{ width: `${(progress / sendable.length) * 100}%` }}
             />
           </div>
@@ -123,8 +123,8 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
       {results && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[#00d4aa]" />
-            <span className="text-sm text-[#00d4aa]">
+            <Check className="h-4 w-4 text-[#3EF2A0]" />
+            <span className="text-sm text-[#3EF2A0]">
               {results.sent} email{results.sent > 1 ? "s" : ""} envoyé{results.sent > 1 ? "s" : ""}
             </span>
             {results.errors > 0 && (
@@ -159,12 +159,12 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
       )}
 
       {/* Draft list preview */}
-      <div className="max-h-48 overflow-y-auto divide-y divide-white/[0.04] rounded-lg border border-white/[0.06]">
+      <div className="max-h-48 overflow-y-auto divide-y divide-white/[0.04] rounded-lg border border-[#3EF2A0]/10">
         {draftEmails.map((email) => (
           <div key={email.id} className="flex items-center gap-3 px-3 py-2 text-xs">
-            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${email.company.contactEmail ? "bg-[#00d4aa]" : "bg-white/10"}`} />
+            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${email.company.contactEmail ? "bg-[#3EF2A0]" : "bg-white/10"}`} />
             <span className="text-white/60 truncate flex-1">{email.subject}</span>
-            <span className="text-white/30 shrink-0">{email.company.name}</span>
+            <span className="text-[#8FA69E] shrink-0">{email.company.name}</span>
           </div>
         ))}
       </div>

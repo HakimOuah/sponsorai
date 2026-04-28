@@ -56,11 +56,22 @@ export interface PlayerIntelligence {
   social_content_style: string;
   brand_affinities: string[];
   existing_partnerships: string[];
+  brand_conflicts: string[];
   public_image: string;
   audience_demographics: string;
   recent_news: string;
   momentum_score: number;
   key_values: string[];
+  commercial_angles: CommercialAngle[];
+}
+
+export interface CommercialAngle {
+  name: string;
+  why: string;
+  ideal_brand_profile: string;
+  target_regions: string[];
+  offer_types: string[];
+  proof_points: string[];
 }
 
 export interface ScoutBrand {
@@ -68,6 +79,8 @@ export interface ScoutBrand {
   sector: string;
   country: string;
   website?: string;
+  commercial_angle?: string;
+  opportunity_signal?: string;
   rationale: string;
   partnership_type: string;
   existing_sports_sponsoring?: string;

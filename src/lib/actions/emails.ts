@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { mailer } from "@/lib/mailer";
+import { getMailFrom, mailer } from "@/lib/mailer";
 import { revalidatePath } from "next/cache";
 
 export async function getEmails(filters?: {
@@ -106,7 +106,8 @@ export async function sendEmail(emailId: string) {
   if (!email.company.contactEmail) throw new Error("No contact email for this company");
 
   const info = await mailer.sendMail({
-    from: process.env.SMTP_USER,
+    from: getMailFrom(),
+    replyTo: process.env.SMTP_REPLY_TO || process.env.SMTP_FROM || process.env.SMTP_USER,
     to: email.company.contactEmail,
     subject: email.subject,
     text: email.body,

@@ -6,10 +6,10 @@ export default function NewPlayerPage() {
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Users className="h-6 w-6 text-[#00d4aa]" />
-        <h1 className="text-2xl font-bold text-white">Nouveau joueur</h1>
+        <Users className="h-6 w-6 text-[#3EF2A0]" />
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Nouveau joueur</h1>
       </div>
-      <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-6">
+      <div className="app-panel p-6">
         <PlayerForm action={createPlayer} />
       </div>
     </div>

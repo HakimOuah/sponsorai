@@ -17,7 +17,7 @@ export function PlayerSelector({ players, selectedId }: PlayerSelectorProps) {
         const val = e.target.value;
         router.push(val ? `/prospection?player=${val}` : "/prospection");
       }}
-      className="w-full max-w-md rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white focus:border-[#00d4aa]/50 focus:outline-none transition-colors"
+      className="w-full max-w-md rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
     >
       <option value="">Tous les joueurs</option>
       {players.map((p) => (

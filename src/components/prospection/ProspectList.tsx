@@ -81,13 +81,13 @@ export function ProspectList({ prospects }: ProspectListProps) {
     <div>
       {/* Stats bar */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <span className="rounded-full bg-[#00d4aa]/10 px-3 py-1 font-mono text-xs text-[#00d4aa]">
+        <span className="rounded-full bg-[#3EF2A0]/10 px-3 py-1 font-mono text-xs text-[#3EF2A0]">
           {countA} A
         </span>
-        <span className="rounded-full bg-[#0088ff]/10 px-3 py-1 font-mono text-xs text-[#0088ff]">
+        <span className="rounded-full bg-[#DDFBEA]/10 px-3 py-1 font-mono text-xs text-[#DDFBEA]">
           {countB} B
         </span>
-        <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-white/40">
+        <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#8FA69E]">
           {countC} C
         </span>
         {withDeal > 0 && (
@@ -101,14 +101,14 @@ export function ProspectList({ prospects }: ProspectListProps) {
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <button
           onClick={selectAllA}
-          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.04] transition-colors"
+          className="flex items-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.06] transition-colors"
         >
           <CheckSquare className="h-3 w-3" />
           Tous les A
         </button>
         <button
           onClick={selectAllBPlus}
-          className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.04] transition-colors"
+          className="flex items-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.06] transition-colors"
         >
           <CheckSquare className="h-3 w-3" />
           A + B
@@ -117,12 +117,12 @@ export function ProspectList({ prospects }: ProspectListProps) {
           <>
             <button
               onClick={clearSelection}
-              className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-white/40 hover:bg-white/[0.04] transition-colors"
+              className="flex items-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-1.5 text-xs text-[#8FA69E] hover:bg-white/[0.06] transition-colors"
             >
               <Square className="h-3 w-3" />
               Désélectionner
             </button>
-            <span className="text-xs text-white/30">
+            <span className="text-xs text-[#8FA69E]">
               {selected.size} sélectionné{selected.size > 1 ? "s" : ""}
             </span>
             <BulkEmailGenerator
@@ -132,7 +132,7 @@ export function ProspectList({ prospects }: ProspectListProps) {
             <button
               onClick={handleBulkDeals}
               disabled={isPending}
-              className="flex items-center gap-1.5 rounded-lg bg-[#00d4aa] px-3 py-1.5 text-xs font-semibold text-[#07090f] hover:bg-[#00e4ba] transition-colors disabled:opacity-50 ml-auto"
+              className="flex items-center gap-1.5 rounded-full bg-[#F8FAF7] px-3 py-1.5 text-xs font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50 ml-auto"
             >
               <Handshake className="h-3 w-3" />
               {isPending ? "Création..." : `Créer ${selected.size} deal${selected.size > 1 ? "s" : ""}`}
@@ -143,7 +143,7 @@ export function ProspectList({ prospects }: ProspectListProps) {
 
       {/* Message */}
       {message && (
-        <div className="mb-4 rounded-lg border border-[#00d4aa]/20 bg-[#00d4aa]/5 px-4 py-2.5 text-sm text-[#00d4aa]">
+        <div className="mb-4 rounded-lg border border-[#3EF2A0]/20 bg-[#3EF2A0]/5 px-4 py-2.5 text-sm text-[#3EF2A0]">
           {message}
         </div>
       )}

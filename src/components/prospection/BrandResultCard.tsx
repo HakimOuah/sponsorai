@@ -44,9 +44,9 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
   const [expanded, setExpanded] = useState(false);
 
   const priorityColors: Record<string, string> = {
-    A: "bg-[#00d4aa]/10 text-[#00d4aa] border-[#00d4aa]/20",
-    B: "bg-[#0088ff]/10 text-[#0088ff] border-[#0088ff]/20",
-    C: "bg-white/[0.06] text-white/40 border-white/[0.06]",
+    A: "bg-[#3EF2A0]/10 text-[#3EF2A0] border-[#3EF2A0]/20",
+    B: "bg-[#DDFBEA]/10 text-[#DDFBEA] border-[#DDFBEA]/20",
+    C: "bg-white/[0.06] text-[#8FA69E] border-[#3EF2A0]/10",
   };
 
   const p = prospect.priority || "C";
@@ -65,7 +65,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
     daysSinceContact >= 7;
 
   return (
-    <div className={`rounded-xl border transition-all ${selected ? "border-[#00d4aa]/30 bg-[#00d4aa]/[0.02]" : "border-white/[0.06] bg-[#0c1019]"}`}>
+    <div className={`rounded-xl border transition-all ${selected ? "border-[#3EF2A0]/30 bg-[#3EF2A0]/[0.02]" : "border-[#3EF2A0]/10 bg-[#061511]"}`}>
       {/* Main row */}
       <div className="flex items-center gap-3 p-4">
         {/* Checkbox */}
@@ -73,7 +73,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
           type="checkbox"
           checked={selected}
           onChange={() => onToggle(prospect.id)}
-          className="h-4 w-4 rounded border-white/20 bg-white/5 text-[#00d4aa] focus:ring-[#00d4aa]/50 shrink-0"
+          className="h-4 w-4 rounded border-white/20 bg-white/5 text-[#3EF2A0] focus:ring-[#3EF2A0]/50 shrink-0"
         />
 
         {/* Priority badge */}
@@ -86,12 +86,12 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-white truncate">{prospect.company.name}</h3>
             {prospect.deal && (
-              <span className="rounded-full bg-[#00d4aa]/10 px-2 py-0.5 font-mono text-[10px] text-[#00d4aa]">
+              <span className="rounded-full bg-[#3EF2A0]/10 px-2 py-0.5 font-mono text-[10px] text-[#3EF2A0]">
                 deal
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs text-white/40">
+          <div className="flex items-center gap-2 text-xs text-[#8FA69E]">
             {prospect.company.sector && <span>{prospect.company.sector}</span>}
             {prospect.company.country && (
               <>
@@ -102,7 +102,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
             {prospect.company.contactEmail && (
               <>
                 <span>·</span>
-                <span className="text-[#0088ff]">contact</span>
+                <span className="text-[#DDFBEA]">contact</span>
               </>
             )}
           </div>
@@ -113,7 +113,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
           <span className="font-mono text-lg font-bold text-white">
             {prospect.score ?? "—"}
           </span>
-          <span className="text-xs text-white/30">/10</span>
+          <span className="text-xs text-[#8FA69E]">/10</span>
         </div>
 
         {/* Status */}
@@ -125,7 +125,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
         {needsRelance && (
           <Link
             href={`/agents?prospect=${prospect.id}#relanceur`}
-            className="flex items-center gap-1 rounded-full bg-[#ec4899]/10 px-2 py-0.5 text-[10px] font-medium text-[#ec4899] hover:bg-[#ec4899]/20 transition-colors shrink-0"
+            className="flex items-center gap-1 rounded-full bg-[#f59e0b]/10 px-2 py-0.5 text-[10px] font-medium text-[#f59e0b] hover:bg-[#f59e0b]/20 transition-colors shrink-0"
           >
             <RefreshCw className="h-3 w-3" />
             Relance {daysSinceContact}j
@@ -135,7 +135,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
         {/* Expand */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="p-1 text-white/30 hover:text-white/60 transition-colors shrink-0"
+          className="p-1 text-[#8FA69E] hover:text-white/60 transition-colors shrink-0"
         >
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
@@ -143,19 +143,19 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-white/[0.06] px-4 pb-4 pt-3">
+        <div className="border-t border-[#3EF2A0]/10 px-4 pb-4 pt-3">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Left: rationale + approach */}
             <div className="space-y-3">
               {prospect.rationale && (
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1">Rationnel</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">Rationnel</p>
                   <p className="text-sm text-white/70">{prospect.rationale}</p>
                 </div>
               )}
               {prospect.recommendedApproach && (
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1">Approche recommandée</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">Approche recommandée</p>
                   <p className="text-sm text-white/70">{prospect.recommendedApproach}</p>
                 </div>
               )}
@@ -182,16 +182,16 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
             {/* Right: score breakdown */}
             {scoreDetails && (
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-2">Score détaillé</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-2">Score détaillé</p>
                 <div className="space-y-1.5">
                   {Object.entries(scoreDetails).map(([key, value]) => (
                     <div key={key} className="flex items-center gap-2">
-                      <span className="text-xs text-white/40 w-24 shrink-0">
+                      <span className="text-xs text-[#8FA69E] w-24 shrink-0">
                         {criteriaLabels[key] || key}
                       </span>
                       <div className="flex-1 h-1.5 rounded-full bg-white/[0.06]">
                         <div
-                          className="h-full rounded-full bg-[#00d4aa]"
+                          className="h-full rounded-full bg-[#3EF2A0]"
                           style={{ width: `${(value as number) * 10}%` }}
                         />
                       </div>
@@ -213,11 +213,11 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
 function statusColor(status: string): string {
   const colors: Record<string, string> = {
     new: "bg-white/[0.06] text-white/50",
-    contacted: "bg-[#0088ff]/10 text-[#0088ff]",
-    replied: "bg-[#00d4aa]/10 text-[#00d4aa]",
-    meeting: "bg-[#8b5cf6]/10 text-[#8b5cf6]",
+    contacted: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
+    replied: "bg-[#3EF2A0]/10 text-[#3EF2A0]",
+    meeting: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
     offer: "bg-[#f59e0b]/10 text-[#f59e0b]",
-    signed: "bg-[#00d4aa]/15 text-[#00d4aa]",
+    signed: "bg-[#3EF2A0]/15 text-[#3EF2A0]",
     lost: "bg-red-500/10 text-red-400",
   };
   return colors[status] || colors.new;

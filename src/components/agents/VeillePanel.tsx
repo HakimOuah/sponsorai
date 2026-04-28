@@ -105,17 +105,17 @@ export function VeillePanel() {
   }, [isRunning]);
 
   const typeConfig: Record<string, { icon: typeof TrendingUp; label: string; color: string }> = {
-    new_deal: { icon: ArrowRightLeft, label: "Nouveau deal", color: "text-[#0088ff]" },
+    new_deal: { icon: ArrowRightLeft, label: "Nouveau deal", color: "text-[#DDFBEA]" },
     contract_end: { icon: Clock, label: "Fin de contrat", color: "text-[#f59e0b]" },
-    brand_entering: { icon: LogIn, label: "Marque entrante", color: "text-[#00d4aa]" },
+    brand_entering: { icon: LogIn, label: "Marque entrante", color: "text-[#3EF2A0]" },
     brand_leaving: { icon: LogOut, label: "Marque sortante", color: "text-red-400" },
-    trend: { icon: TrendingUp, label: "Tendance", color: "text-[#8b5cf6]" },
+    trend: { icon: TrendingUp, label: "Tendance", color: "text-[#DDFBEA]" },
   };
 
   const priorityConfig: Record<string, { bg: string; text: string }> = {
     high: { bg: "bg-red-500/10", text: "text-red-400" },
     medium: { bg: "bg-[#f59e0b]/10", text: "text-[#f59e0b]" },
-    low: { bg: "bg-white/[0.06]", text: "text-white/40" },
+    low: { bg: "bg-white/[0.06]", text: "text-[#8FA69E]" },
   };
 
   return (
@@ -125,7 +125,7 @@ export function VeillePanel() {
         <button
           onClick={launch}
           disabled={isRunning}
-          className="flex items-center gap-2 rounded-lg bg-[#a855f7] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#a855f7]/80 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-[#DDFBEA] px-5 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#DDFBEA]/80 transition-colors disabled:opacity-50"
         >
           {isRunning ? (
             <>
@@ -140,7 +140,7 @@ export function VeillePanel() {
           )}
         </button>
         {!isRunning && !result && (
-          <span className="text-xs text-white/30">
+          <span className="text-xs text-[#8FA69E]">
             Scanne l&apos;actualité sponsoring football et identifie les opportunités
           </span>
         )}
@@ -148,28 +148,28 @@ export function VeillePanel() {
 
       {/* Console logs */}
       {logs.length > 0 && (
-        <div className="rounded-xl border border-white/[0.06] bg-[#07090f] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
+        <div className="rounded-xl border border-[#3EF2A0]/10 bg-[#020403] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
           {logs.map((log, i) => (
             <div
               key={i}
               className={`flex items-start gap-2 ${
                 log.type === "success"
-                  ? "text-[#00d4aa]"
+                  ? "text-[#3EF2A0]"
                   : log.type === "data"
-                    ? "text-[#0088ff]"
+                    ? "text-[#DDFBEA]"
                     : log.type === "error"
                       ? "text-red-400"
                       : "text-white/50"
               }`}
             >
-              <span className="text-white/20 shrink-0">
+              <span className="text-[#8FA69E]/55 shrink-0">
                 {(log.timestamp / 1000).toFixed(1)}s
               </span>
               <span>{log.message}</span>
             </div>
           ))}
           {isRunning && (
-            <div className="flex items-center gap-2 text-white/30">
+            <div className="flex items-center gap-2 text-[#8FA69E]">
               <Loader2 className="h-3 w-3 animate-spin" />
               <span>En cours…</span>
             </div>
@@ -188,8 +188,8 @@ export function VeillePanel() {
       {result && (
         <div className="space-y-4">
           {/* Market summary */}
-          <div className="rounded-lg border border-[#a855f7]/20 bg-[#a855f7]/5 p-4">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1">
+          <div className="rounded-lg border border-[#a855f7]/20 bg-[#DDFBEA]/5 p-4">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
               Résumé du marché
             </p>
             <p className="text-sm text-white/70 leading-relaxed">
@@ -205,7 +205,7 @@ export function VeillePanel() {
             <span className="rounded-full bg-[#f59e0b]/10 px-3 py-1 font-mono text-xs text-[#f59e0b]">
               {result.alerts.filter((a) => a.priority === "medium").length} moyenne
             </span>
-            <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-white/40">
+            <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#8FA69E]">
               {result.alerts.filter((a) => a.priority === "low").length} basse
             </span>
           </div>
@@ -225,7 +225,7 @@ export function VeillePanel() {
                 return (
                   <div
                     key={i}
-                    className="rounded-xl border border-white/[0.08] bg-[#0c1019] p-4 space-y-2"
+                    className="app-panel p-4 space-y-2"
                   >
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
@@ -236,7 +236,7 @@ export function VeillePanel() {
                         </h4>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${tc.color} bg-white/[0.04]`}>
+                        <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${tc.color} bg-white/[0.06]`}>
                           {tc.label}
                         </span>
                         <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${pc.text} ${pc.bg}`}>
@@ -256,7 +256,7 @@ export function VeillePanel() {
                     {/* Opportunity / Threat */}
                     <div className="flex flex-wrap gap-2">
                       {alert.opportunity && (
-                        <div className="flex items-start gap-1.5 rounded-lg bg-[#00d4aa]/5 border border-[#00d4aa]/10 px-2.5 py-1.5 text-xs text-[#00d4aa]">
+                        <div className="flex items-start gap-1.5 rounded-full bg-[#F8FAF7]/5 border border-[#3EF2A0]/10 px-2.5 py-1.5 text-xs text-[#3EF2A0]">
                           <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
                           <span>{alert.opportunity}</span>
                         </div>
@@ -273,12 +273,12 @@ export function VeillePanel() {
                     {(alert.related_player || alert.related_brand) && (
                       <div className="flex items-center gap-2 text-[11px] text-white/25">
                         {alert.related_player && (
-                          <span className="rounded bg-white/[0.04] px-1.5 py-0.5">
+                          <span className="rounded bg-white/[0.06] px-1.5 py-0.5">
                             Joueur : {alert.related_player}
                           </span>
                         )}
                         {alert.related_brand && (
-                          <span className="rounded bg-white/[0.04] px-1.5 py-0.5">
+                          <span className="rounded bg-white/[0.06] px-1.5 py-0.5">
                             Marque : {alert.related_brand}
                           </span>
                         )}
@@ -290,7 +290,7 @@ export function VeillePanel() {
           </div>
 
           {/* Note */}
-          <p className="text-xs text-white/20">
+          <p className="text-xs text-[#8FA69E]/55">
             Les alertes de priorité haute sont automatiquement enregistrées dans le journal d&apos;activité.
           </p>
         </div>

@@ -52,7 +52,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 rounded-lg border border-[#8b5cf6]/20 bg-[#8b5cf6]/5 px-2.5 py-1.5 text-xs text-[#8b5cf6] hover:bg-[#8b5cf6]/10 transition-colors"
+        className="flex items-center gap-1.5 rounded-lg border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-2.5 py-1.5 text-xs text-[#DDFBEA] hover:bg-[#DDFBEA]/10 transition-colors"
       >
         <PenTool className="h-3 w-3" />
         Générer email
@@ -61,10 +61,10 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
   }
 
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-[#0c1019] p-4">
+    <div className="app-panel p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <PenTool className="h-4 w-4 text-[#8b5cf6]" />
+          <PenTool className="h-4 w-4 text-[#DDFBEA]" />
           <h3 className="text-sm font-semibold text-white">
             Agent Rédacteur — {companyName}
           </h3>
@@ -75,7 +75,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
             setResult(null);
             setError("");
           }}
-          className="text-xs text-white/30 hover:text-white/60 transition-colors"
+          className="text-xs text-[#8FA69E] hover:text-white/60 transition-colors"
         >
           Fermer
         </button>
@@ -91,8 +91,8 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
                 onClick={() => setEmailType(t.value)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                   emailType === t.value
-                    ? "bg-[#8b5cf6]/15 text-[#8b5cf6] border border-[#8b5cf6]/30"
-                    : "bg-white/[0.04] text-white/40 border border-white/[0.06] hover:bg-white/[0.06]"
+                    ? "bg-[#DDFBEA]/15 text-[#DDFBEA] border border-[#DDFBEA]/30"
+                    : "bg-white/[0.06] text-[#8FA69E] border border-[#3EF2A0]/10 hover:bg-white/[0.06]"
                 }`}
               >
                 {t.label}
@@ -103,7 +103,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
           <button
             onClick={generate}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#8b5cf6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7c3aed] transition-colors disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#DDFBEA] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#F8FAF7] transition-colors disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -128,23 +128,23 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
       {/* Result */}
       {result && (
         <div className="space-y-3">
-          <div className="rounded-lg border border-[#00d4aa]/20 bg-[#00d4aa]/5 px-3 py-2 text-xs text-[#00d4aa] flex items-center gap-2">
+          <div className="rounded-lg border border-[#3EF2A0]/20 bg-[#3EF2A0]/5 px-3 py-2 text-xs text-[#3EF2A0] flex items-center gap-2">
             <Check className="h-3.5 w-3.5" />
             Email généré et sauvegardé en brouillon
           </div>
 
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
               Objet
             </p>
             <p className="text-sm text-white/80">{result.subject}</p>
           </div>
 
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-white/30 mb-1">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
               Corps
             </p>
-            <div className="rounded-lg bg-white/[0.03] p-3 text-sm text-white/70 whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-lg bg-white/[0.045] p-3 text-sm text-white/70 whitespace-pre-wrap leading-relaxed">
               {result.body}
             </div>
           </div>
