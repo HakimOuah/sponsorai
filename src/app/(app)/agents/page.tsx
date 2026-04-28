@@ -24,7 +24,7 @@ const agents = [
       "Recherche de marques potentielles via web search + Claude. Trouve 25-30 marques par scan.",
     icon: Search,
     status: "active" as const,
-    color: "#00d4aa",
+    color: "#3EF2A0",
   },
   {
     name: "Matchmaker",
@@ -32,7 +32,7 @@ const agents = [
       "Scoring multi-critères des marques. 6 axes d'analyse, priorité A/B/C.",
     icon: Target,
     status: "active" as const,
-    color: "#0088ff",
+    color: "#DDFBEA",
   },
   {
     name: "Rédacteur",
@@ -40,7 +40,7 @@ const agents = [
       "Génération de mails de prospection personnalisés avec templates configurables.",
     icon: PenTool,
     status: "active" as const,
-    color: "#8b5cf6",
+    color: "#DDFBEA",
   },
   {
     name: "Enrichisseur",
@@ -64,7 +64,7 @@ const agents = [
       "Analyse et catégorisation des réponses reçues. Alerte sur les réponses positives.",
     icon: Eye,
     status: "active" as const,
-    color: "#06b6d4",
+    color: "#DDFBEA",
   },
   {
     name: "Relanceur",
@@ -72,7 +72,7 @@ const agents = [
       "Relance contextuelle basée sur l'actualité du joueur. Timing score et email personnalisé.",
     icon: RefreshCw,
     status: "active" as const,
-    color: "#ec4899",
+    color: "#f59e0b",
   },
   {
     name: "Veille Concurrence",
@@ -127,8 +127,8 @@ export default async function AgentsPage({
   return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <Bot className="h-6 w-6 text-[#00d4aa]" />
-        <h1 className="text-2xl font-bold text-white">Agents IA</h1>
+        <Bot className="h-6 w-6 text-[#3EF2A0]" />
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Agents IA</h1>
       </div>
 
       {/* Agent cards */}
@@ -140,7 +140,7 @@ export default async function AgentsPage({
 
       {/* Scan launcher */}
       <div className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
           Lancer un scan Scout + Matchmaker
         </h2>
         <ScanLauncher players={players} />
@@ -148,13 +148,13 @@ export default async function AgentsPage({
 
       {/* Relanceur */}
       <div className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
           Relanceur Intelligent
         </h2>
         {relanceurProspects.length > 0 ? (
           <RelanceurPanel prospects={relanceurProspects} defaultProspectId={searchParams.prospect} />
         ) : (
-          <p className="text-sm text-white/30">
+          <p className="text-sm text-[#8FA69E]">
             Aucun prospect contacté disponible. Envoyez d&apos;abord des emails de prospection.
           </p>
         )}
@@ -162,7 +162,7 @@ export default async function AgentsPage({
 
       {/* Veille Concurrence */}
       <div className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
           Veille Concurrentielle
         </h2>
         <VeillePanel />
@@ -171,13 +171,13 @@ export default async function AgentsPage({
       {/* Recent scans */}
       {recentScans.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Scans récents
           </h2>
-          <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] overflow-hidden">
+          <div className="app-panel overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] text-left text-xs text-white/30">
+                <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Joueur</th>
                   <th className="px-4 py-2.5 font-medium">Statut</th>
                   <th className="px-4 py-2.5 font-medium">Marques</th>
@@ -203,7 +203,7 @@ export default async function AgentsPage({
                     <td className="px-4 py-2.5 font-mono text-white/50">
                       {scan.duration ? `${scan.duration}s` : "—"}
                     </td>
-                    <td className="px-4 py-2.5 text-white/40">
+                    <td className="px-4 py-2.5 text-[#8FA69E]">
                       {scan.createdAt.toLocaleDateString("fr-FR", {
                         day: "numeric",
                         month: "short",
@@ -224,8 +224,8 @@ export default async function AgentsPage({
 
 function ScanStatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string }> = {
-    running: { bg: "bg-[#0088ff]/10", text: "text-[#0088ff]" },
-    completed: { bg: "bg-[#00d4aa]/10", text: "text-[#00d4aa]" },
+    running: { bg: "bg-[#DDFBEA]/10", text: "text-[#DDFBEA]" },
+    completed: { bg: "bg-[#3EF2A0]/10", text: "text-[#3EF2A0]" },
     failed: { bg: "bg-red-500/10", text: "text-red-400" },
   };
   const c = config[status] || config.running;

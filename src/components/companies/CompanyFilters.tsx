@@ -26,13 +26,13 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
     <div className="flex flex-wrap items-center gap-3">
       {/* Search */}
       <div className="relative flex-1 min-w-[200px]">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/20" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8FA69E]/55" />
         <input
           type="text"
           placeholder="Rechercher..."
           defaultValue={searchParams.get("search") || ""}
           onChange={(e) => update("search", e.target.value)}
-          className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] pl-9 pr-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#00d4aa]/50 focus:outline-none transition-colors"
+          className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] pl-9 pr-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
         />
       </div>
 
@@ -40,7 +40,7 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
       <select
         defaultValue={searchParams.get("sector") || ""}
         onChange={(e) => update("sector", e.target.value)}
-        className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white focus:border-[#00d4aa]/50 focus:outline-none transition-colors"
+        className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
       >
         <option value="">Tous secteurs</option>
         {sectors.map((s) => (
@@ -52,7 +52,7 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
       <select
         defaultValue={searchParams.get("country") || ""}
         onChange={(e) => update("country", e.target.value)}
-        className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white focus:border-[#00d4aa]/50 focus:outline-none transition-colors"
+        className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
       >
         <option value="">Tous pays</option>
         {countries.map((c) => (
@@ -64,7 +64,7 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
       <select
         defaultValue={searchParams.get("source") || ""}
         onChange={(e) => update("source", e.target.value)}
-        className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white focus:border-[#00d4aa]/50 focus:outline-none transition-colors"
+        className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
       >
         <option value="">Toutes sources</option>
         <option value="scout">Scout IA</option>

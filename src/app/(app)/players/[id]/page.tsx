@@ -21,7 +21,7 @@ export default async function PlayerDetailPage({
       {/* Back link */}
       <Link
         href="/players"
-        className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors mb-4"
+        className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Joueurs
@@ -30,14 +30,14 @@ export default async function PlayerDetailPage({
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#00d4aa]/10 text-[#00d4aa] font-bold text-2xl">
+          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#3EF2A0]/10 text-[#3EF2A0] font-bold text-2xl">
             {initials}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">
+            <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">
               {player.firstName} {player.lastName}
             </h1>
-            <div className="flex items-center gap-3 mt-1 text-sm text-white/40">
+            <div className="flex items-center gap-3 mt-1 text-sm text-[#8FA69E]">
               <span>{player.position && `${player.position} · `}{player.club}</span>
               {player.league && (
                 <span className="rounded-md bg-white/[0.06] px-2 py-0.5 font-mono text-[11px]">
@@ -62,14 +62,14 @@ export default async function PlayerDetailPage({
         <div className="flex items-center gap-2">
           <Link
             href="/agents"
-            className="flex items-center gap-2 rounded-lg bg-[#00d4aa] px-3 py-2 text-sm font-semibold text-[#07090f] hover:bg-[#00e4ba] transition-colors"
+            className="flex items-center gap-2 rounded-full bg-[#F8FAF7] px-3 py-2 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors"
           >
             <ScanLine className="h-3.5 w-3.5" />
             Scanner
           </Link>
           <Link
             href={`/players/${player.id}/edit`}
-            className="flex items-center gap-2 rounded-lg border border-white/[0.08] px-3 py-2 text-sm text-white/60 hover:bg-white/[0.04] hover:text-white transition-colors"
+            className="flex items-center gap-2 rounded-full border border-white/[0.10] px-3 py-2 text-sm text-white/60 hover:bg-white/[0.06] hover:text-white transition-colors"
           >
             <Pencil className="h-3.5 w-3.5" />
             Modifier
@@ -84,44 +84,44 @@ export default async function PlayerDetailPage({
       {/* Info sections */}
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Positionnement */}
-        <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+        <div className="app-panel p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Positionnement
           </h2>
           <div className="space-y-3">
             {player.positioning && (
               <div>
-                <p className="text-xs text-white/30 mb-1">Image & valeurs</p>
+                <p className="text-xs text-[#8FA69E] mb-1">Image & valeurs</p>
                 <p className="text-sm text-white/70">{player.positioning}</p>
               </div>
             )}
             {player.targetPartnerships && (
               <div>
-                <p className="text-xs text-white/30 mb-1">Deals recherchés</p>
+                <p className="text-xs text-[#8FA69E] mb-1">Deals recherchés</p>
                 <p className="text-sm text-white/70">{player.targetPartnerships}</p>
               </div>
             )}
             {player.languages && (
               <div>
-                <p className="text-xs text-white/30 mb-1">Langues</p>
+                <p className="text-xs text-[#8FA69E] mb-1">Langues</p>
                 <p className="text-sm text-white/70">{player.languages}</p>
               </div>
             )}
             {player.notes && (
               <div>
-                <p className="text-xs text-white/30 mb-1">Notes</p>
+                <p className="text-xs text-[#8FA69E] mb-1">Notes</p>
                 <p className="text-sm text-white/70">{player.notes}</p>
               </div>
             )}
             {!player.positioning && !player.targetPartnerships && !player.notes && (
-              <p className="text-sm text-white/20">Aucune info de positionnement</p>
+              <p className="text-sm text-[#8FA69E]/55">Aucune info de positionnement</p>
             )}
           </div>
         </div>
 
         {/* Réseaux sociaux */}
-        <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+        <div className="app-panel p-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Réseaux sociaux
           </h2>
           <div className="space-y-2">
@@ -135,7 +135,7 @@ export default async function PlayerDetailPage({
               <SocialRow label="X / Twitter" handle={player.twitter} followers={player.followersX} />
             )}
             {!player.instagram && !player.tiktok && !player.twitter && (
-              <p className="text-sm text-white/20">Aucun réseau configuré</p>
+              <p className="text-sm text-[#8FA69E]/55">Aucun réseau configuré</p>
             )}
           </div>
         </div>
@@ -144,13 +144,13 @@ export default async function PlayerDetailPage({
       {/* Prospects */}
       {player.prospects.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Prospects récents
           </h2>
-          <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] overflow-hidden">
+          <div className="app-panel overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] text-left text-xs text-white/30">
+                <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Entreprise</th>
                   <th className="px-4 py-2.5 font-medium">Score</th>
                   <th className="px-4 py-2.5 font-medium">Priorité</th>
@@ -166,7 +166,7 @@ export default async function PlayerDetailPage({
                     <td className="px-4 py-2.5 text-white/80">
                       <Link
                         href={`/companies/${prospect.companyId}`}
-                        className="hover:text-[#00d4aa] transition-colors"
+                        className="hover:text-[#3EF2A0] transition-colors"
                       >
                         {prospect.company.name}
                       </Link>
@@ -191,13 +191,13 @@ export default async function PlayerDetailPage({
       {/* Deals */}
       {player.deals.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Deals
           </h2>
-          <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] overflow-hidden">
+          <div className="app-panel overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] text-left text-xs text-white/30">
+                <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Entreprise</th>
                   <th className="px-4 py-2.5 font-medium">Stage</th>
                   <th className="px-4 py-2.5 font-medium">Type</th>
@@ -213,7 +213,7 @@ export default async function PlayerDetailPage({
                     <td className="px-4 py-2.5 text-white/80">
                       <Link
                         href={`/companies/${deal.companyId}`}
-                        className="hover:text-[#00d4aa] transition-colors"
+                        className="hover:text-[#3EF2A0] transition-colors"
                       >
                         {deal.company.name}
                       </Link>
@@ -250,7 +250,7 @@ function SocialRow({
   return (
     <div className="flex items-center justify-between py-1.5">
       <div>
-        <span className="text-xs text-white/30">{label}</span>
+        <span className="text-xs text-[#8FA69E]">{label}</span>
         <p className="text-sm text-white/70">{handle}</p>
       </div>
       {followers && (
@@ -263,11 +263,11 @@ function SocialRow({
 }
 
 function PriorityBadge({ priority }: { priority: string | null }) {
-  if (!priority) return <span className="text-white/20">—</span>;
+  if (!priority) return <span className="text-[#8FA69E]/55">—</span>;
   const colors: Record<string, string> = {
-    A: "bg-[#00d4aa]/10 text-[#00d4aa]",
-    B: "bg-[#0088ff]/10 text-[#0088ff]",
-    C: "bg-white/[0.06] text-white/40",
+    A: "bg-[#3EF2A0]/10 text-[#3EF2A0]",
+    B: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
+    C: "bg-white/[0.06] text-[#8FA69E]",
   };
   return (
     <span
@@ -282,12 +282,12 @@ function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     new: "bg-white/[0.06] text-white/50",
     lead: "bg-white/[0.06] text-white/50",
-    contacted: "bg-[#0088ff]/10 text-[#0088ff]",
-    replied: "bg-[#00d4aa]/10 text-[#00d4aa]",
-    meeting: "bg-[#8b5cf6]/10 text-[#8b5cf6]",
+    contacted: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
+    replied: "bg-[#3EF2A0]/10 text-[#3EF2A0]",
+    meeting: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
     negotiation: "bg-[#f59e0b]/10 text-[#f59e0b]",
     offer: "bg-[#f59e0b]/10 text-[#f59e0b]",
-    signed: "bg-[#00d4aa]/15 text-[#00d4aa]",
+    signed: "bg-[#3EF2A0]/15 text-[#3EF2A0]",
     lost: "bg-red-500/10 text-red-400",
   };
   return (

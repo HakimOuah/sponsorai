@@ -102,7 +102,7 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
           value={selectedPlayer}
           onChange={(e) => setSelectedPlayer(e.target.value)}
           disabled={isRunning}
-          className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-sm text-white focus:border-[#00d4aa]/50 focus:outline-none transition-colors disabled:opacity-50"
+          className="flex-1 rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors disabled:opacity-50"
         >
           <option value="">Sélectionner un joueur...</option>
           {players.map((p) => (
@@ -115,7 +115,7 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
         <button
           onClick={startScan}
           disabled={!selectedPlayer || isRunning}
-          className="flex items-center gap-2 rounded-lg bg-[#00d4aa] px-5 py-2.5 text-sm font-semibold text-[#07090f] hover:bg-[#00e4ba] transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full bg-[#F8FAF7] px-5 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50"
         >
           {isRunning ? (
             <>
@@ -136,7 +136,7 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
         <div
           className={`rounded-lg border px-4 py-3 text-sm ${
             result.success
-              ? "border-[#00d4aa]/20 bg-[#00d4aa]/5 text-[#00d4aa]"
+              ? "border-[#3EF2A0]/20 bg-[#3EF2A0]/5 text-[#3EF2A0]"
               : "border-red-500/20 bg-red-500/5 text-red-400"
           }`}
         >

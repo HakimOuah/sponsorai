@@ -30,7 +30,7 @@ export function PlayerStats({ player }: PlayerStatsProps) {
       label: "Engagement",
       value: player.engagementRate ? `${player.engagementRate}%` : "—",
       icon: TrendingUp,
-      color: "#00d4aa",
+      color: "#3EF2A0",
     },
     {
       label: "Deals",
@@ -42,13 +42,13 @@ export function PlayerStats({ player }: PlayerStatsProps) {
       label: "Prospects",
       value: player._count.prospects.toString(),
       icon: Search,
-      color: "#0088ff",
+      color: "#DDFBEA",
     },
     {
       label: "Scans",
       value: player._count.scans.toString(),
       icon: ScanLine,
-      color: "#8b5cf6",
+      color: "#DDFBEA",
     },
   ];
 
@@ -59,11 +59,11 @@ export function PlayerStats({ player }: PlayerStatsProps) {
         return (
           <div
             key={stat.label}
-            className="rounded-lg border border-white/[0.06] bg-[#0c1019] p-3"
+            className="app-soft-panel p-3"
           >
             <div className="flex items-center gap-2 mb-1">
               <Icon className="h-3.5 w-3.5" style={{ color: stat.color }} />
-              <span className="text-[11px] text-white/40">{stat.label}</span>
+              <span className="text-[11px] text-[#8FA69E]">{stat.label}</span>
             </div>
             <p className="font-mono text-lg font-semibold text-white">
               {stat.value}

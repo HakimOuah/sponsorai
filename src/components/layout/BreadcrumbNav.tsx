@@ -33,14 +33,14 @@ export function BreadcrumbNav() {
         return (
           <span key={href} className="flex items-center gap-1">
             {index > 0 && (
-              <ChevronRight className="h-3 w-3 text-white/20" />
+              <ChevronRight className="h-3 w-3 text-[#8FA69E]/45" />
             )}
             {isLast ? (
-              <span className="text-white font-medium">{label}</span>
+              <span className="font-semibold text-[#F8FAF7]">{label}</span>
             ) : (
               <Link
                 href={href}
-                className="text-white/40 hover:text-white/70 transition-colors"
+                className="text-[#8FA69E] transition-colors hover:text-[#DDFBEA]"
               >
                 {label}
               </Link>

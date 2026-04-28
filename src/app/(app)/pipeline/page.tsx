@@ -11,8 +11,8 @@ export default async function PipelinePage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Kanban className="h-6 w-6 text-[#00d4aa]" />
-          <h1 className="text-2xl font-bold text-white">Pipeline</h1>
+          <Kanban className="h-6 w-6 text-[#3EF2A0]" />
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Pipeline</h1>
         </div>
       </div>
 

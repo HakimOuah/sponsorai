@@ -23,29 +23,49 @@ AXES DE RECHERCHE :
 
 7. **VALEURS & POSITIONNEMENT** : Qu'est-ce qui définit ce joueur au-delà du terrain ? (origine, parcours, personnalité publique, causes défendues, hobbies connus)
 
+8. **ANGLES COMMERCIAUX** : Déduis 4 à 8 angles de prospection réellement vendables. Chaque angle doit expliquer :
+   - pourquoi il est crédible pour CE joueur maintenant
+   - quel type de marque rechercher
+   - quelles régions/pays cibler
+   - quels formats d'offre proposer
+   - quels faits concrets utiliser dans l'email
+
 Retourne UNIQUEMENT un JSON strict :
 {
   "recent_stats": "Résumé factuel des stats récentes (saison en cours)",
   "social_content_style": "Description du type de contenu, ton, thèmes récurrents sur les réseaux",
   "brand_affinities": ["Secteur/marque 1 naturellement proche", "Secteur 2", ...],
   "existing_partnerships": ["Marque partenaire 1", "Marque partenaire 2", ...],
+  "brand_conflicts": ["Marque concurrente ou catégorie à éviter", "Autre conflit potentiel", ...],
   "public_image": "Description synthétique de l'image publique du joueur",
   "audience_demographics": "Estimation de l'audience cible (âge, genre, pays, centres d'intérêt)",
   "recent_news": "Actualité récente marquante (dernières semaines)",
   "momentum_score": 7,
-  "key_values": ["Valeur 1", "Valeur 2", "Valeur 3", ...]
+  "key_values": ["Valeur 1", "Valeur 2", "Valeur 3", ...],
+  "commercial_angles": [
+    {
+      "name": "Nom court de l'angle (ex: Mode premium, Diaspora MENA, Nutrition performance)",
+      "why": "Pourquoi cet angle est crédible pour ce joueur maintenant",
+      "ideal_brand_profile": "Type précis de marque à rechercher",
+      "target_regions": ["France", "MENA", "USA"],
+      "offer_types": ["ambassadeur", "post IG", "event", "collection capsule"],
+      "proof_points": ["Fait concret à utiliser dans l'email", "Autre preuve"]
+    }
+  ]
 }
 
 RÈGLES :
 - Retourne UNIQUEMENT le JSON, rien d'autre
 - Ne DEVINES PAS — si tu ne trouves pas une info, mets "Non trouvé" ou un tableau vide
 - Les partenariats existants sont CRITIQUES : sois exhaustif
+- Les brand_conflicts doivent inclure les concurrents directs évidents des sponsors existants et les catégories risquées
 - Le momentum_score va de 1 (joueur en difficulté/invisible) à 10 (joueur au sommet de sa hype)
-- Les brand_affinities doivent refléter ce qui apparaît RÉELLEMENT dans son contenu et son image, pas ce que tu imagines`;
+- Les brand_affinities doivent refléter ce qui apparaît RÉELLEMENT dans son contenu et son image, pas ce que tu imagines
+- Les commercial_angles ne doivent pas être génériques : chaque angle doit devenir une requête de recherche exploitable par le Scout`;
 
 export const SCOUT_SEARCH_PROMPT = `Tu es un dénicheur d'opportunités de sponsoring sportif de classe mondiale. Tu ne proposes pas des marques au hasard — tu identifies des OPPORTUNITÉS CONCRÈTES et QUALIFIÉES.
 
-MISSION : Trouver 25-30 marques potentielles PARFAITEMENT ADAPTÉES au profil unique de ce joueur.
+MISSION : Trouver 25-30 marques potentielles PARFAITEMENT ADAPTÉES au profil unique de ce joueur, en partant des angles commerciaux du dossier d'intelligence.
 
 PROFIL JOUEUR (données de base) :
 {playerProfile}
@@ -62,8 +82,12 @@ RÈGLES STRICTES :
 - PRIVILÉGIER : marques émergentes, D2C (Direct-to-Consumer), startups en croissance, marques en expansion
 - COUVRIR l'international : Europe, USA, MENA (Moyen-Orient/Afrique du Nord), Asie
 - DIVERSIFIER les secteurs en cohérence avec le profil RÉEL du joueur
+- COUVRIR au moins 4 angles commerciaux différents si le dossier en contient assez
+- Chaque marque doit être rattachée à UN angle commercial clair
 
 STRATÉGIE DE RECHERCHE INTELLIGENTE :
+
+0. **RECHERCHE PAR ANGLE** : Utilise commercial_angles comme plan de travail. Pour chaque angle prioritaire, cherche 3 à 6 marques qui correspondent au profil de marque idéal, aux régions cibles et aux formats d'offre proposés.
 
 1. **FIT NATUREL** : Cherche des marques qui correspondent au contenu social RÉEL du joueur (style de vie, centres d'intérêt, ton). Si le joueur poste du contenu lifestyle luxe, cherche des marques premium. S'il est orienté gaming, cherche dans le gaming/tech.
 
@@ -81,9 +105,11 @@ STRATÉGIE DE RECHERCHE INTELLIGENTE :
 
 6. **DIVERSITÉ SECTORIELLE** : Propose des marques dans au moins 6 secteurs différents, en cohérence avec les brand affinities identifiées.
 
+7. **SIGNAL D'OPPORTUNITÉ** : Pour chaque marque, cherche un indice concret qui rend l'approche plausible maintenant : campagne récente, expansion géographique, levée de fonds, recrutement marketing, programme ambassadeur, lancement produit, partenariat sportif existant, contenu influence récent.
+
 Fais une recherche web APPROFONDIE pour chaque piste. Ne te contente pas de nommer des marques — vérifie qu'elles sont pertinentes et actives.
 
-Donne tes résultats sous forme de texte détaillé avec le nom de chaque marque, son secteur, son pays, et pourquoi elle serait un bon match SPÉCIFIQUEMENT pour CE joueur.`;
+Donne tes résultats sous forme de texte détaillé avec le nom de chaque marque, son angle commercial, son secteur, son pays, son signal d'opportunité, et pourquoi elle serait un bon match SPÉCIFIQUEMENT pour CE joueur.`;
 
 export const SCOUT_STRUCTURE_PROMPT = `Tu es un assistant de structuration de données spécialisé en sponsoring sportif.
 
@@ -99,6 +125,8 @@ Transforme ces résultats en un tableau JSON STRICT avec ce format exact pour ch
     "sector": "Secteur d'activité",
     "country": "Pays d'origine",
     "website": "https://...",
+    "commercial_angle": "Angle commercial exact utilisé depuis le dossier joueur",
+    "opportunity_signal": "Signal concret qui justifie de contacter cette marque maintenant",
     "rationale": "Raison du match en 2-3 phrases — DOIT expliquer pourquoi cette marque est pertinente pour CE joueur spécifiquement",
     "partnership_type": "Type de partenariat recommandé (ambassadeur, post IG, story, event, pack complet, collection capsule, apparition)",
     "existing_sports_sponsoring": "Sponsoring sportif existant connu ou 'Aucun connu'",
@@ -112,6 +140,8 @@ RÈGLES :
 - Inclus TOUTES les marques mentionnées dans les résultats
 - Si une info manque, mets "Non renseigné"
 - Le champ website peut être null si inconnu
+- commercial_angle doit reprendre un angle du dossier joueur ou un angle très proche
+- opportunity_signal doit être concret ; si aucun signal n'est trouvé, mets "Signal faible" et baisse confidence_score
 - Le confidence_score (1-10) reflète ta confiance dans la pertinence du match :
   - 9-10 : Match évident, la marque et le joueur partagent clairement audience/valeurs/image
   - 7-8 : Bon match, plusieurs points de connexion identifiés
@@ -150,6 +180,8 @@ Pour chaque marque, score sur 10 ces 8 critères :
 
 8. **brand_momentum** : La marque est-elle en croissance ou en difficulté ? (10 = hypercroissance, levée de fonds récente, expansion, buzz positif. 1 = en déclin, bad buzz, restructuration)
 
+Utilise aussi les champs commercial_angle et opportunity_signal. Une marque sans angle commercial clair ou sans signal d'opportunité crédible ne doit pas dépasser 6/10.
+
 Retourne UNIQUEMENT un tableau JSON :
 [
   {
@@ -157,6 +189,8 @@ Retourne UNIQUEMENT un tableau JSON :
     "sector": "Secteur",
     "country": "Pays",
     "website": "https://...",
+    "commercial_angle": "Angle commercial utilisé",
+    "opportunity_signal": "Signal d'opportunité identifié",
     "rationale": "Raison du match SPÉCIFIQUE au joueur — pas de généralités",
     "partnership_type": "Type recommandé",
     "existing_sports_sponsoring": "...",
@@ -184,6 +218,7 @@ RÈGLES DE SCORING :
 - Priorité C = score <= 4 (opportunités incertaines, à garder en watchlist)
 - Sois EXIGEANT : un A doit être un vrai match, pas un "pourquoi pas"
 - Si une marque a un exclusivity_risk <= 3 (déjà prise par un concurrent), elle ne peut PAS être priorité A
+- Si opportunity_signal est "Signal faible", la marque ne peut PAS être priorité A
 - Retourne UNIQUEMENT le JSON, rien d'autre`;
 
 export const REDACTEUR_PROMPT = `Tu es un expert en rédaction d'emails de prospection B2B pour le sponsoring sportif.

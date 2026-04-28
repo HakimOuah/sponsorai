@@ -9,7 +9,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-[#00d4aa] px-6 py-2.5 text-sm font-semibold text-[#07090f] hover:bg-[#00e4ba] transition-colors disabled:opacity-50"
+      className="rounded-full bg-[#F8FAF7] px-6 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50"
     >
       {pending
         ? "Enregistrement..."
@@ -32,7 +32,7 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
     <form action={action} className="space-y-8">
       {/* Infos */}
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-4">
           Informations
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -46,7 +46,7 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
             <select
               name="source"
               defaultValue={company?.source || "manual"}
-              className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white focus:border-[#00d4aa]/50 focus:outline-none transition-colors"
+              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
             >
               <option value="manual">Manuel</option>
               <option value="scout">Scout IA</option>
@@ -62,7 +62,7 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
 
       {/* Contact */}
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30 mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-4">
           Contact
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -79,7 +79,7 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
         <TextArea label="Notes" name="notes" defaultValue={company?.notes} placeholder="Notes internes..." />
       </section>
 
-      <div className="flex items-center gap-3 border-t border-white/[0.06] pt-6">
+      <div className="flex items-center gap-3 border-t border-[#3EF2A0]/10 pt-6">
         <SubmitButton isEdit={isEdit} />
       </div>
     </form>
@@ -94,11 +94,11 @@ function Field({
   return (
     <div>
       <label className="block text-sm font-medium text-white/60 mb-1">
-        {label}{required && <span className="text-[#00d4aa] ml-0.5">*</span>}
+        {label}{required && <span className="text-[#3EF2A0] ml-0.5">*</span>}
       </label>
       <input
         type={type} name={name} defaultValue={defaultValue ?? ""} required={required} placeholder={placeholder}
-        className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#00d4aa]/50 focus:outline-none transition-colors"
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
       />
     </div>
   );
@@ -114,7 +114,7 @@ function TextArea({
       <label className="block text-sm font-medium text-white/60 mb-1">{label}</label>
       <textarea
         name={name} defaultValue={defaultValue ?? ""} placeholder={placeholder} rows={3}
-        className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#00d4aa]/50 focus:outline-none transition-colors resize-none"
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors resize-none"
       />
     </div>
   );

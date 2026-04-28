@@ -16,15 +16,15 @@ export function AgentCard({
   color,
 }: AgentCardProps) {
   const statusConfig = {
-    active: { label: "Actif", bg: "bg-[#00d4aa]/10", text: "text-[#00d4aa]" },
-    inactive: { label: "Inactif", bg: "bg-white/[0.06]", text: "text-white/40" },
+    active: { label: "Actif", bg: "bg-[#3EF2A0]/10", text: "text-[#3EF2A0]" },
+    inactive: { label: "Inactif", bg: "bg-white/[0.06]", text: "text-[#8FA69E]" },
     coming_soon: { label: "Bientôt", bg: "bg-[#f59e0b]/10", text: "text-[#f59e0b]" },
   };
 
   const s = statusConfig[status];
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-5">
+    <div className="app-panel p-5">
       <div className="flex items-start justify-between mb-3">
         <div
           className="flex h-10 w-10 items-center justify-center rounded-lg"
@@ -39,7 +39,7 @@ export function AgentCard({
         </span>
       </div>
       <h3 className="font-semibold text-white mb-1">{name}</h3>
-      <p className="text-sm text-white/40 leading-relaxed">{description}</p>
+      <p className="text-sm text-[#8FA69E] leading-relaxed">{description}</p>
     </div>
   );
 }

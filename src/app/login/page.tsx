@@ -16,29 +16,42 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/dashboard",
+      });
 
-    if (result?.error) {
-      setError("Email ou mot de passe incorrect");
+      if (result?.error) {
+        setError("Email ou mot de passe incorrect");
+        setLoading(false);
+        return;
+      }
+
+      router.replace(result?.url || "/dashboard");
+      router.refresh();
+    } catch {
+      setError("Impossible de se connecter. Réessayez.");
       setLoading(false);
-    } else {
-      router.push("/dashboard");
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#07090f]">
-      <div className="w-full max-w-md p-8 rounded-xl bg-[#0c1019] border border-white/10">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#020403] px-6">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(62,242,160,0.16),transparent_32%),radial-gradient(circle_at_50%_86%,rgba(0,107,85,0.22),transparent_38%),linear-gradient(180deg,#020403_0%,#050A0D_100%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(to_right,#F8FAF7_1px,transparent_1px),linear-gradient(to_bottom,#F8FAF7_1px,transparent_1px)] [background-size:84px_84px]" />
+      <div className="relative w-full max-w-md rounded-[32px] border border-[#3EF2A0]/15 bg-[#061511]/80 p-8 shadow-[0_32px_120px_rgba(0,0,0,0.46)] backdrop-blur-xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Sponsor<span className="text-[#00d4aa]">AI</span>
+          <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#3EF2A0]/25 bg-[#3EF2A0]/10 text-[#3EF2A0] shadow-[0_0_34px_rgba(62,242,160,0.12)]">
+            V
+          </div>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7] mb-2">
+            Vectis<span className="text-[#3EF2A0]">Agency</span>
           </h1>
-          <p className="text-white/50 text-sm">
-            CRM Sponsoring Football
+          <p className="text-[#8FA69E] text-sm">
+            Plateforme IA de sponsoring football
           </p>
         </div>
 
@@ -51,7 +64,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#00d4aa] transition-colors"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/30 transition-colors focus:border-[#3EF2A0] focus:outline-none"
               placeholder="agent@sponsorai.com"
               required
             />
@@ -65,7 +78,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-[#00d4aa] transition-colors"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/30 transition-colors focus:border-[#3EF2A0] focus:outline-none"
               placeholder="••••••••"
               required
             />
@@ -78,7 +91,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-lg bg-[#00d4aa] text-[#07090f] font-semibold hover:bg-[#00e4ba] transition-colors disabled:opacity-50"
+            className="w-full rounded-full bg-[#F8FAF7] py-3 font-semibold text-[#020403] shadow-[0_16px_44px_rgba(62,242,160,0.12)] transition-all hover:-translate-y-0.5 hover:shadow-[0_18px_52px_rgba(62,242,160,0.2)] disabled:opacity-50"
           >
             {loading ? "Connexion..." : "Se connecter"}
           </button>

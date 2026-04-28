@@ -22,36 +22,45 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <LayoutDashboard className="h-6 w-6 text-[#00d4aa]" />
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+      <div className="mb-8 flex items-center gap-3">
+        <span className="app-title-icon">
+          <LayoutDashboard className="h-5 w-5" />
+        </span>
+        <div>
+          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">
+            Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-[#8FA69E]">
+            Vue de contrôle des leads, relances et signaux commerciaux.
+          </p>
+        </div>
       </div>
 
       {/* KPI Cards + Day Score */}
-      <div className="grid grid-cols-2 gap-3 mb-6 lg:grid-cols-6">
+      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-6">
         <KPICard
           icon={Users}
           label="Joueurs actifs"
           value={data.kpis.activePlayers}
-          color="text-[#00d4aa]"
+          color="text-[#3EF2A0]"
         />
         <KPICard
           icon={Building2}
           label="En pipeline"
           value={data.kpis.companiesInPipeline}
-          color="text-[#0088ff]"
+          color="text-[#DDFBEA]"
         />
         <KPICard
           icon={TrendingUp}
           label="Taux réponse"
           value={`${data.kpis.responseRate}%`}
-          color="text-[#8b5cf6]"
+          color="text-[#DDFBEA]"
         />
         <KPICard
           icon={DollarSign}
           label="CA signé"
           value={`${data.kpis.signedRevenue.toLocaleString("fr-FR")}€`}
-          color="text-[#00d4aa]"
+          color="text-[#3EF2A0]"
         />
         <KPICard
           icon={DollarSign}
@@ -68,14 +77,14 @@ export default async function DashboardPage() {
           {/* Priority leads */}
           <section>
             <div className="flex items-center gap-2 mb-3">
-              <Target className="h-4 w-4 text-[#00d4aa]" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30">
+              <Target className="h-4 w-4 text-[#3EF2A0]" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">
                 Leads prioritaires
               </h2>
             </div>
-            <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] divide-y divide-white/[0.04]">
+            <div className="app-panel divide-y divide-white/[0.04]">
               {data.priorityProspects.length === 0 ? (
-                <div className="px-4 py-6 text-center text-xs text-white/20">
+                <div className="px-4 py-6 text-center text-xs text-[#8FA69E]/55">
                   Aucun lead prioritaire en attente
                 </div>
               ) : (
@@ -87,8 +96,8 @@ export default async function DashboardPage() {
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold ${
                         p.priority === "A"
-                          ? "bg-[#00d4aa]/10 text-[#00d4aa]"
-                          : "bg-[#0088ff]/10 text-[#0088ff]"
+                          ? "bg-[#3EF2A0]/10 text-[#3EF2A0]"
+                          : "bg-[#DDFBEA]/10 text-[#DDFBEA]"
                       }`}
                     >
                       {p.priority}
@@ -97,7 +106,7 @@ export default async function DashboardPage() {
                       <p className="text-sm font-medium text-white truncate">
                         {p.company.name}
                       </p>
-                      <p className="text-xs text-white/40">
+                      <p className="text-xs text-[#8FA69E]">
                         {p.player.firstName} {p.player.lastName}
                         {p.company.sector && ` · ${p.company.sector}`}
                       </p>
@@ -108,7 +117,7 @@ export default async function DashboardPage() {
                       </span>
                     )}
                     {p.company.contactEmail ? (
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#00d4aa] shrink-0" title="Contact disponible" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#3EF2A0] shrink-0" title="Contact disponible" />
                     ) : (
                       <span className="h-1.5 w-1.5 rounded-full bg-white/10 shrink-0" title="Pas de contact" />
                     )}
@@ -117,7 +126,7 @@ export default async function DashboardPage() {
               )}
               <Link
                 href="/prospection"
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs text-white/30 hover:text-[#00d4aa] transition-colors"
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs text-[#8FA69E] hover:text-[#3EF2A0] transition-colors"
               >
                 Voir tous les prospects
                 <ArrowRight className="h-3 w-3" />
@@ -129,35 +138,35 @@ export default async function DashboardPage() {
           {data.pendingFollowups.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-3">
-                <RefreshCw className="h-4 w-4 text-[#ec4899]" />
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30">
+                <RefreshCw className="h-4 w-4 text-[#f59e0b]" />
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">
                   Relances à faire
                 </h2>
-                <span className="rounded-full bg-[#ec4899]/10 px-2 py-0.5 font-mono text-[10px] text-[#ec4899]">
+                <span className="rounded-full bg-[#f59e0b]/10 px-2 py-0.5 font-mono text-[10px] text-[#f59e0b]">
                   {data.pendingFollowups.length}
                 </span>
               </div>
-              <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] divide-y divide-white/[0.04]">
+              <div className="app-panel divide-y divide-white/[0.04]">
                 {data.pendingFollowups.map((f) => (
                   <div
                     key={f.id}
                     className="flex items-center gap-3 px-4 py-3"
                   >
-                    <RefreshCw className="h-4 w-4 shrink-0 text-[#ec4899]" />
+                    <RefreshCw className="h-4 w-4 shrink-0 text-[#f59e0b]" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">
                         {f.company.name}
                       </p>
-                      <p className="text-xs text-white/40">
+                      <p className="text-xs text-[#8FA69E]">
                         {f.player.firstName} {f.player.lastName}
                       </p>
                     </div>
-                    <span className="font-mono text-xs text-[#ec4899] shrink-0">
+                    <span className="font-mono text-xs text-[#f59e0b] shrink-0">
                       {f.daysSince}j sans réponse
                     </span>
                     <Link
                       href={`/agents?prospect=${f.id}#relanceur`}
-                      className="rounded-lg bg-[#ec4899]/10 px-2.5 py-1 text-[11px] font-medium text-[#ec4899] hover:bg-[#ec4899]/20 transition-colors shrink-0"
+                      className="rounded-lg bg-[#f59e0b]/10 px-2.5 py-1 text-[11px] font-medium text-[#f59e0b] hover:bg-[#f59e0b]/20 transition-colors shrink-0"
                     >
                       Relancer
                     </Link>
@@ -165,7 +174,7 @@ export default async function DashboardPage() {
                 ))}
                 <Link
                   href="/agents#relanceur"
-                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs text-white/30 hover:text-[#ec4899] transition-colors"
+                  className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs text-[#8FA69E] hover:text-[#f59e0b] transition-colors"
                 >
                   Voir le relanceur
                   <ArrowRight className="h-3 w-3" />
@@ -178,13 +187,13 @@ export default async function DashboardPage() {
           <section>
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="h-4 w-4 text-[#f59e0b]" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">
                 Actions requises
               </h2>
             </div>
-            <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] divide-y divide-white/[0.04]">
+            <div className="app-panel divide-y divide-white/[0.04]">
               {data.overdueActions.length === 0 && data.draftEmails === 0 ? (
-                <div className="px-4 py-6 text-center text-xs text-white/20">
+                <div className="px-4 py-6 text-center text-xs text-[#8FA69E]/55">
                   Aucune action en attente
                 </div>
               ) : (
@@ -199,7 +208,7 @@ export default async function DashboardPage() {
                         <p className="text-sm text-white/80 truncate">
                           {deal.nextAction || "Action à définir"}
                         </p>
-                        <p className="text-xs text-white/40">
+                        <p className="text-xs text-[#8FA69E]">
                           {deal.company.name} · {deal.player.firstName}{" "}
                           {deal.player.lastName}
                         </p>
@@ -218,20 +227,20 @@ export default async function DashboardPage() {
                       href="/emails?status=draft"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors"
                     >
-                      <Mail className="h-4 w-4 shrink-0 text-[#0088ff]" />
+                      <Mail className="h-4 w-4 shrink-0 text-[#DDFBEA]" />
                       <div className="flex-1">
                         <p className="text-sm text-white/80">
                           {data.draftEmails} brouillon{data.draftEmails > 1 ? "s" : ""} à envoyer
                         </p>
                       </div>
-                      <ArrowRight className="h-3 w-3 text-white/20" />
+                      <ArrowRight className="h-3 w-3 text-[#8FA69E]/55" />
                     </Link>
                   )}
                 </>
               )}
               <Link
                 href="/pipeline"
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs text-white/30 hover:text-[#f59e0b] transition-colors"
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs text-[#8FA69E] hover:text-[#f59e0b] transition-colors"
               >
                 Voir le pipeline
                 <ArrowRight className="h-3 w-3" />
@@ -243,14 +252,14 @@ export default async function DashboardPage() {
         {/* Right column: Activity */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <Zap className="h-4 w-4 text-[#8b5cf6]" />
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white/30">
+            <Zap className="h-4 w-4 text-[#DDFBEA]" />
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">
               Activité récente
             </h2>
           </div>
-          <div className="rounded-xl border border-white/[0.06] bg-[#0c1019]">
+          <div className="app-panel">
             {data.recentActivity.length === 0 ? (
-              <div className="px-4 py-6 text-center text-xs text-white/20">
+              <div className="px-4 py-6 text-center text-xs text-[#8FA69E]/55">
                 Aucune activité récente
               </div>
             ) : (
@@ -263,7 +272,7 @@ export default async function DashboardPage() {
                     <ActivityIcon type={activity.type} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white/70">{activity.message}</p>
-                      <p className="text-xs text-white/30 mt-0.5">
+                      <p className="text-xs text-[#8FA69E] mt-0.5">
                         {activity.createdAt.toLocaleDateString("fr-FR", {
                           day: "numeric",
                           month: "short",
@@ -295,12 +304,12 @@ function KPICard({
   color: string;
 }) {
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-4">
+    <div className="app-panel p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#3EF2A0]/20">
       <div className="flex items-center gap-2 mb-2">
         <Icon className={`h-4 w-4 ${color}`} />
-        <span className="text-xs text-white/40">{label}</span>
+        <span className="text-xs text-[#8FA69E]">{label}</span>
       </div>
-      <span className="font-mono text-xl font-bold text-white">{value}</span>
+      <span className="font-mono text-xl font-bold text-[#F8FAF7]">{value}</span>
     </div>
   );
 }
@@ -308,26 +317,26 @@ function KPICard({
 function DayScoreCard({ score }: { score: number }) {
   const color =
     score >= 70
-      ? "text-[#00d4aa]"
+      ? "text-[#3EF2A0]"
       : score >= 40
         ? "text-[#f59e0b]"
-        : "text-white/40";
+        : "text-[#8FA69E]";
   const bg =
     score >= 70
-      ? "bg-[#00d4aa]"
+      ? "bg-[#3EF2A0]"
       : score >= 40
         ? "bg-[#f59e0b]"
         : "bg-white/20";
 
   return (
-    <div className="rounded-xl border border-white/[0.06] bg-[#0c1019] p-4">
+    <div className="app-panel p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#3EF2A0]/20">
       <div className="flex items-center gap-2 mb-2">
         <Zap className={`h-4 w-4 ${color}`} />
-        <span className="text-xs text-white/40">Score du jour</span>
+        <span className="text-xs text-[#8FA69E]">Score du jour</span>
       </div>
       <div className="flex items-end gap-2">
         <span className={`font-mono text-xl font-bold ${color}`}>{score}</span>
-        <span className="text-xs text-white/20 mb-0.5">/100</span>
+        <span className="text-xs text-[#8FA69E]/55 mb-0.5">/100</span>
       </div>
       <div className="mt-2 h-1.5 rounded-full bg-white/[0.06]">
         <div
@@ -341,12 +350,12 @@ function DayScoreCard({ score }: { score: number }) {
 
 function ActivityIcon({ type }: { type: string }) {
   const config: Record<string, { icon: typeof Zap; color: string }> = {
-    scan_completed: { icon: Target, color: "text-[#00d4aa]" },
-    email_sent: { icon: Mail, color: "text-[#0088ff]" },
+    scan_completed: { icon: Target, color: "text-[#3EF2A0]" },
+    email_sent: { icon: Mail, color: "text-[#DDFBEA]" },
     deal_updated: { icon: TrendingUp, color: "text-[#f59e0b]" },
-    reply_received: { icon: Mail, color: "text-[#8b5cf6]" },
+    reply_received: { icon: Mail, color: "text-[#DDFBEA]" },
   };
-  const c = config[type] || { icon: Zap, color: "text-white/30" };
+  const c = config[type] || { icon: Zap, color: "text-[#8FA69E]" };
   const Icon = c.icon;
   return <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${c.color}`} />;
 }

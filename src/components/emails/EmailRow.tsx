@@ -19,10 +19,10 @@ interface EmailRowProps {
 }
 
 const statusConfig: Record<string, { icon: typeof Mail; color: string; label: string }> = {
-  draft: { icon: FileText, color: "text-white/40", label: "Brouillon" },
-  sent: { icon: Send, color: "text-[#0088ff]", label: "Envoyé" },
-  opened: { icon: Eye, color: "text-[#8b5cf6]", label: "Ouvert" },
-  replied: { icon: MessageSquare, color: "text-[#00d4aa]", label: "Répondu" },
+  draft: { icon: FileText, color: "text-[#8FA69E]", label: "Brouillon" },
+  sent: { icon: Send, color: "text-[#DDFBEA]", label: "Envoyé" },
+  opened: { icon: Eye, color: "text-[#DDFBEA]", label: "Ouvert" },
+  replied: { icon: MessageSquare, color: "text-[#3EF2A0]", label: "Répondu" },
   bounced: { icon: AlertTriangle, color: "text-red-400", label: "Bounced" },
 };
 
@@ -50,11 +50,11 @@ export function EmailRow({ email }: EmailRowProps) {
           <span className="text-sm font-medium text-white truncate">
             {email.subject}
           </span>
-          <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-white/30 shrink-0">
+          <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[#8FA69E] shrink-0">
             {typeLabels[email.type] || email.type}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-white/40">
+        <div className="flex items-center gap-2 text-xs text-[#8FA69E]">
           <span>{email.company.name}</span>
           {email.prospect && (
             <>
@@ -71,7 +71,7 @@ export function EmailRow({ email }: EmailRowProps) {
         {config.label}
       </span>
 
-      <span className="text-xs text-white/30 shrink-0 w-24 text-right font-mono">
+      <span className="text-xs text-[#8FA69E] shrink-0 w-24 text-right font-mono">
         {(email.sentAt || email.createdAt).toLocaleDateString("fr-FR", {
           day: "numeric",
           month: "short",
@@ -84,9 +84,9 @@ export function EmailRow({ email }: EmailRowProps) {
 function statusBg(status: string): string {
   const colors: Record<string, string> = {
     draft: "bg-white/[0.06] text-white/50",
-    sent: "bg-[#0088ff]/10 text-[#0088ff]",
-    opened: "bg-[#8b5cf6]/10 text-[#8b5cf6]",
-    replied: "bg-[#00d4aa]/10 text-[#00d4aa]",
+    sent: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
+    opened: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
+    replied: "bg-[#3EF2A0]/10 text-[#3EF2A0]",
     bounced: "bg-red-500/10 text-red-400",
   };
   return colors[status] || colors.draft;

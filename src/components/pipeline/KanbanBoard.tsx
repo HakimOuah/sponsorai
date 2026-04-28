@@ -6,11 +6,11 @@ import type { DealData } from "./DealCard";
 
 const STAGES: { key: string; label: string; color: string }[] = [
   { key: "lead", label: "Lead", color: "#6b7280" },
-  { key: "contacted", label: "Contacté", color: "#0088ff" },
-  { key: "meeting", label: "Meeting", color: "#8b5cf6" },
+  { key: "contacted", label: "Contacté", color: "#DDFBEA" },
+  { key: "meeting", label: "Meeting", color: "#DDFBEA" },
   { key: "negotiation", label: "Négo", color: "#f59e0b" },
   { key: "offer", label: "Offre", color: "#f97316" },
-  { key: "signed", label: "Signé", color: "#00d4aa" },
+  { key: "signed", label: "Signé", color: "#3EF2A0" },
   { key: "lost", label: "Perdu", color: "#ef4444" },
 ];
 
@@ -73,23 +73,23 @@ export function KanbanBoard({ initialDeals }: KanbanBoardProps) {
       {/* Stats bar */}
       <div className="mb-4 flex items-center gap-6">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-white/40">Deals actifs</span>
+          <span className="text-xs text-[#8FA69E]">Deals actifs</span>
           <span className="font-mono text-sm font-bold text-white">{totalDeals}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-white/40">Pipeline</span>
-          <span className="font-mono text-sm font-bold text-[#0088ff]">
+          <span className="text-xs text-[#8FA69E]">Pipeline</span>
+          <span className="font-mono text-sm font-bold text-[#DDFBEA]">
             {totalValue.toLocaleString("fr-FR")}€
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-white/40">Signé</span>
-          <span className="font-mono text-sm font-bold text-[#00d4aa]">
+          <span className="text-xs text-[#8FA69E]">Signé</span>
+          <span className="font-mono text-sm font-bold text-[#3EF2A0]">
             {signedValue.toLocaleString("fr-FR")}€
           </span>
         </div>
         {isPending && (
-          <span className="ml-auto text-xs text-white/30 animate-pulse">
+          <span className="ml-auto text-xs text-[#8FA69E] animate-pulse">
             Mise à jour…
           </span>
         )}

@@ -3,9 +3,9 @@ import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
 
 export const metadata: Metadata = {
-  title: "SponsorAI — CRM Sponsoring Football",
+  title: "Vectis Agency — Plateforme IA de sponsoring football",
   description:
-    "CRM intelligent pour la gestion de sponsoring de footballeurs professionnels",
+    "Plateforme IA pour automatiser la prospection, la qualification et l'outreach sponsoring de sportifs de haut niveau.",
 };
 
 export default function RootLayout({

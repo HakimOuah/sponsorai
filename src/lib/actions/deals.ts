@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { isDealStage, prospectStatusForDealStage } from "@/lib/pipeline";
 import { revalidatePath } from "next/cache";
 
 export async function getDeals() {
@@ -15,6 +16,10 @@ export async function getDeals() {
 }
 
 export async function updateDealStage(dealId: string, stage: string) {
+  if (!isDealStage(stage)) {
+    throw new Error(`Invalid deal stage: ${stage}`);
+  }
+
   const data: Record<string, unknown> = { stage };
 
   if (stage === "signed" || stage === "lost") {
@@ -33,18 +38,9 @@ export async function updateDealStage(dealId: string, stage: string) {
   });
 
   if (deal) {
-    const statusMap: Record<string, string> = {
-      lead: "new",
-      contacted: "contacted",
-      meeting: "meeting",
-      negotiation: "meeting",
-      offer: "offer",
-      signed: "signed",
-      lost: "lost",
-    };
     await prisma.prospect.update({
       where: { id: deal.prospectId },
-      data: { status: statusMap[stage] || "new" },
+      data: { status: prospectStatusForDealStage(stage) },
     });
   }
 
