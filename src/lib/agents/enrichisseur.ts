@@ -69,15 +69,18 @@ export async function runEnrichisseur(
 
   const result: EnrichResult = JSON.parse(cleaned.substring(start, end + 1));
   const contacts = Array.isArray(result.contacts) ? result.contacts : [];
-  const verifiedContacts = contacts.filter(
-    (contact) =>
+  const verifiedContacts = contacts.filter((contact) => {
+    const relevance = getContactRelevance(contact.role);
+    return (
       contact.current_at_company === true &&
       contact.verification_status === "verified_current" &&
       contact.confidence !== "low" &&
+      relevance >= 2 &&
       Boolean(contact.name) &&
       Boolean(contact.role) &&
       Boolean(contact.evidence)
-  );
+    );
+  });
   const rejectedCount = contacts.length - verifiedContacts.length;
 
   result.contacts = verifiedContacts;
@@ -102,4 +105,18 @@ export async function runEnrichisseur(
   }
 
   return result;
+}
+
+function getContactRelevance(role: string): number {
+  const normalizedRole = role.toLowerCase();
+  const highSignal =
+    /\b(partnerships?|sponsorship|brand partnerships?|strategic partnerships?|alliances?)\b/i;
+  const goodSignal =
+    /\b(marketing|brand|communications?|comms|pr|public relations|growth|influencer|creator|talent|community)\b/i;
+  const weakSignal =
+    /\b(ceo|chief executive|founder|co-founder|president|owner|general manager|operations|finance|hr|people|customer|sales associate|cashier|support)\b/i;
+
+  if (highSignal.test(normalizedRole)) return 3;
+  if (goodSignal.test(normalizedRole) && !weakSignal.test(normalizedRole)) return 2;
+  return 0;
 }

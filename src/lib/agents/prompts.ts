@@ -282,6 +282,9 @@ export const ENRICHISSEUR_PROMPT = `Tu es un expert en recherche de contacts B2B
 
 MISSION : Trouver le ou les décideurs pertinents pour une proposition de partenariat sportif / sponsoring chez cette entreprise.
 
+OBJECTIF BUSINESS :
+Identifier la personne qui peut réellement étudier ou orienter une opportunité de partenariat avec un sportif : marketing, brand, partnerships, communications, PR, influencer/creator marketing, community, talent partnerships.
+
 ENTREPRISE :
 - Nom : {companyName}
 - Secteur : {companySector}
@@ -290,12 +293,16 @@ ENTREPRISE :
 - Description : {companyDescription}
 
 CIBLES PRIORITAIRES (par ordre de préférence) :
-1. Directeur/Responsable Marketing
-2. Directeur/Responsable Partenariats / Sponsoring
-3. Directeur/Responsable Communication
-4. CMO (Chief Marketing Officer)
-5. Brand Manager
-6. CEO / Fondateur UNIQUEMENT si startup/PME ou si aucun décideur marketing/partenariats actuel n'est vérifiable
+1. Head/Director/Manager Partnerships, Brand Partnerships, Sponsorship, Strategic Partnerships, Alliances
+2. Head/Director/Manager Brand, Brand Marketing, Integrated Marketing, Influencer Marketing, Creator Partnerships
+3. Head/Director/Manager Communications, PR, Corporate Communications, Community
+4. CMO / VP Marketing / Marketing Director
+5. Brand Manager / Partnerships Manager / Marketing Manager
+
+CONTACTS À ÉVITER :
+- CEO, Founder, President, Owner, Managing Director : ne les inclure QUE si l'entreprise est une petite structure et qu'aucun contact marketing/partnerships actuel n'est vérifiable. Pour une marque établie, ne pas inclure le CEO.
+- Rôles non pertinents : customer service, sales associate, cashier, HR, finance, operations, engineering, product, legal.
+- Anciens employés, freelances passés, consultants sans preuve de mission actuelle, personnes "open to work" ou "seeking new opportunities".
 
 Fais une recherche web approfondie pour trouver :
 - Le nom complet du décideur
@@ -303,6 +310,11 @@ Fais une recherche web approfondie pour trouver :
 - Son email professionnel (si trouvable publiquement)
 - Son profil LinkedIn
 - Une preuve qu'il travaille ACTUELLEMENT dans l'entreprise cible
+
+STRATÉGIE DE RECHERCHE WEB :
+- Recherche d'abord : "{companyName} partnerships manager", "{companyName} brand partnerships", "{companyName} sponsorship", "{companyName} influencer marketing", "{companyName} communications director", "{companyName} CMO".
+- Vérifie ensuite chaque candidat avec son profil LinkedIn, une page équipe officielle, un communiqué récent, un podcast/interview, une page presse ou une source business fiable.
+- Regarde explicitement l'expérience actuelle : l'entreprise cible doit être listée comme poste actuel, pas seulement dans les expériences passées.
 
 Retourne UNIQUEMENT un JSON :
 {
@@ -315,6 +327,7 @@ Retourne UNIQUEMENT un JSON :
       "confidence": "high/medium/low",
       "verification_status": "verified_current | unverified | past_or_wrong_company",
       "current_at_company": true,
+      "role_relevance": "high | medium | low",
       "evidence": "Preuve courte : source + indice actuel, par exemple 'LinkedIn Experience: Headspace · CMO · Present' ou 'page équipe officielle Headspace'",
       "source": "URL précise ou nom exact de la source"
     }
@@ -325,8 +338,10 @@ Retourne UNIQUEMENT un JSON :
 RÈGLES :
 - Maximum 3 contacts par entreprise
 - Ne retourne dans contacts QUE des personnes dont l'emploi ACTUEL dans l'entreprise cible est vérifié.
+- Ne retourne dans contacts QUE des rôles pertinents pour le sponsoring/partenariat. role_relevance doit être high ou medium.
 - Si une personne a seulement travaillé dans l'entreprise par le passé, mets-la hors résultat : ne l'inclus pas dans contacts.
 - Si le profil LinkedIn indique "Seeking new opportunities", "Open to work", "unemployed", "job seeker", ou une expérience actuelle dans une autre entreprise, ne l'inclus pas.
+- Si tu trouves uniquement le CEO pour une marque établie, retourne contacts: [] plutôt que de proposer un mauvais interlocuteur.
 - Ne te fie jamais uniquement au titre affiché dans Google/Bing. Il faut une preuve dans le profil, le site officiel, une page équipe, un communiqué récent ou une source business fiable.
 - Le nom de l'entreprise cible doit apparaître dans la preuve actuelle. Attention aux homonymes et aux entreprises différentes.
 - Un email ne suffit jamais à vérifier le poste actuel.
