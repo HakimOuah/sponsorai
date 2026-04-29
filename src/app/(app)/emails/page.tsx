@@ -35,16 +35,16 @@ export default async function EmailsPage({ searchParams }: Props) {
   });
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Mail className="h-6 w-6 text-[#3EF2A0]" />
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Emails</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Emails</h1>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard icon={Mail} label="Total" value={stats.total} color="text-white/60" />
         <StatCard icon={FileText} label="Brouillons" value={stats.drafts} color="text-[#8FA69E]" />
         <StatCard icon={Send} label="Envoyés" value={stats.sent} color="text-[#DDFBEA]" />
@@ -96,7 +96,7 @@ function StatCard({
   color: string;
 }) {
   return (
-    <div className="app-panel p-3">
+    <div className="app-panel p-3 sm:p-4">
       <div className="flex items-center gap-2 mb-1">
         <Icon className={`h-3.5 w-3.5 ${color}`} />
         <span className="text-xs text-[#8FA69E]">{label}</span>

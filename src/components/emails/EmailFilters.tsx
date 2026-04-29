@@ -27,12 +27,12 @@ export function EmailFilters() {
   };
 
   return (
-    <div className="flex gap-1.5">
+    <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
       {STATUSES.map((s) => (
         <button
           key={s.value}
           onClick={() => setFilter(s.value)}
-          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`shrink-0 rounded-full px-3 py-2 text-xs font-medium transition-colors sm:py-1.5 ${
             currentStatus === s.value
               ? "bg-[#3EF2A0]/10 text-[#3EF2A0] border border-[#3EF2A0]/20"
               : "bg-white/[0.06] text-[#8FA69E] border border-[#3EF2A0]/10 hover:bg-white/[0.06]"

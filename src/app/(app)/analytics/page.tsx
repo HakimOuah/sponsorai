@@ -18,14 +18,14 @@ export default async function AnalyticsPage() {
   const maxFunnelCount = Math.max(...data.funnel.map((f) => f.count), 1);
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex items-center gap-3">
         <BarChart3 className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Analytics</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Analytics</h1>
       </div>
 
       {/* CA Overview */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <CACard
           label="CA Signé"
           value={data.ca.signed}
@@ -175,7 +175,7 @@ export default async function AnalyticsPage() {
       {/* Agent Performance */}
       <section className="mt-6">
         <SectionHeader icon={Bot} label="Performance Agents" color="text-[#3EF2A0]" />
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <PerfCard
             icon={Search}
             label="Scans total"

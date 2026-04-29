@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -16,6 +15,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  X,
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,34 +53,68 @@ const navSections = [
   },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  mobileOpen: boolean;
+  onCollapseToggle: () => void;
+  onMobileClose: () => void;
+}
+
+export function Sidebar({
+  collapsed,
+  mobileOpen,
+  onCollapseToggle,
+  onMobileClose,
+}: SidebarProps) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const showExpanded = !collapsed || mobileOpen;
 
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-[#3EF2A0]/10 bg-[#020403]/95 shadow-[24px_0_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl transition-all duration-300",
-        collapsed ? "w-16" : "w-60"
-      )}
-    >
+    <>
+      <button
+        type="button"
+        aria-label="Fermer le menu"
+        onClick={onMobileClose}
+        className={cn(
+          "fixed inset-0 z-40 bg-black/55 backdrop-blur-sm transition-opacity lg:hidden",
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      />
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-50 flex h-dvh w-[min(84vw,18rem)] flex-col border-r border-[#3EF2A0]/10 bg-[#020403]/95 shadow-[24px_0_80px_rgba(0,0,0,0.32)] backdrop-blur-2xl transition-all duration-300 lg:z-40 lg:h-screen",
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          collapsed ? "lg:w-16" : "lg:w-60"
+        )}
+      >
       {/* Logo */}
       <div className="flex h-16 items-center gap-3 border-b border-[#3EF2A0]/10 px-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-[0_0_24px_rgba(62,242,160,0.12)]">
           <Zap className="h-4 w-4 text-[#3EF2A0]" />
         </div>
-        {!collapsed && (
-          <span className="text-base font-semibold tracking-[-0.03em] text-[#F8FAF7]">
+        <span
+          className={cn(
+            "min-w-0 text-base font-semibold tracking-[-0.03em] text-[#F8FAF7]",
+            !showExpanded && "lg:hidden"
+          )}
+        >
             Vectis<span className="text-[#3EF2A0]">Agency</span>
-          </span>
-        )}
+        </span>
+        <button
+          type="button"
+          onClick={onMobileClose}
+          className="ml-auto rounded-full border border-white/[0.10] p-2 text-[#8FA69E] transition-colors hover:bg-white/[0.06] hover:text-[#F8FAF7] lg:hidden"
+          aria-label="Fermer le menu"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         {navSections.map((section) => (
           <div key={section.label} className="mb-5">
-            {!collapsed && (
+            {showExpanded && (
               <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8FA69E]/70">
                 {section.label}
               </p>
@@ -96,6 +130,7 @@ export function Sidebar() {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={onMobileClose}
                       className={cn(
                         "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all duration-200",
                         isActive
@@ -109,7 +144,7 @@ export function Sidebar() {
                           isActive ? "text-[#3EF2A0]" : "text-[#8FA69E]/70"
                         )}
                       />
-                      {!collapsed && <span>{item.label}</span>}
+                      {showExpanded && <span>{item.label}</span>}
                     </Link>
                   </li>
                 );
@@ -120,7 +155,7 @@ export function Sidebar() {
       </nav>
 
       {/* Collapse toggle */}
-      {!collapsed && (
+      {showExpanded && (
         <div className="mx-3 mb-3 rounded-3xl border border-[#3EF2A0]/15 bg-[#003F32]/20 p-4">
           <p className="text-xs font-semibold text-[#DDFBEA]">Pipeline IA</p>
           <p className="mt-1 text-[11px] leading-5 text-[#8FA69E]">
@@ -131,8 +166,9 @@ export function Sidebar() {
 
       <div className="border-t border-[#3EF2A0]/10 p-3">
         <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="flex w-full items-center justify-center rounded-2xl border border-[#3EF2A0]/10 p-2 text-[#8FA69E] transition-colors hover:bg-white/[0.05] hover:text-[#F8FAF7]"
+          onClick={onCollapseToggle}
+          className="hidden w-full items-center justify-center rounded-2xl border border-[#3EF2A0]/10 p-2 text-[#8FA69E] transition-colors hover:bg-white/[0.05] hover:text-[#F8FAF7] lg:flex"
+          aria-label={collapsed ? "Déplier le menu" : "Réduire le menu"}
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -141,6 +177,7 @@ export function Sidebar() {
           )}
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

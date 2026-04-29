@@ -125,10 +125,10 @@ export default async function AgentsPage({
   }));
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex items-center gap-3">
         <Bot className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Agents IA</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Agents IA</h1>
       </div>
 
       {/* Agent cards */}
@@ -174,8 +174,8 @@ export default async function AgentsPage({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Scans récents
           </h2>
-          <div className="app-panel overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="app-panel overflow-x-auto">
+            <table className="min-w-[620px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Joueur</th>

@@ -65,9 +65,9 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
     daysSinceContact >= 7;
 
   return (
-    <div className={`rounded-xl border transition-all ${selected ? "border-[#3EF2A0]/30 bg-[#3EF2A0]/[0.02]" : "border-[#3EF2A0]/10 bg-[#061511]"}`}>
+    <div className={`rounded-2xl border transition-all ${selected ? "border-[#3EF2A0]/30 bg-[#3EF2A0]/[0.02]" : "border-[#3EF2A0]/10 bg-[#061511]"}`}>
       {/* Main row */}
-      <div className="flex items-center gap-3 p-4">
+      <div className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto] gap-3 p-3 sm:flex sm:items-center sm:p-4">
         {/* Checkbox */}
         <input
           type="checkbox"
@@ -82,7 +82,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
         </span>
 
         {/* Brand info */}
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 sm:flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-semibold text-white truncate">{prospect.company.name}</h3>
             {prospect.deal && (
@@ -91,7 +91,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 text-xs text-[#8FA69E]">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[#8FA69E]">
             {prospect.company.sector && <span>{prospect.company.sector}</span>}
             {prospect.company.country && (
               <>
@@ -117,7 +117,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
         </div>
 
         {/* Status */}
-        <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] capitalize shrink-0 ${statusColor(prospect.status)}`}>
+        <span className={`col-span-2 w-fit rounded-full px-2 py-0.5 font-mono text-[11px] capitalize shrink-0 sm:col-span-1 ${statusColor(prospect.status)}`}>
           {prospect.status}
         </span>
 
@@ -125,7 +125,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
         {needsRelance && (
           <Link
             href={`/agents?prospect=${prospect.id}#relanceur`}
-            className="flex items-center gap-1 rounded-full bg-[#f59e0b]/10 px-2 py-0.5 text-[10px] font-medium text-[#f59e0b] hover:bg-[#f59e0b]/20 transition-colors shrink-0"
+            className="col-span-2 flex w-fit items-center gap-1 rounded-full bg-[#f59e0b]/10 px-2 py-0.5 text-[10px] font-medium text-[#f59e0b] transition-colors hover:bg-[#f59e0b]/20 sm:col-span-1"
           >
             <RefreshCw className="h-3 w-3" />
             Relance {daysSinceContact}j
@@ -135,7 +135,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
         {/* Expand */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="p-1 text-[#8FA69E] hover:text-white/60 transition-colors shrink-0"
+          className="justify-self-end p-1 text-[#8FA69E] transition-colors hover:text-white/60 sm:shrink-0"
         >
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </button>
@@ -159,7 +159,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
                   <p className="text-sm text-white/70">{prospect.recommendedApproach}</p>
                 </div>
               )}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {prospect.partnershipType && (
                   <span className="rounded-md bg-white/[0.06] px-2 py-0.5 text-xs text-white/50">
                     {prospect.partnershipType}
@@ -185,8 +185,8 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
                 <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-2">Score détaillé</p>
                 <div className="space-y-1.5">
                   {Object.entries(scoreDetails).map(([key, value]) => (
-                    <div key={key} className="flex items-center gap-2">
-                      <span className="text-xs text-[#8FA69E] w-24 shrink-0">
+                    <div key={key} className="grid grid-cols-[5rem_minmax(0,1fr)_1.5rem] items-center gap-2 sm:grid-cols-[6rem_minmax(0,1fr)_1.5rem]">
+                      <span className="truncate text-xs text-[#8FA69E]">
                         {criteriaLabels[key] || key}
                       </span>
                       <div className="flex-1 h-1.5 rounded-full bg-white/[0.06]">

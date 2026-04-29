@@ -17,7 +17,7 @@ export default async function PlayerDetailPage({
   const initials = player.firstName.charAt(0) + player.lastName.charAt(0);
 
   return (
-    <div>
+    <div className="min-w-0">
       {/* Back link */}
       <Link
         href="/players"
@@ -28,16 +28,16 @@ export default async function PlayerDetailPage({
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#3EF2A0]/10 text-[#3EF2A0] font-bold text-2xl">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#3EF2A0]/10 text-xl font-bold text-[#3EF2A0] sm:h-16 sm:w-16 sm:text-2xl">
             {initials}
           </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">
               {player.firstName} {player.lastName}
             </h1>
-            <div className="flex items-center gap-3 mt-1 text-sm text-[#8FA69E]">
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#8FA69E]">
               <span>{player.position && `${player.position} · `}{player.club}</span>
               {player.league && (
                 <span className="rounded-md bg-white/[0.06] px-2 py-0.5 font-mono text-[11px]">
@@ -59,17 +59,17 @@ export default async function PlayerDetailPage({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
           <Link
             href="/agents"
-            className="flex items-center gap-2 rounded-full bg-[#F8FAF7] px-3 py-2 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors"
+            className="flex items-center justify-center gap-2 rounded-full bg-[#F8FAF7] px-3 py-2 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93]"
           >
             <ScanLine className="h-3.5 w-3.5" />
             Scanner
           </Link>
           <Link
             href={`/players/${player.id}/edit`}
-            className="flex items-center gap-2 rounded-full border border-white/[0.10] px-3 py-2 text-sm text-white/60 hover:bg-white/[0.06] hover:text-white transition-colors"
+            className="flex items-center justify-center gap-2 rounded-full border border-white/[0.10] px-3 py-2 text-sm text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
           >
             <Pencil className="h-3.5 w-3.5" />
             Modifier
@@ -147,8 +147,8 @@ export default async function PlayerDetailPage({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Prospects récents
           </h2>
-          <div className="app-panel overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="app-panel overflow-x-auto">
+            <table className="min-w-[560px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Entreprise</th>
@@ -194,8 +194,8 @@ export default async function PlayerDetailPage({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Deals
           </h2>
-          <div className="app-panel overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="app-panel overflow-x-auto">
+            <table className="min-w-[560px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Entreprise</th>
@@ -248,10 +248,10 @@ function SocialRow({
   followers?: number | null;
 }) {
   return (
-    <div className="flex items-center justify-between py-1.5">
-      <div>
+    <div className="flex items-center justify-between gap-3 py-1.5">
+      <div className="min-w-0">
         <span className="text-xs text-[#8FA69E]">{label}</span>
-        <p className="text-sm text-white/70">{handle}</p>
+        <p className="truncate text-sm text-white/70">{handle}</p>
       </div>
       {followers && (
         <span className="font-mono text-sm text-white/50">

@@ -11,7 +11,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-full bg-[#F8FAF7] px-6 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50"
+      className="w-full rounded-full bg-[#F8FAF7] px-6 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] disabled:opacity-50 sm:w-auto"
     >
       {pending
         ? "Enregistrement..."
@@ -141,9 +141,9 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
   }
 
   return (
-    <form action={action} className="space-y-8">
+    <form action={action} className="min-w-0 space-y-6 sm:space-y-8">
       {!isEdit && (
-        <section className="relative overflow-hidden rounded-[24px] border border-[#3EF2A0]/15 bg-[#003F32]/45 p-5 shadow-[0_20px_80px_rgba(0,0,0,0.18)]">
+        <section className="relative overflow-hidden rounded-[22px] border border-[#3EF2A0]/15 bg-[#003F32]/45 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.18)] sm:rounded-[24px] sm:p-5">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(62,242,160,0.18),transparent_28%)]" />
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative">
@@ -158,7 +158,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
               type="button"
               onClick={enrichPlayer}
               disabled={isEnriching || !`${values.firstName} ${values.lastName}`.trim()}
-              className="relative inline-flex items-center justify-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] shadow-[0_14px_38px_rgba(62,242,160,0.16)] transition-all hover:-translate-y-0.5 hover:bg-white disabled:opacity-50"
+              className="relative inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2.5 text-sm font-semibold text-[#020403] shadow-[0_14px_38px_rgba(62,242,160,0.16)] transition-all hover:-translate-y-0.5 hover:bg-white disabled:opacity-50 sm:w-auto sm:py-2"
             >
               {isEnriching ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -243,7 +243,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
       </section>
 
       {/* Actions */}
-      <div className="flex items-center gap-3 border-t border-[#3EF2A0]/10 pt-6">
+      <div className="flex flex-col gap-3 border-t border-[#3EF2A0]/10 pt-6 sm:flex-row sm:items-center">
         <SubmitButton isEdit={isEdit} />
       </div>
     </form>

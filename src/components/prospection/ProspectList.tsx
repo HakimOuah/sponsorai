@@ -78,9 +78,9 @@ export function ProspectList({ prospects }: ProspectListProps) {
   const withDeal = prospects.filter((p) => p.deal).length;
 
   return (
-    <div>
+    <div className="min-w-0">
       {/* Stats bar */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
         <span className="rounded-full bg-[#3EF2A0]/10 px-3 py-1 font-mono text-xs text-[#3EF2A0]">
           {countA} A
         </span>
@@ -98,17 +98,17 @@ export function ProspectList({ prospects }: ProspectListProps) {
       </div>
 
       {/* Actions bar */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
         <button
           onClick={selectAllA}
-          className="flex items-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.06] transition-colors"
+          className="flex items-center justify-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-2 text-xs text-white/50 transition-colors hover:bg-white/[0.06] sm:py-1.5"
         >
           <CheckSquare className="h-3 w-3" />
           Tous les A
         </button>
         <button
           onClick={selectAllBPlus}
-          className="flex items-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.06] transition-colors"
+          className="flex items-center justify-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-2 text-xs text-white/50 transition-colors hover:bg-white/[0.06] sm:py-1.5"
         >
           <CheckSquare className="h-3 w-3" />
           A + B
@@ -117,7 +117,7 @@ export function ProspectList({ prospects }: ProspectListProps) {
           <>
             <button
               onClick={clearSelection}
-              className="flex items-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-1.5 text-xs text-[#8FA69E] hover:bg-white/[0.06] transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-2 text-xs text-[#8FA69E] transition-colors hover:bg-white/[0.06] sm:py-1.5"
             >
               <Square className="h-3 w-3" />
               Désélectionner
@@ -132,7 +132,7 @@ export function ProspectList({ prospects }: ProspectListProps) {
             <button
               onClick={handleBulkDeals}
               disabled={isPending}
-              className="flex items-center gap-1.5 rounded-full bg-[#F8FAF7] px-3 py-1.5 text-xs font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50 ml-auto"
+              className="col-span-2 flex items-center justify-center gap-1.5 rounded-full bg-[#F8FAF7] px-3 py-2 text-xs font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] disabled:opacity-50 sm:ml-auto sm:py-1.5"
             >
               <Handshake className="h-3 w-3" />
               {isPending ? "Création..." : `Créer ${selected.size} deal${selected.size > 1 ? "s" : ""}`}

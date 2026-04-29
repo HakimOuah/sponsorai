@@ -9,17 +9,17 @@ export default async function EmailTemplatesPage() {
   const templates = await getEmailTemplates();
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <FileText className="h-6 w-6 text-[#3EF2A0]" />
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Templates Email</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Templates Email</h1>
         </div>
         <TemplateForm />
       </div>
 
       {templates.length === 0 ? (
-        <div className="app-panel p-8 text-center">
+        <div className="app-panel p-6 text-center sm:p-8">
           <FileText className="h-8 w-8 text-white/10 mx-auto mb-2" />
           <p className="text-sm text-[#8FA69E]">Aucun template</p>
           <p className="text-xs text-[#8FA69E]/55 mt-1">
@@ -39,7 +39,7 @@ export default async function EmailTemplatesPage() {
         <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8FA69E] mb-2">
           Variables disponibles
         </h3>
-        <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2 lg:grid-cols-3">
           <Variable name="{joueur}" desc="Prénom + Nom du joueur" />
           <Variable name="{marque}" desc="Nom de l'entreprise" />
           <Variable name="{contact}" desc="Nom du contact" />

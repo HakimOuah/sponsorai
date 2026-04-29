@@ -64,7 +64,7 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 rounded-lg border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-3 py-2 text-sm text-[#DDFBEA] hover:bg-[#DDFBEA]/10 transition-colors"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-3 py-2.5 text-sm text-[#DDFBEA] transition-colors hover:bg-[#DDFBEA]/10 sm:w-auto sm:py-2"
       >
         <Eye className="h-4 w-4" />
         Analyser une réponse
@@ -86,11 +86,11 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
   };
 
   return (
-    <div className="app-panel p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="app-panel space-y-4 p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
           <Eye className="h-4 w-4 text-[#DDFBEA]" />
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="truncate text-sm font-semibold text-white">
             Veilleur — {companyName}
           </h3>
         </div>
@@ -121,7 +121,7 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
           <button
             onClick={analyze}
             disabled={loading || !replyContent.trim()}
-            className="flex items-center gap-1.5 rounded-lg bg-[#DDFBEA] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#DDFBEA]/80 transition-colors disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#DDFBEA] px-4 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#DDFBEA]/80 disabled:opacity-40 sm:w-auto sm:py-2"
           >
             {loading ? (
               <>
@@ -149,13 +149,13 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
         return (
           <div className="space-y-3">
             {/* Sentiment banner */}
-            <div className={`flex items-center gap-3 rounded-lg border p-3 ${sc.bg}`}>
+            <div className={`flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:gap-3 ${sc.bg}`}>
               <SentimentIcon className={`h-5 w-5 ${sc.color}`} />
               <div>
                 <span className={`text-sm font-semibold ${sc.color}`}>{sc.label}</span>
                 <span className="text-xs text-[#8FA69E] ml-2">— {analysis.category}</span>
               </div>
-              <div className="ml-auto flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 sm:ml-auto">
                 <Clock className={`h-3 w-3 ${uc.color}`} />
                 <span className={`text-xs font-mono ${uc.color}`}>
                   Urgence {uc.label.toLowerCase()}
@@ -191,7 +191,7 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
             )}
 
             {/* Stage suggestion */}
-            <div className="flex items-center gap-2 text-xs text-[#8FA69E]">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-[#8FA69E]">
               <span>Stage suggéré :</span>
               <span className="rounded bg-white/[0.06] px-2 py-0.5 font-mono text-white/50">
                 {analysis.suggested_stage}

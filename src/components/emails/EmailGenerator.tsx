@@ -52,7 +52,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 rounded-lg border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-2.5 py-1.5 text-xs text-[#DDFBEA] hover:bg-[#DDFBEA]/10 transition-colors"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-3 py-2 text-xs text-[#DDFBEA] transition-colors hover:bg-[#DDFBEA]/10 sm:w-auto sm:py-1.5"
       >
         <PenTool className="h-3 w-3" />
         Générer email
@@ -62,10 +62,10 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
 
   return (
     <div className="app-panel p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
           <PenTool className="h-4 w-4 text-[#DDFBEA]" />
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="truncate text-sm font-semibold text-white">
             Agent Rédacteur — {companyName}
           </h3>
         </div>
@@ -84,12 +84,12 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
       {/* Type selector */}
       {!result && (
         <div className="space-y-3">
-          <div className="flex gap-2">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
             {EMAIL_TYPES.map((t) => (
               <button
                 key={t.value}
                 onClick={() => setEmailType(t.value)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`shrink-0 rounded-full px-3 py-2 text-xs font-medium transition-colors sm:py-1.5 ${
                   emailType === t.value
                     ? "bg-[#DDFBEA]/15 text-[#DDFBEA] border border-[#DDFBEA]/30"
                     : "bg-white/[0.06] text-[#8FA69E] border border-[#3EF2A0]/10 hover:bg-white/[0.06]"
@@ -149,10 +149,10 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <a
               href={`/emails`}
-              className="flex items-center gap-1.5 rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.1] transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/50 transition-colors hover:bg-white/[0.1] sm:py-1.5"
             >
               <Mail className="h-3 w-3" />
               Voir dans Emails
@@ -162,7 +162,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
                 setResult(null);
                 setError("");
               }}
-              className="rounded-lg bg-white/[0.06] px-3 py-1.5 text-xs text-white/50 hover:bg-white/[0.1] transition-colors"
+              className="rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/50 transition-colors hover:bg-white/[0.1] sm:py-1.5"
             >
               Générer un autre
             </button>

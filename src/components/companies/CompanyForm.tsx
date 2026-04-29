@@ -9,7 +9,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-full bg-[#F8FAF7] px-6 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50"
+      className="w-full rounded-full bg-[#F8FAF7] px-6 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] disabled:opacity-50 sm:w-auto"
     >
       {pending
         ? "Enregistrement..."
@@ -29,7 +29,7 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
   const isEdit = !!company;
 
   return (
-    <form action={action} className="space-y-8">
+    <form action={action} className="min-w-0 space-y-6 sm:space-y-8">
       {/* Infos */}
       <section>
         <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-4">
@@ -79,7 +79,7 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
         <TextArea label="Notes" name="notes" defaultValue={company?.notes} placeholder="Notes internes..." />
       </section>
 
-      <div className="flex items-center gap-3 border-t border-[#3EF2A0]/10 pt-6">
+      <div className="flex flex-col gap-3 border-t border-[#3EF2A0]/10 pt-6 sm:flex-row sm:items-center">
         <SubmitButton isEdit={isEdit} />
       </div>
     </form>

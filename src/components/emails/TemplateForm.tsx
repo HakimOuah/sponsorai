@@ -24,7 +24,7 @@ export function TemplateForm() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-1.5 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#F8FAF7] px-4 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] sm:w-auto sm:py-2"
       >
         <Plus className="h-4 w-4" />
         Nouveau template
@@ -35,9 +35,9 @@ export function TemplateForm() {
   return (
     <form
       action={handleSubmit}
-      className="rounded-xl border border-[#3EF2A0]/20 bg-[#061511] p-4 space-y-3"
+      className="w-full space-y-3 rounded-2xl border border-[#3EF2A0]/20 bg-[#061511] p-4 sm:max-w-xl"
     >
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
           <label className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1 block">
             Nom
@@ -93,11 +93,11 @@ export function TemplateForm() {
         </p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <button
           type="submit"
           disabled={isPending}
-          className="flex items-center gap-1.5 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50"
+          className="flex items-center justify-center gap-1.5 rounded-full bg-[#F8FAF7] px-4 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] disabled:opacity-50 sm:py-2"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -109,7 +109,7 @@ export function TemplateForm() {
         <button
           type="button"
           onClick={() => setIsOpen(false)}
-          className="rounded-lg bg-white/[0.06] px-4 py-2 text-sm text-white/50 hover:bg-white/[0.1] transition-colors"
+          className="rounded-full bg-white/[0.06] px-4 py-2.5 text-sm text-white/50 transition-colors hover:bg-white/[0.1] sm:py-2"
         >
           Annuler
         </button>

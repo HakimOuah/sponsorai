@@ -27,7 +27,7 @@ export default async function CompanyDetailPage({
   const initial = company.name.charAt(0).toUpperCase();
 
   return (
-    <div>
+    <div className="min-w-0">
       <Link
         href="/companies"
         className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
@@ -37,14 +37,14 @@ export default async function CompanyDetailPage({
       </Link>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#DDFBEA]/10 text-[#DDFBEA] font-bold text-xl">
             {initial}
           </div>
-          <div>
-            <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">{company.name}</h1>
-            <div className="flex items-center gap-3 mt-1 text-sm text-[#8FA69E]">
+          <div className="min-w-0">
+            <h1 className="truncate text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">{company.name}</h1>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#8FA69E]">
               {company.sector && <span>{company.sector}</span>}
               {company.country && (
                 <>
@@ -60,10 +60,10 @@ export default async function CompanyDetailPage({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
           <Link
             href={`/companies/${company.id}/edit`}
-            className="flex items-center gap-2 rounded-full border border-white/[0.10] px-3 py-2 text-sm text-white/60 hover:bg-white/[0.06] hover:text-white transition-colors"
+            className="flex items-center justify-center gap-2 rounded-full border border-white/[0.10] px-3 py-2 text-sm text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"
           >
             <Pencil className="h-3.5 w-3.5" />
             Modifier
@@ -73,7 +73,7 @@ export default async function CompanyDetailPage({
       </div>
 
       {/* KPI row */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Stat label="Prospects" value={company._count.prospects} color="#DDFBEA" />
         <Stat label="Deals" value={company._count.deals} color="#3EF2A0" />
         <Stat label="Emails" value={company._count.emails} color="#DDFBEA" />
@@ -151,8 +151,8 @@ export default async function CompanyDetailPage({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Prospects ({company.prospects.length})
           </h2>
-          <div className="app-panel overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="app-panel overflow-x-auto">
+            <table className="min-w-[660px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Joueur</th>
@@ -193,8 +193,8 @@ export default async function CompanyDetailPage({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Deals ({company.deals.length})
           </h2>
-          <div className="app-panel overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="app-panel overflow-x-auto">
+            <table className="min-w-[600px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Joueur</th>
@@ -230,8 +230,8 @@ export default async function CompanyDetailPage({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Emails récents ({company.emails.length})
           </h2>
-          <div className="app-panel overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="app-panel overflow-x-auto">
+            <table className="min-w-[620px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
                   <th className="px-4 py-2.5 font-medium">Sujet</th>
@@ -277,14 +277,14 @@ function InfoRow({ icon: Icon, label, value, isLink }: { icon: typeof Globe; lab
   return (
     <div className="flex items-start gap-2">
       <Icon className="h-3.5 w-3.5 text-[#8FA69E] mt-0.5 shrink-0" />
-      <div>
+      <div className="min-w-0">
         <p className="text-xs text-[#8FA69E]">{label}</p>
         {isLink ? (
-          <a href={value.startsWith("http") ? value : `https://${value}`} target="_blank" rel="noopener noreferrer" className="text-sm text-[#DDFBEA] hover:underline">
+          <a href={value.startsWith("http") ? value : `https://${value}`} target="_blank" rel="noopener noreferrer" className="break-all text-sm text-[#DDFBEA] hover:underline">
             {value}
           </a>
         ) : (
-          <p className="text-sm text-white/70">{value}</p>
+          <p className="break-words text-sm text-white/70">{value}</p>
         )}
       </div>
     </div>

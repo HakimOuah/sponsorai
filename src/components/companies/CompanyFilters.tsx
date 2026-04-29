@@ -23,9 +23,9 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_auto_auto_auto]">
       {/* Search */}
-      <div className="relative flex-1 min-w-[200px]">
+      <div className="relative min-w-0 sm:col-span-2 xl:col-span-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8FA69E]/55" />
         <input
           type="text"
@@ -40,7 +40,7 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
       <select
         defaultValue={searchParams.get("sector") || ""}
         onChange={(e) => update("sector", e.target.value)}
-        className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+        className="w-full rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors xl:w-auto xl:py-2"
       >
         <option value="">Tous secteurs</option>
         {sectors.map((s) => (
@@ -52,7 +52,7 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
       <select
         defaultValue={searchParams.get("country") || ""}
         onChange={(e) => update("country", e.target.value)}
-        className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+        className="w-full rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors xl:w-auto xl:py-2"
       >
         <option value="">Tous pays</option>
         {countries.map((c) => (
@@ -64,7 +64,7 @@ export function CompanyFilters({ sectors, countries }: CompanyFiltersProps) {
       <select
         defaultValue={searchParams.get("source") || ""}
         onChange={(e) => update("source", e.target.value)}
-        className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+        className="w-full rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors xl:w-auto xl:py-2"
       >
         <option value="">Toutes sources</option>
         <option value="scout">Scout IA</option>

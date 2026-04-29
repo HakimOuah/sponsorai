@@ -21,13 +21,13 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
 
   return (
-    <div>
-      <div className="mb-8 flex items-center gap-3">
+    <div className="min-w-0">
+      <div className="mb-6 flex items-start gap-3 sm:mb-8 sm:items-center">
         <span className="app-title-icon">
           <LayoutDashboard className="h-5 w-5" />
         </span>
-        <div>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">
             Dashboard
           </h1>
           <p className="mt-1 text-sm text-[#8FA69E]">
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* KPI Cards + Day Score */}
-      <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-6">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:mb-8 xl:grid-cols-6">
         <KPICard
           icon={Users}
           label="Joueurs actifs"

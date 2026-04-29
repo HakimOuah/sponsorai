@@ -8,11 +8,11 @@ export default async function PipelinePage() {
   const deals = await getDeals();
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Kanban className="h-6 w-6 text-[#3EF2A0]" />
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Pipeline</h1>
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Pipeline</h1>
         </div>
       </div>
 

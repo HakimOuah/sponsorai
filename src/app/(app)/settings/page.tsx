@@ -29,10 +29,10 @@ export default async function SettingsPage() {
   if (!user) redirect("/login");
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex items-center gap-3">
         <Settings className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Paramètres</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Paramètres</h1>
       </div>
 
       <div className="space-y-6">
@@ -48,7 +48,7 @@ export default async function SettingsPage() {
 
         {/* SMTP */}
         <Section icon={Mail} title="Configuration SMTP">
-          <div className="grid grid-cols-2 gap-4 max-w-lg">
+          <div className="grid max-w-lg grid-cols-1 gap-4 sm:grid-cols-2">
             <EnvField label="Host" value={process.env.SMTP_HOST} />
             <EnvField label="Port" value={process.env.SMTP_PORT} />
             <EnvField label="Secure" value={process.env.SMTP_SECURE} />
@@ -115,7 +115,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="app-panel p-6">
+    <div className="app-panel p-4 sm:p-6">
       <div className="flex items-center gap-2 mb-4">
         <Icon className="h-4 w-4 text-[#3EF2A0]" />
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50">
@@ -141,9 +141,9 @@ function EnvField({
       <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
         {label}
       </p>
-      <div className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] px-3 py-2 font-mono text-sm">
+      <div className="overflow-hidden rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] px-3 py-2 font-mono text-sm">
         {value ? (
-          <span className="text-white/60">{value}</span>
+          <span className="break-all text-white/60">{value}</span>
         ) : (
           <span className="text-white/15">{placeholder || "Non configuré"}</span>
         )}

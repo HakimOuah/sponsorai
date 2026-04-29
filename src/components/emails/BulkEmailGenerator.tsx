@@ -91,7 +91,7 @@ export function BulkEmailGenerator({ prospectIds, onDone }: BulkEmailGeneratorPr
     <button
       onClick={generate}
       disabled={prospectIds.length === 0}
-      className="flex items-center gap-1.5 rounded-lg border border-[#DDFBEA]/20 bg-[#DDFBEA]/10 px-3 py-1.5 text-xs font-medium text-[#DDFBEA] hover:bg-[#DDFBEA]/20 transition-colors disabled:opacity-40"
+      className="flex items-center justify-center gap-1.5 rounded-full border border-[#DDFBEA]/20 bg-[#DDFBEA]/10 px-3 py-2 text-xs font-medium text-[#DDFBEA] transition-colors hover:bg-[#DDFBEA]/20 disabled:opacity-40 sm:py-1.5"
     >
       <PenTool className="h-3 w-3" />
       Générer {prospectIds.length} email{prospectIds.length > 1 ? "s" : ""}

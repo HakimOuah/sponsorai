@@ -41,9 +41,10 @@ export function EmailRow({ email }: EmailRowProps) {
   return (
     <Link
       href={`/emails/${email.id}`}
-      className="flex items-center gap-4 border-b border-white/[0.04] px-4 py-3 hover:bg-white/[0.02] transition-colors last:border-0"
+      className="flex flex-col gap-2 border-b border-white/[0.04] px-4 py-3 transition-colors last:border-0 hover:bg-white/[0.02] sm:flex-row sm:items-center sm:gap-4"
     >
-      <Icon className={`h-4 w-4 shrink-0 ${config.color}`} />
+      <div className="flex min-w-0 items-start gap-3 sm:flex-1">
+      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${config.color}`} />
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -66,17 +67,20 @@ export function EmailRow({ email }: EmailRowProps) {
           )}
         </div>
       </div>
+      </div>
 
-      <span className={`rounded-full px-2 py-0.5 text-[11px] font-mono shrink-0 ${statusBg(email.status)}`}>
-        {config.label}
-      </span>
+      <div className="ml-7 flex items-center justify-between gap-3 sm:ml-0 sm:shrink-0">
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-mono ${statusBg(email.status)}`}>
+          {config.label}
+        </span>
 
-      <span className="text-xs text-[#8FA69E] shrink-0 w-24 text-right font-mono">
-        {(email.sentAt || email.createdAt).toLocaleDateString("fr-FR", {
-          day: "numeric",
-          month: "short",
-        })}
-      </span>
+        <span className="w-20 shrink-0 text-right font-mono text-xs text-[#8FA69E] sm:w-24">
+          {(email.sentAt || email.createdAt).toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "short",
+          })}
+        </span>
+      </div>
     </Link>
   );
 }

@@ -60,8 +60,8 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
   }
 
   return (
-    <div className="app-panel p-5 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="app-panel space-y-4 p-4 sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-sm font-semibold text-white">
             {draftEmails.length} brouillon{draftEmails.length > 1 ? "s" : ""} prêt{draftEmails.length > 1 ? "s" : ""}
@@ -72,11 +72,11 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
         </div>
 
         {!results && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             {confirmAll && (
               <button
                 onClick={() => setConfirmAll(false)}
-                className="text-xs text-[#8FA69E] hover:text-white/60"
+                className="rounded-full px-3 py-2 text-xs text-[#8FA69E] hover:bg-white/[0.05] hover:text-white/60"
               >
                 Annuler
               </button>
@@ -84,7 +84,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
             <button
               onClick={handleSendAll}
               disabled={sending || sendable.length === 0}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 ${
+              className={`flex w-full items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-40 sm:w-auto sm:py-2 ${
                 confirmAll
                   ? "bg-[#f59e0b] text-[#020403] hover:bg-[#f59e0b]/80"
                   : "bg-[#3EF2A0] text-[#020403] hover:bg-[#2CFF93]"
@@ -164,7 +164,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
           <div key={email.id} className="flex items-center gap-3 px-3 py-2 text-xs">
             <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${email.company.contactEmail ? "bg-[#3EF2A0]" : "bg-white/10"}`} />
             <span className="text-white/60 truncate flex-1">{email.subject}</span>
-            <span className="text-[#8FA69E] shrink-0">{email.company.name}</span>
+            <span className="hidden shrink-0 text-[#8FA69E] sm:inline">{email.company.name}</span>
           </div>
         ))}
       </div>

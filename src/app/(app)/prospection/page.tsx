@@ -25,18 +25,18 @@ export default async function ProspectionPage({
     : [];
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+    <div className="min-w-0">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <Search className="h-6 w-6 text-[#3EF2A0]" />
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Prospection</h1>
+          <h1 className="truncate text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Prospection</h1>
           <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 font-mono text-xs text-[#8FA69E]">
             {prospects.length} prospect{prospects.length !== 1 ? "s" : ""}
           </span>
         </div>
         <Link
           href="/agents"
-          className="flex items-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] sm:w-auto sm:py-2"
         >
           <ScanLine className="h-4 w-4" />
           Nouveau scan
@@ -80,7 +80,7 @@ export default async function ProspectionPage({
 
       {/* Results */}
       {prospects.length === 0 ? (
-        <div className="app-panel p-12 text-center">
+        <div className="app-panel p-6 text-center sm:p-12">
           <Search className="mx-auto mb-3 h-10 w-10 text-white/10" />
           <p className="text-[#8FA69E] mb-2">
             {selectedPlayerId

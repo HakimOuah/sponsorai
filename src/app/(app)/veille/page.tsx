@@ -11,10 +11,10 @@ export default async function VeillePage() {
   });
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex flex-wrap items-center gap-3">
         <Radar className="h-6 w-6 text-[#a855f7]" />
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Veille Concurrentielle</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Veille Concurrentielle</h1>
         <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 font-mono text-xs text-[#8FA69E]">
           {runs.length} run{runs.length !== 1 ? "s" : ""}
         </span>

@@ -16,7 +16,7 @@ export default async function EditPlayerPage({
   const updateAction = updatePlayer.bind(null, player.id);
 
   return (
-    <div>
+    <div className="min-w-0">
       <Link
         href={`/players/${player.id}`}
         className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
@@ -25,12 +25,12 @@ export default async function EditPlayerPage({
         {player.firstName} {player.lastName}
       </Link>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="mb-6 flex items-center gap-3">
         <Users className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Modifier le joueur</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Modifier le joueur</h1>
       </div>
 
-      <div className="app-panel p-6">
+      <div className="app-panel p-4 sm:p-6">
         <PlayerForm action={updateAction} player={player} />
       </div>
     </div>

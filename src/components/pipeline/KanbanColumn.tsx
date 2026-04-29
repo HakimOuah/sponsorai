@@ -18,7 +18,7 @@ export function KanbanColumn({ stage, label, color, deals, onDrop }: KanbanColum
 
   return (
     <div
-      className={`flex w-72 shrink-0 flex-col rounded-xl border transition-colors ${
+      className={`flex w-[82vw] max-w-[20rem] shrink-0 snap-start flex-col rounded-2xl border transition-colors sm:w-72 ${
         isDragOver
           ? "border-[#3EF2A0]/30 bg-[#3EF2A0]/[0.02]"
           : "border-[#3EF2A0]/10 bg-[#061511]/50"

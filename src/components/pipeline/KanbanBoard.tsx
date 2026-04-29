@@ -69,34 +69,34 @@ export function KanbanBoard({ initialDeals }: KanbanBoardProps) {
     .reduce((sum, d) => sum + (d.value || 0), 0);
 
   return (
-    <div>
+    <div className="min-w-0">
       {/* Stats bar */}
-      <div className="mb-4 flex items-center gap-6">
-        <div className="flex items-center gap-2">
+      <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3 lg:flex lg:items-center lg:gap-6">
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 lg:border-0 lg:bg-transparent lg:p-0">
           <span className="text-xs text-[#8FA69E]">Deals actifs</span>
           <span className="font-mono text-sm font-bold text-white">{totalDeals}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 lg:border-0 lg:bg-transparent lg:p-0">
           <span className="text-xs text-[#8FA69E]">Pipeline</span>
           <span className="font-mono text-sm font-bold text-[#DDFBEA]">
             {totalValue.toLocaleString("fr-FR")}€
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 lg:border-0 lg:bg-transparent lg:p-0">
           <span className="text-xs text-[#8FA69E]">Signé</span>
           <span className="font-mono text-sm font-bold text-[#3EF2A0]">
             {signedValue.toLocaleString("fr-FR")}€
           </span>
         </div>
         {isPending && (
-          <span className="ml-auto text-xs text-[#8FA69E] animate-pulse">
+          <span className="text-xs text-[#8FA69E] animate-pulse lg:ml-auto">
             Mise à jour…
           </span>
         )}
       </div>
 
       {/* Kanban columns */}
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0">
         {STAGES.map((s) => (
           <KanbanColumn
             key={s.key}

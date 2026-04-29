@@ -103,7 +103,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
       <button
         onClick={run}
         disabled={loading}
-        className="flex items-center gap-1.5 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 px-3 py-2 text-sm text-[#f59e0b] hover:bg-[#f59e0b]/10 transition-colors disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#f59e0b]/20 bg-[#f59e0b]/5 px-3 py-2.5 text-sm text-[#f59e0b] transition-colors hover:bg-[#f59e0b]/10 disabled:opacity-50 sm:w-auto sm:py-2"
       >
         {loading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -116,11 +116,11 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
   }
 
   return (
-    <div className="app-panel p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="app-panel space-y-3 p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
           <Database className="h-4 w-4 text-[#f59e0b]" />
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="truncate text-sm font-semibold text-white">
             Enrichisseur — {companyName}
           </h3>
         </div>
@@ -177,17 +177,17 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
               key={i}
               className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] p-3"
             >
-              <div className="flex items-center gap-2 mb-1">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
                 <User className="h-3.5 w-3.5 text-[#8FA69E]" />
                 <span className="text-sm font-medium text-white">{c.name}</span>
                 <span className="text-xs text-[#8FA69E]">— {c.role}</span>
                 <span
-                  className={`ml-auto font-mono text-[10px] ${confidenceColor[c.confidence] || "text-[#8FA69E]"}`}
+                  className={`font-mono text-[10px] sm:ml-auto ${confidenceColor[c.confidence] || "text-[#8FA69E]"}`}
                 >
                   {c.confidence}
                 </span>
               </div>
-              <div className="flex items-center gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-3 text-xs">
                 {c.email && (
                   <span className="flex items-center gap-1 text-[#DDFBEA]">
                     <Mail className="h-3 w-3" />
@@ -205,7 +205,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
                     LinkedIn
                   </a>
                 )}
-                <span className="text-[#8FA69E]/55 ml-auto">{c.source}</span>
+                <span className="text-[#8FA69E]/55 sm:ml-auto">{c.source}</span>
               </div>
             </div>
           ))}
@@ -220,7 +220,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
       {!loading && !done && (
         <button
           onClick={run}
-          className="flex items-center gap-1.5 rounded-lg bg-[#f59e0b] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#f59e0b]/80 transition-colors"
+          className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#f59e0b] px-4 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#f59e0b]/80 sm:w-auto sm:py-2"
         >
           <Database className="h-4 w-4" />
           Lancer l&apos;enrichissement

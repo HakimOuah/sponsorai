@@ -38,7 +38,7 @@ export function DealCard({ deal }: DealCardProps) {
         e.dataTransfer.setData("dealId", deal.id);
         e.dataTransfer.effectAllowed = "move";
       }}
-      className="rounded-lg border border-[#3EF2A0]/10 bg-[#0e1220] p-3 cursor-grab active:cursor-grabbing hover:border-white/[0.12] transition-colors group"
+      className="cursor-grab rounded-2xl border border-[#3EF2A0]/10 bg-[#061511]/90 p-3 transition-colors hover:border-white/[0.12] active:cursor-grabbing"
     >
       {/* Company */}
       <div className="flex items-start justify-between mb-2">

@@ -17,8 +17,8 @@ export default async function EmailDetailPage({ params }: Props) {
   if (!email) notFound();
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-6">
+    <div className="min-w-0">
+      <div className="mb-6 flex min-w-0 flex-wrap items-center gap-3">
         <Link
           href="/emails"
           className="flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/60 transition-colors"
@@ -28,12 +28,12 @@ export default async function EmailDetailPage({ params }: Props) {
         </Link>
         <div className="h-4 w-px bg-white/[0.08]" />
         <Mail className="h-5 w-5 text-[#3EF2A0]" />
-        <h1 className="text-lg font-bold text-white truncate">
+        <h1 className="min-w-0 flex-1 truncate text-base font-semibold text-white sm:text-lg">
           {email.subject}
         </h1>
       </div>
 
-      <div className="app-panel p-6">
+      <div className="app-panel p-4 sm:p-6">
         <EmailEditor email={email} />
       </div>
 

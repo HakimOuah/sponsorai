@@ -17,7 +17,7 @@ export default async function EditCompanyPage({
   const updateAction = updateCompany.bind(null, company.id);
 
   return (
-    <div>
+    <div className="min-w-0">
       <Link
         href={`/companies/${company.id}`}
         className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
@@ -26,12 +26,12 @@ export default async function EditCompanyPage({
         {company.name}
       </Link>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="mb-6 flex items-center gap-3">
         <Building2 className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F8FAF7]">Modifier l&apos;entreprise</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Modifier l&apos;entreprise</h1>
       </div>
 
-      <div className="app-panel p-6">
+      <div className="app-panel p-4 sm:p-6">
         <CompanyForm action={updateAction} company={company} />
       </div>
     </div>

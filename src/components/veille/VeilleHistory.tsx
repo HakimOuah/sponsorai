@@ -160,11 +160,11 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
     <div className="space-y-6">
       {/* Launch button + Console */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <button
             onClick={launch}
             disabled={isRunning}
-            className="flex items-center gap-2 rounded-lg bg-[#DDFBEA] px-5 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#DDFBEA]/80 transition-colors disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#DDFBEA] px-5 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#DDFBEA]/80 disabled:opacity-50 sm:w-auto"
           >
             {isRunning ? (
               <>
@@ -219,12 +219,12 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
 
       {/* Filters */}
       {runs.length > 0 && (
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[auto_1fr_1fr] sm:items-center sm:gap-3">
           <Filter className="h-4 w-4 text-[#8FA69E]" />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-1.5 text-xs text-white focus:border-[#a855f7]/50 focus:outline-none transition-colors"
+            className="w-full rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-xs text-white transition-colors focus:border-[#a855f7]/50 focus:outline-none"
           >
             <option value="all">Tous les types</option>
             <option value="new_deal">Nouveau deal</option>
@@ -236,7 +236,7 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
-            className="rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-1.5 text-xs text-white focus:border-[#a855f7]/50 focus:outline-none transition-colors"
+            className="w-full rounded-full border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-xs text-white transition-colors focus:border-[#a855f7]/50 focus:outline-none"
           >
             <option value="all">Toutes priorit&eacute;s</option>
             <option value="high">Haute</option>
@@ -248,7 +248,7 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
 
       {/* Run history */}
       {runs.length === 0 && !isRunning ? (
-        <div className="app-panel p-12 text-center">
+        <div className="app-panel p-6 text-center sm:p-12">
           <Radar className="mx-auto mb-3 h-10 w-10 text-white/10" />
           <p className="text-[#8FA69E] mb-2">Aucune veille lanc&eacute;e</p>
           <p className="text-sm text-[#8FA69E]/55">
@@ -270,10 +270,10 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                 {/* Run header */}
                 <button
                   onClick={() => setExpandedRun(isExpanded ? null : run.id)}
-                  className="flex w-full items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors"
+                  className="flex w-full flex-col items-start gap-2 px-4 py-3 text-left transition-colors hover:bg-white/[0.02] sm:flex-row sm:items-center sm:gap-3"
                 >
                   <RunStatusBadge status={run.status} />
-                  <div className="flex-1 text-left">
+                  <div className="min-w-0 flex-1 text-left">
                     <span className="text-sm text-white/80">
                       {new Date(run.createdAt).toLocaleDateString("fr-FR", {
                         day: "numeric",
@@ -284,7 +284,7 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                       })}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:gap-3">
                     {run.alertsCount != null && (
                       <span className="font-mono text-xs text-[#8FA69E]">
                         {run.alertsCount} alerte{run.alertsCount !== 1 ? "s" : ""}
@@ -324,7 +324,7 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                     )}
 
                     {/* Stats */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <span className="rounded-full bg-red-500/10 px-3 py-1 font-mono text-xs text-red-400">
                         {alerts.filter((a) => a.priority === "high").length} haute
                       </span>
@@ -358,14 +358,14 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                               key={i}
                               className="rounded-xl border border-white/[0.10] bg-[#020403] p-4 space-y-2"
                             >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex items-center gap-2">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex min-w-0 items-center gap-2">
                                   <TypeIcon className={`h-4 w-4 ${tc.color}`} />
                                   <h4 className="text-sm font-semibold text-white">
                                     {alert.title}
                                   </h4>
                                 </div>
-                                <div className="flex items-center gap-2 shrink-0">
+                                <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                                   <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${tc.color} bg-white/[0.06]`}>
                                     {tc.label}
                                   </span>
@@ -393,7 +393,7 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                                 )}
                               </div>
                               {(alert.related_player || alert.related_brand) && (
-                                <div className="flex items-center gap-2 text-[11px] text-white/25">
+                                <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/25">
                                   {alert.related_player && (
                                     <span className="rounded bg-white/[0.06] px-1.5 py-0.5">
                                       Joueur : {alert.related_player}
