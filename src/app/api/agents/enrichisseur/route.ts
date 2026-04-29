@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       try {
         const result = await runEnrichisseur(company, log);
 
-        // Update company with best contact found
+        // Update company only with a contact verified as currently working there.
         const bestContact = result.contacts[0];
         if (bestContact) {
           const updateData: Record<string, string | null> = {};
@@ -63,16 +63,21 @@ export async function POST(request: NextRequest) {
               where: { id: companyId },
               data: updateData,
             });
-            log("Contact principal mis à jour dans la fiche entreprise", "success");
+            log("Contact vérifié mis à jour dans la fiche entreprise", "success");
           }
+        } else {
+          log(
+            "Aucun contact actuel suffisamment vérifié : la fiche entreprise n'a pas été modifiée",
+            "info"
+          );
         }
 
-        // Store additional contacts as notes if multiple found
+        // Store additional verified contacts as notes if multiple found.
         if (result.contacts.length > 1) {
           const contactsText = result.contacts
             .map(
               (c, i) =>
-                `${i + 1}. ${c.name} — ${c.role}${c.email ? ` (${c.email})` : ""}${c.linkedin ? ` [LinkedIn: ${c.linkedin}]` : ""} [${c.confidence}]`
+                `${i + 1}. ${c.name} — ${c.role}${c.email ? ` (${c.email})` : ""}${c.linkedin ? ` [LinkedIn: ${c.linkedin}]` : ""} [${c.confidence}] — preuve: ${c.evidence}`
             )
             .join("\n");
 
@@ -91,7 +96,7 @@ export async function POST(request: NextRequest) {
         await prisma.activityLog.create({
           data: {
             type: "scan_completed",
-            message: `Enrichissement terminé pour ${company.name} — ${result.contacts.length} contact(s)`,
+            message: `Enrichissement terminé pour ${company.name} — ${result.contacts.length} contact(s) vérifié(s)`,
             metadata: { companyId, contacts: result.contacts.length },
           },
         });

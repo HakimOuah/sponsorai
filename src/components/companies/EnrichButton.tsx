@@ -9,6 +9,9 @@ interface EnrichContact {
   email: string | null;
   linkedin: string | null;
   confidence: string;
+  verification_status?: string;
+  current_at_company?: boolean;
+  evidence?: string;
   source: string;
 }
 
@@ -168,7 +171,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 text-[#3EF2A0]" />
             <span className="text-sm text-[#3EF2A0]">
-              {contacts.length} contact{contacts.length > 1 ? "s" : ""} trouvé{contacts.length > 1 ? "s" : ""}
+              {contacts.length} contact{contacts.length > 1 ? "s" : ""} vérifié{contacts.length > 1 ? "s" : ""}
             </span>
           </div>
 
@@ -184,7 +187,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
                 <span
                   className={`font-mono text-[10px] sm:ml-auto ${confidenceColor[c.confidence] || "text-[#8FA69E]"}`}
                 >
-                  {c.confidence}
+                  {c.confidence} · vérifié
                 </span>
               </div>
               <div className="flex flex-wrap items-center gap-3 text-xs">
@@ -207,12 +210,24 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
                 )}
                 <span className="text-[#8FA69E]/55 sm:ml-auto">{c.source}</span>
               </div>
+              {c.evidence && (
+                <p className="mt-2 text-[11px] leading-relaxed text-[#8FA69E]">
+                  Preuve : {c.evidence}
+                </p>
+              )}
             </div>
           ))}
 
           {insights && (
             <p className="text-xs text-[#8FA69E] italic">{insights}</p>
           )}
+        </div>
+      )}
+
+      {done && contacts.length === 0 && (
+        <div className="rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 px-3 py-2 text-xs leading-relaxed text-[#f59e0b]">
+          Aucun contact actuel n&apos;a pu être vérifié avec assez de fiabilité.
+          La fiche entreprise n&apos;a pas été modifiée.
         </div>
       )}
 

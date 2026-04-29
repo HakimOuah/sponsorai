@@ -295,13 +295,14 @@ CIBLES PRIORITAIRES (par ordre de préférence) :
 3. Directeur/Responsable Communication
 4. CMO (Chief Marketing Officer)
 5. Brand Manager
-6. CEO / Fondateur (si startup/PME)
+6. CEO / Fondateur UNIQUEMENT si startup/PME ou si aucun décideur marketing/partenariats actuel n'est vérifiable
 
 Fais une recherche web approfondie pour trouver :
 - Le nom complet du décideur
 - Son rôle / titre exact
 - Son email professionnel (si trouvable publiquement)
 - Son profil LinkedIn
+- Une preuve qu'il travaille ACTUELLEMENT dans l'entreprise cible
 
 Retourne UNIQUEMENT un JSON :
 {
@@ -312,7 +313,10 @@ Retourne UNIQUEMENT un JSON :
       "email": "email@company.com ou null",
       "linkedin": "https://linkedin.com/in/... ou null",
       "confidence": "high/medium/low",
-      "source": "D'où vient cette info (LinkedIn, site web, article, etc.)"
+      "verification_status": "verified_current | unverified | past_or_wrong_company",
+      "current_at_company": true,
+      "evidence": "Preuve courte : source + indice actuel, par exemple 'LinkedIn Experience: Headspace · CMO · Present' ou 'page équipe officielle Headspace'",
+      "source": "URL précise ou nom exact de la source"
     }
   ],
   "company_insights": "1-2 phrases sur la stratégie marketing/sponsoring actuelle de l'entreprise"
@@ -320,8 +324,14 @@ Retourne UNIQUEMENT un JSON :
 
 RÈGLES :
 - Maximum 3 contacts par entreprise
+- Ne retourne dans contacts QUE des personnes dont l'emploi ACTUEL dans l'entreprise cible est vérifié.
+- Si une personne a seulement travaillé dans l'entreprise par le passé, mets-la hors résultat : ne l'inclus pas dans contacts.
+- Si le profil LinkedIn indique "Seeking new opportunities", "Open to work", "unemployed", "job seeker", ou une expérience actuelle dans une autre entreprise, ne l'inclus pas.
+- Ne te fie jamais uniquement au titre affiché dans Google/Bing. Il faut une preuve dans le profil, le site officiel, une page équipe, un communiqué récent ou une source business fiable.
+- Le nom de l'entreprise cible doit apparaître dans la preuve actuelle. Attention aux homonymes et aux entreprises différentes.
+- Un email ne suffit jamais à vérifier le poste actuel.
 - Ne PAS inventer d'emails — si tu n'es pas sûr, mets null
-- Indiquer le niveau de confiance (high = trouvé sur source officielle, medium = déduit, low = estimé)
+- confidence high = source officielle ou LinkedIn confirmant rôle actuel ; medium = source tierce récente et cohérente ; low = trop incertain, donc ne pas inclure
 - Favoriser les emails trouvés sur des sources publiques (site web, LinkedIn, articles de presse)`;
 
 export const RELANCEUR_PROMPT = `Tu es un expert en prospection commerciale sportive et en timing de relance.

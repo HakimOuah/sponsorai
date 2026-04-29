@@ -9,6 +9,9 @@ export interface EnrichContact {
   email: string | null;
   linkedin: string | null;
   confidence: "high" | "medium" | "low";
+  verification_status: "verified_current" | "unverified" | "past_or_wrong_company";
+  current_at_company: boolean;
+  evidence: string;
   source: string;
 }
 
@@ -35,11 +38,20 @@ export async function runEnrichisseur(
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    tools: [
+      {
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 8,
+      },
+    ],
     messages: [{ role: "user", content: prompt }],
   });
 
-  const text =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const text = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
 
   // Parse JSON
   const cleaned = text
@@ -56,8 +68,28 @@ export async function runEnrichisseur(
   }
 
   const result: EnrichResult = JSON.parse(cleaned.substring(start, end + 1));
+  const contacts = Array.isArray(result.contacts) ? result.contacts : [];
+  const verifiedContacts = contacts.filter(
+    (contact) =>
+      contact.current_at_company === true &&
+      contact.verification_status === "verified_current" &&
+      contact.confidence !== "low" &&
+      Boolean(contact.name) &&
+      Boolean(contact.role) &&
+      Boolean(contact.evidence)
+  );
+  const rejectedCount = contacts.length - verifiedContacts.length;
 
-  log(`${result.contacts.length} contact(s) trouvé(s)`, "success");
+  result.contacts = verifiedContacts;
+
+  if (rejectedCount > 0) {
+    log(
+      `${rejectedCount} contact(s) ignoré(s) car non vérifié(s) comme actuellement en poste`,
+      "info"
+    );
+  }
+
+  log(`${result.contacts.length} contact(s) vérifié(s)`, "success");
   result.contacts.forEach((c, i) => {
     log(
       `  ${i + 1}. ${c.name} — ${c.role} [${c.confidence}]${c.email ? ` · ${c.email}` : ""}`,
