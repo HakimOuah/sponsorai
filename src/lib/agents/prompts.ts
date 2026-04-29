@@ -313,6 +313,9 @@ Fais une recherche web approfondie pour trouver :
 
 STRATÉGIE DE RECHERCHE WEB :
 - Recherche d'abord : "{companyName} partnerships manager", "{companyName} brand partnerships", "{companyName} sponsorship", "{companyName} influencer marketing", "{companyName} communications director", "{companyName} CMO".
+- Utilise LinkedIn comme source prioritaire de vérification quand des informations publiques sont accessibles via web search, mais ne suppose jamais depuis un simple snippet ambigu.
+- Un profil LinkedIn n'est acceptable que si l'expérience actuelle indique clairement l'entreprise cible et un rôle pertinent : "{companyName} · Partnerships/Brand/Marketing/Communications · Present/aujourd'hui".
+- Si LinkedIn est inaccessible, incomplet ou ambigu, croise avec une autre source fiable : site officiel, page équipe, communiqué récent, interview, podcast, article presse, annuaire business public.
 - Vérifie ensuite chaque candidat avec son profil LinkedIn, une page équipe officielle, un communiqué récent, un podcast/interview, une page presse ou une source business fiable.
 - Regarde explicitement l'expérience actuelle : l'entreprise cible doit être listée comme poste actuel, pas seulement dans les expériences passées.
 
@@ -343,6 +346,7 @@ RÈGLES :
 - Si le profil LinkedIn indique "Seeking new opportunities", "Open to work", "unemployed", "job seeker", ou une expérience actuelle dans une autre entreprise, ne l'inclus pas.
 - Si tu trouves uniquement le CEO pour une marque établie, retourne contacts: [] plutôt que de proposer un mauvais interlocuteur.
 - Ne te fie jamais uniquement au titre affiché dans Google/Bing. Il faut une preuve dans le profil, le site officiel, une page équipe, un communiqué récent ou une source business fiable.
+- Ne scrape pas LinkedIn et ne prétends pas avoir vu une information non accessible publiquement. Si la source LinkedIn n'est pas vérifiable par web search, considère-la comme insuffisante.
 - Le nom de l'entreprise cible doit apparaître dans la preuve actuelle. Attention aux homonymes et aux entreprises différentes.
 - Un email ne suffit jamais à vérifier le poste actuel.
 - Ne PAS inventer d'emails — si tu n'es pas sûr, mets null
