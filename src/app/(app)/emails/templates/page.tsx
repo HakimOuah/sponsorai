@@ -40,7 +40,7 @@ export default async function EmailTemplatesPage() {
           Variables disponibles
         </h3>
         <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2 lg:grid-cols-3">
-          <Variable name="{joueur}" desc="Prénom + Nom du joueur" />
+          <Variable name="{joueur}" desc="Nom du profil sportif" />
           <Variable name="{marque}" desc="Nom de l'entreprise" />
           <Variable name="{contact}" desc="Nom du contact" />
           <Variable name="{rationnel}" desc="Raison du match IA" />

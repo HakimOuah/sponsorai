@@ -113,7 +113,7 @@ export default async function AnalyticsPage() {
 
         {/* Response by player */}
         <section>
-          <SectionHeader icon={Mail} label="Taux de réponse par joueur" color="text-[#DDFBEA]" />
+          <SectionHeader icon={Mail} label="Taux de réponse par profil" color="text-[#DDFBEA]" />
           <div className="app-panel divide-y divide-white/[0.04]">
             {data.responseByPlayer.length === 0 ? (
               <EmptyState text="Aucune donnée email" />

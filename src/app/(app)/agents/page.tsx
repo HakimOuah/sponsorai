@@ -69,7 +69,7 @@ const agents = [
   {
     name: "Relanceur",
     description:
-      "Relance contextuelle basée sur l'actualité du joueur. Timing score et email personnalisé.",
+      "Relance contextuelle basée sur l'actualité du profil. Timing score et email personnalisé.",
     icon: RefreshCw,
     status: "active" as const,
     color: "#f59e0b",
@@ -178,7 +178,7 @@ export default async function AgentsPage({
             <table className="min-w-[620px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
-                  <th className="px-4 py-2.5 font-medium">Joueur</th>
+                  <th className="px-4 py-2.5 font-medium">Profil</th>
                   <th className="px-4 py-2.5 font-medium">Statut</th>
                   <th className="px-4 py-2.5 font-medium">Marques</th>
                   <th className="px-4 py-2.5 font-medium">Durée</th>

@@ -81,9 +81,15 @@ export async function archivePlayer(id: string) {
 }
 
 function extractPlayerData(formData: FormData) {
+  const profileType = (formData.get("profileType") as string) || "athlete";
+  const firstName = ((formData.get("firstName") as string) || "").trim();
+  const lastName = ((formData.get("lastName") as string) || "").trim();
+
   return {
-    firstName: formData.get("firstName") as string,
-    lastName: formData.get("lastName") as string,
+    profileType,
+    sport: ((formData.get("sport") as string) || "").trim() || null,
+    firstName,
+    lastName: lastName || (profileType === "club" ? "Club" : ""),
     club: formData.get("club") as string,
     league: formData.get("league") as string,
     position: (formData.get("position") as string) || null,

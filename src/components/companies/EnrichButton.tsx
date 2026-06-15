@@ -7,6 +7,10 @@ interface EnrichContact {
   name: string;
   role: string;
   email: string | null;
+  email_status?: "verified" | "public_source" | "guessed" | "missing";
+  email_evidence?: string | null;
+  email_pattern?: string | null;
+  email_candidates?: string[];
   linkedin: string | null;
   confidence: string;
   verification_status?: string;
@@ -195,6 +199,9 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
                   <span className="flex items-center gap-1 text-[#DDFBEA]">
                     <Mail className="h-3 w-3" />
                     {c.email}
+                    <span className={c.email_status === "verified" ? "text-[#3EF2A0]" : "text-[#f59e0b]"}>
+                      · {c.email_status === "verified" ? "vérifié" : "source publique"}
+                    </span>
                   </span>
                 )}
                 {c.linkedin && (
@@ -214,6 +221,21 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
                 <p className="mt-2 text-[11px] leading-relaxed text-[#8FA69E]">
                   Preuve : {c.evidence}
                 </p>
+              )}
+              {c.email_evidence && (
+                <p className="mt-1 text-[11px] leading-relaxed text-[#8FA69E]">
+                  Email : {c.email_evidence}
+                </p>
+              )}
+              {!c.email && c.email_candidates && c.email_candidates.length > 0 && (
+                <div className="mt-2 rounded-lg border border-[#f59e0b]/15 bg-[#f59e0b]/5 px-2.5 py-2">
+                  <p className="text-[11px] font-medium text-[#f59e0b]">
+                    Pattern probable {c.email_pattern ? `(${c.email_pattern})` : ""} — non envoyable
+                  </p>
+                  <p className="mt-1 break-all font-mono text-[11px] leading-relaxed text-[#D8DEDA]/70">
+                    {c.email_candidates.join(" · ")}
+                  </p>
+                </div>
               )}
             </div>
           ))}

@@ -17,7 +17,7 @@ export async function runPlayerResearch(
 ): Promise<PlayerIntelligence> {
   const playerProfile = buildPlayerProfile(player);
 
-  log("Phase 0 — Recherche d'intelligence sur le joueur...", "info");
+  log("Phase 0 — Recherche d'intelligence sur le profil sportif...", "info");
   log(`Analyse approfondie de ${player.firstName} ${player.lastName}...`, "info");
 
   const prompt = SCOUT_RESEARCH_PROMPT.replace("{playerProfile}", playerProfile);
@@ -25,11 +25,20 @@ export async function runPlayerResearch(
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    tools: [
+      {
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 8,
+      },
+    ],
     messages: [{ role: "user", content: prompt }],
   });
 
-  const responseText =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const responseText = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
 
   const intelligence = extractJSONObject<PlayerIntelligence>(responseText);
 
@@ -81,7 +90,7 @@ export async function runScout(
 
   // Step 1: Web search with enriched context
   log("Phase 1 — Recherche de marques avec contexte enrichi...", "info");
-  log(`Joueur : ${player.firstName} ${player.lastName} (${player.club})`, "info");
+  log(`Profil : ${player.firstName} ${player.lastName} (${player.club})`, "info");
 
   if (excludedBrands.length > 0) {
     log(`${excludedBrands.length} marques exclues (déjà en base)`, "info");
@@ -93,7 +102,7 @@ export async function runScout(
     exclusionSection = `MARQUES À EXCLURE ABSOLUMENT (déjà dans notre base de données, NE PAS les proposer) :\n${excludedBrands.map((b) => `- ${b}`).join("\n")}`;
   }
   if (intelligence?.existing_partnerships?.length) {
-    exclusionSection += `\n\nPARTENARIATS EXISTANTS DU JOUEUR (CONFLITS D'EXCLUSIVITÉ À ÉVITER) :\n${intelligence.existing_partnerships.map((p) => `- ${p} (et tous ses concurrents directs)`).join("\n")}`;
+    exclusionSection += `\n\nPARTENARIATS EXISTANTS DU PROFIL (CONFLITS D'EXCLUSIVITÉ À ÉVITER) :\n${intelligence.existing_partnerships.map((p) => `- ${p} (et tous ses concurrents directs)`).join("\n")}`;
   }
   if (intelligence?.brand_conflicts?.length) {
     exclusionSection += `\n\nMARQUES / CATÉGORIES CONCURRENTES À ÉVITER :\n${intelligence.brand_conflicts.map((p) => `- ${p}`).join("\n")}`;
@@ -120,13 +129,20 @@ export async function runScout(
   const searchResponse = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    tools: [
+      {
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 12,
+      },
+    ],
     messages: [{ role: "user", content: searchPrompt }],
   });
 
-  const searchText =
-    searchResponse.content[0].type === "text"
-      ? searchResponse.content[0].text
-      : "";
+  const searchText = searchResponse.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
 
   const brandMentions = searchText.split("\n").filter((l) => l.trim()).length;
   log(`Recherche terminée — ~${brandMentions} lignes de résultats`, "success");

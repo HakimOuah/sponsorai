@@ -31,7 +31,7 @@ const navSections = [
   {
     label: "Croissance",
     items: [
-      { label: "Joueurs", href: "/players", icon: Users },
+      { label: "Talents", href: "/players", icon: Users },
       { label: "Prospection", href: "/prospection", icon: Search },
       { label: "Entreprises", href: "/companies", icon: Building2 },
     ],

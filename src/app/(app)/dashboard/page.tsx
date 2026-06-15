@@ -40,7 +40,7 @@ export default async function DashboardPage() {
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:mb-8 xl:grid-cols-6">
         <KPICard
           icon={Users}
-          label="Joueurs actifs"
+          label="Profils actifs"
           value={data.kpis.activePlayers}
           color="text-[#3EF2A0]"
         />

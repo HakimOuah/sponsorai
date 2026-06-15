@@ -34,13 +34,13 @@ const navItems = [
 ];
 
 const heroCards: Array<{ title: string; label: string; icon: LucideIcon }> = [
-  { title: "Analyse joueur", label: "Enrichissement", icon: Users },
+  { title: "Analyse profil", label: "Enrichissement", icon: Users },
   { title: "Graphe marques", label: "Recherche IA", icon: Network },
   { title: "Prospection sûre", label: "Domaine pro", icon: Lock },
 ];
 
 const threats = [
-  "Prospection générique sans angle joueur",
+  "Prospection générique sans angle sportif",
   "Marques incompatibles ou déjà verrouillées",
   "Contacts froids sans décideur identifié",
   "Messages trop longs ou peu crédibles",
@@ -54,12 +54,12 @@ const threats = [
 
 const solutionPillars = [
   {
-    title: "Intelligence joueur",
-    text: "Comprendre l'actualité, l'image, la communauté et les contraintes du joueur avant de chercher les marques.",
+    title: "Intelligence profil",
+    text: "Comprendre l'actualité, l'image, la communauté, le sport et le territoire avant de chercher les marques.",
   },
   {
     title: "Scoring sponsoring",
-    text: "Prouver pourquoi une entreprise a une raison crédible de parler avec ce joueur maintenant.",
+    text: "Prouver pourquoi une entreprise a une raison crédible de parler avec ce profil maintenant.",
     featured: true,
   },
   {
@@ -116,7 +116,7 @@ const workflow = [
   {
     number: "01",
     title: "Profil vérifié",
-    text: "Le nom du joueur devient un profil commercial enrichi: club, ville, langues, audience, actualité, sponsors visibles.",
+    text: "Le nom du sportif ou du club devient un profil commercial enrichi: sport, ville, niveau, audience, actualité, sponsors visibles.",
   },
   {
     number: "02",
@@ -273,7 +273,7 @@ function HeroSection() {
           <p
             className="landing-reveal mx-auto mt-7 max-w-[260px] text-[15px] leading-8 text-[#D8DEDA]/78 sm:max-w-2xl sm:text-xl"
           >
-            Vectis qualifie les joueurs, les marques et les contacts avant le
+            Vectis qualifie les profils sportifs, les marques et les contacts avant le
             premier email. Une prospection IA structurée pour ne transmettre à
             l&apos;agent que les leads prêts à avancer.
           </p>
@@ -526,7 +526,7 @@ function WorkflowSection() {
               Système opérationnel
             </p>
             <h2 className="text-5xl font-semibold leading-[1.03] tracking-[-0.055em] text-[#003F32] md:text-7xl">
-              Du signal joueur au deal qualifié.
+              Du signal sportif au deal qualifié.
             </h2>
           </div>
           <div className="rounded-[28px] bg-[#DDFBEA] p-6">

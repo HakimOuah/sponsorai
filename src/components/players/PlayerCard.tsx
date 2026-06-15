@@ -16,6 +16,7 @@ interface PlayerCardProps {
 export function PlayerCard({ player }: PlayerCardProps) {
   const initials =
     player.firstName.charAt(0) + player.lastName.charAt(0);
+  const profileLabel = player.profileType === "club" ? "Club" : "Sportif";
 
   const totalFollowers =
     (player.followersIG || 0) +
@@ -39,6 +40,7 @@ export function PlayerCard({ player }: PlayerCardProps) {
             {player.firstName} {player.lastName}
           </h3>
           <p className="truncate text-sm text-[#8FA69E]">
+            {player.sport && `${player.sport} · `}
             {player.position && `${player.position} · `}
             {player.club}
           </p>
@@ -52,6 +54,9 @@ export function PlayerCard({ player }: PlayerCardProps) {
             {player.league}
           </span>
         )}
+        <span className="rounded-full border border-[#3EF2A0]/15 bg-[#3EF2A0]/10 px-2.5 py-1 font-mono text-[11px] text-[#3EF2A0]">
+          {profileLabel}
+        </span>
         {player.nationality && (
           <span className="rounded-full border border-white/[0.10] bg-white/[0.045] px-2.5 py-1 font-mono text-[11px] text-[#D8DEDA]/70">
             {player.nationality}

@@ -89,7 +89,7 @@ export function TemplateForm() {
           className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-3 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/30 focus:outline-none leading-relaxed resize-y"
         />
         <p className="mt-1 text-[10px] text-[#8FA69E]/55">
-          Variables : {"{joueur}"}, {"{marque}"}, {"{rationnel}"}, {"{secteur}"}, {"{type_partenariat}"}, {"{contact}"}
+          Variables : {"{joueur}"} (profil sportif), {"{marque}"}, {"{rationnel}"}, {"{secteur}"}, {"{type_partenariat}"}, {"{contact}"}
         </p>
       </div>
 

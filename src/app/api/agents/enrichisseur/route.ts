@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runEnrichisseur } from "@/lib/agents/enrichisseur";
+import { isUsableEmailStatus } from "@/lib/agents/contact-quality";
 
 export async function POST(request: NextRequest) {
   const { companyId } = await request.json();
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
         // Update company only with a contact verified as currently working there.
         const bestContact = result.contacts[0];
         if (bestContact) {
-          const updateData: Record<string, string | null> = {};
+          const updateData: Record<string, string | boolean | null> = {};
 
           if (bestContact.name && !company.contactName) {
             updateData.contactName = bestContact.name;
@@ -51,12 +52,34 @@ export async function POST(request: NextRequest) {
           if (bestContact.role && !company.contactRole) {
             updateData.contactRole = bestContact.role;
           }
-          if (bestContact.email && !company.contactEmail) {
+          if (
+            bestContact.email &&
+            isUsableEmailStatus(bestContact.email_status) &&
+            !company.contactEmail
+          ) {
             updateData.contactEmail = bestContact.email;
           }
           if (bestContact.linkedin && !company.contactLinkedin) {
             updateData.contactLinkedin = bestContact.linkedin;
           }
+          updateData.contactVerificationStatus = bestContact.verification_status;
+          updateData.contactEmailStatus = bestContact.email
+            ? bestContact.email_status
+            : "missing";
+          updateData.contactRoleRelevance = bestContact.role_relevance || "medium";
+          updateData.contactEvidence = [
+            bestContact.evidence,
+            bestContact.email_evidence ? `Email: ${bestContact.email_evidence}` : null,
+            bestContact.email_candidates?.length
+              ? `Candidats email non vérifiés: ${bestContact.email_candidates.join(", ")}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" — ");
+          updateData.contactSource = bestContact.source;
+          updateData.outreachReady = Boolean(
+            bestContact.email && isUsableEmailStatus(bestContact.email_status)
+          );
 
           if (Object.keys(updateData).length > 0) {
             await prisma.company.update({
@@ -77,7 +100,7 @@ export async function POST(request: NextRequest) {
           const contactsText = result.contacts
             .map(
               (c, i) =>
-                `${i + 1}. ${c.name} — ${c.role}${c.email ? ` (${c.email})` : ""}${c.linkedin ? ` [LinkedIn: ${c.linkedin}]` : ""} [${c.confidence}] — preuve: ${c.evidence}`
+                `${i + 1}. ${c.name} — ${c.role}${c.email ? ` (${c.email}, ${c.email_status})` : " (email manquant)"}${c.email_candidates?.length ? ` [candidats: ${c.email_candidates.join(", ")}]` : ""}${c.linkedin ? ` [LinkedIn: ${c.linkedin}]` : ""} [${c.confidence}] — preuve: ${c.evidence}`
             )
             .join("\n");
 

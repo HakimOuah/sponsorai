@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react";
 
 const routeLabels: Record<string, string> = {
   dashboard: "Dashboard",
-  players: "Joueurs",
+  players: "Talents",
   companies: "Entreprises",
   pipeline: "Pipeline",
   prospection: "Prospection",

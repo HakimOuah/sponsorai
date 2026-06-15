@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getMailFrom, mailer } from "@/lib/mailer";
 import { revalidatePath } from "next/cache";
+import { canSendOutreach } from "@/lib/agents/contact-quality";
 
 export async function getEmails(filters?: {
   status?: string;
@@ -104,6 +105,11 @@ export async function sendEmail(emailId: string) {
 
   if (!email) throw new Error("Email not found");
   if (!email.company.contactEmail) throw new Error("No contact email for this company");
+  if (!canSendOutreach(email.company)) {
+    throw new Error(
+      "Contact email is not verified enough for outreach. Run the enricher first."
+    );
+  }
 
   const info = await mailer.sendMail({
     from: getMailFrom(),

@@ -24,7 +24,7 @@ export default async function PlayerDetailPage({
         className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        Joueurs
+        Talents
       </Link>
 
       {/* Header */}

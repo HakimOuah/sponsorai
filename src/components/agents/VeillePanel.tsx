@@ -141,7 +141,7 @@ export function VeillePanel() {
         </button>
         {!isRunning && !result && (
           <span className="text-xs text-[#8FA69E]">
-            Scanne l&apos;actualité sponsoring football et identifie les opportunités
+            Scanne l&apos;actualité sponsoring sportif et identifie les opportunités
           </span>
         )}
       </div>
@@ -274,7 +274,7 @@ export function VeillePanel() {
                       <div className="flex items-center gap-2 text-[11px] text-white/25">
                         {alert.related_player && (
                           <span className="rounded bg-white/[0.06] px-1.5 py-0.5">
-                            Joueur : {alert.related_player}
+                            Profil : {alert.related_player}
                           </span>
                         )}
                         {alert.related_brand && (

@@ -101,7 +101,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
             {template.body}
           </div>
           <p className="mt-2 text-[10px] text-[#8FA69E]/55">
-            Variables disponibles : {"{joueur}"}, {"{marque}"}, {"{rationnel}"}, {"{secteur}"}, {"{type_partenariat}"}
+            Variables disponibles : {"{joueur}"} (profil sportif), {"{marque}"}, {"{rationnel}"}, {"{secteur}"}, {"{type_partenariat}"}
           </p>
         </div>
       )}

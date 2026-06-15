@@ -55,7 +55,7 @@ export function ConsoleLog({ logs, isRunning }: ConsoleLogProps) {
       <div className="h-80 overflow-y-auto p-4 font-mono text-xs leading-relaxed">
         {logs.length === 0 && !isRunning && (
           <p className="text-[#8FA69E]/55">
-            Sélectionnez un joueur et lancez un scan pour voir les logs ici.
+            Sélectionnez un profil sportif et lancez un scan pour voir les logs ici.
           </p>
         )}
         {logs.map((log, i) => (

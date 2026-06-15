@@ -37,11 +37,20 @@ export async function runMatchmaker(
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 16384,
+    tools: [
+      {
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 6,
+      },
+    ],
     messages: [{ role: "user", content: prompt }],
   });
 
-  const responseText =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const responseText = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
 
   const scoredBrands = extractJSON<ScoredBrand>(responseText);
 

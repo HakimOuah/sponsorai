@@ -35,14 +35,19 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
       });
 
       if (!res.ok) {
-        throw new Error("Erreur lors de la génération");
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Erreur lors de la génération");
       }
 
       const data = await res.json();
       setResult(data.email);
       onGenerated?.(data.email);
-    } catch {
-      setError("Impossible de générer l'email. Réessayez.");
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Impossible de générer l'email. Réessayez."
+      );
     } finally {
       setLoading(false);
     }

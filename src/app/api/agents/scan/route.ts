@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // --- Phase 0: Player Intelligence ---
+      // --- Phase 0: Profile Intelligence ---
       const researchLog = (message: string, type: string = "info") => {
         const entry = { time: Date.now() - startTime, message, type };
         logs.push(entry);
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         });
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : "unknown";
-        researchLog(`Erreur recherche joueur: ${errMsg} — on continue sans intelligence`, "error");
+        researchLog(`Erreur recherche profil: ${errMsg} — on continue sans intelligence`, "error");
       }
 
       // --- Phase 1: Scout ---

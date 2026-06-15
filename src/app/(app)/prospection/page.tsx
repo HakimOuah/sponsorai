@@ -52,7 +52,7 @@ export default async function ProspectionPage({
       {scans.length > 0 && (
         <div className="mb-6">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-2">
-            Scans pour ce joueur
+            Scans pour ce profil
           </h2>
           <div className="flex flex-wrap gap-2">
             {scans.map((scan) => (
@@ -84,8 +84,8 @@ export default async function ProspectionPage({
           <Search className="mx-auto mb-3 h-10 w-10 text-white/10" />
           <p className="text-[#8FA69E] mb-2">
             {selectedPlayerId
-              ? "Aucun prospect pour ce joueur"
-              : "Sélectionnez un joueur ou consultez tous les prospects"}
+              ? "Aucun prospect pour ce profil"
+              : "Sélectionnez un profil ou consultez tous les prospects"}
           </p>
           <p className="text-sm text-[#8FA69E]/55">
             Lancez un scan depuis la page Agents pour générer des prospects

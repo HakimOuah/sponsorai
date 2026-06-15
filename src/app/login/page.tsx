@@ -51,7 +51,7 @@ export default function LoginPage() {
             Vectis<span className="text-[#3EF2A0]">Agency</span>
           </h1>
           <p className="text-[#8FA69E] text-sm">
-            Plateforme IA de sponsoring football
+            Plateforme IA de sponsoring sportif
           </p>
         </div>
 

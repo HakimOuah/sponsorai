@@ -104,7 +104,7 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
           disabled={isRunning}
           className="flex-1 rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors disabled:opacity-50"
         >
-          <option value="">Sélectionner un joueur...</option>
+          <option value="">Sélectionner un profil sportif...</option>
           {players.map((p) => (
             <option key={p.id} value={p.id}>
               {p.firstName} {p.lastName} — {p.club}

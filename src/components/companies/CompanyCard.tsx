@@ -59,8 +59,8 @@ export function CompanyCard({ company }: CompanyCardProps) {
           </span>
         )}
         {company.contactEmail && (
-          <span className="rounded-full bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] text-[#D8DEDA]/60">
-            contact
+          <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] ${company.outreachReady ? "bg-[#3EF2A0]/10 text-[#3EF2A0]" : "bg-[#f59e0b]/10 text-[#f59e0b]"}`}>
+            {company.outreachReady ? "envoyable" : "à vérifier"}
           </span>
         )}
       </div>

@@ -17,7 +17,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
         ? "Enregistrement..."
         : isEdit
           ? "Mettre à jour"
-          : "Créer le joueur"}
+          : "Créer le profil"}
     </button>
   );
 }
@@ -28,6 +28,8 @@ interface PlayerFormProps {
 }
 
 type PlayerFormValues = {
+  profileType: string;
+  sport: string;
   firstName: string;
   lastName: string;
   age: string;
@@ -57,6 +59,8 @@ type PlayerEnrichment = Partial<Record<keyof PlayerFormValues, string | number |
 export function PlayerForm({ action, player }: PlayerFormProps) {
   const isEdit = !!player;
   const [values, setValues] = useState<PlayerFormValues>(() => ({
+    profileType: player?.profileType ?? "athlete",
+    sport: player?.sport ?? "",
     firstName: player?.firstName ?? "",
     lastName: player?.lastName ?? "",
     age: player?.age?.toString() ?? "",
@@ -88,7 +92,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
   async function enrichPlayer() {
     const playerName = `${values.firstName} ${values.lastName}`.trim();
     if (!playerName) {
-      setEnrichError("Renseigne au moins le prénom ou le nom du joueur.");
+      setEnrichError("Renseigne au moins le nom du profil à enrichir.");
       return;
     }
 
@@ -103,6 +107,8 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
         body: JSON.stringify({
           firstName: values.firstName,
           lastName: values.lastName,
+          profileType: values.profileType,
+          sport: values.sport,
         }),
       });
 
@@ -134,7 +140,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
           : "Profil complété par IA"
       );
     } catch {
-      setEnrichError("Impossible d'enrichir ce joueur pour le moment.");
+      setEnrichError("Impossible d'enrichir ce profil pour le moment.");
     } finally {
       setIsEnriching(false);
     }
@@ -151,7 +157,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
                 Complétion automatique
               </h2>
               <p className="mt-1 max-w-2xl text-sm text-[#8FA69E]">
-                Saisis un prénom et un nom, puis laisse l&apos;agent rechercher les informations publiques.
+                Saisis un nom de sportif ou de club, puis laisse l&apos;agent rechercher les informations publiques.
               </p>
             </div>
             <button
@@ -183,13 +189,36 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
           Identité
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Prénom" name="firstName" value={values.firstName} onChange={updateField} required />
-          <Field label="Nom" name="lastName" value={values.lastName} onChange={updateField} required />
+          <SelectField
+            label="Type de profil"
+            name="profileType"
+            value={values.profileType}
+            onChange={updateField}
+            options={[
+              { value: "athlete", label: "Sportif individuel" },
+              { value: "club", label: "Club amateur" },
+            ]}
+          />
+          <Field label="Sport" name="sport" value={values.sport} onChange={updateField} placeholder="Football, basket, tennis..." />
+          <Field
+            label={values.profileType === "club" ? "Nom du club" : "Prénom / nom public"}
+            name="firstName"
+            value={values.firstName}
+            onChange={updateField}
+            required
+          />
+          <Field
+            label={values.profileType === "club" ? "Ville / complément" : "Nom de famille"}
+            name="lastName"
+            value={values.lastName}
+            onChange={updateField}
+            required={values.profileType === "athlete"}
+          />
           <Field label="Âge" name="age" type="number" value={values.age} onChange={updateField} />
           <Field label="Nationalité" name="nationality" value={values.nationality} onChange={updateField} />
-          <Field label="Club" name="club" value={values.club} onChange={updateField} required />
-          <Field label="Ligue" name="league" value={values.league} onChange={updateField} required />
-          <Field label="Poste" name="position" value={values.position} onChange={updateField} />
+          <Field label={values.profileType === "club" ? "Structure / association" : "Club / structure"} name="club" value={values.club} onChange={updateField} required />
+          <Field label="Championnat / niveau" name="league" value={values.league} onChange={updateField} required />
+          <Field label={values.profileType === "club" ? "Catégorie / discipline" : "Poste / discipline"} name="position" value={values.position} onChange={updateField} />
           <Field label="Ville" name="city" value={values.city} onChange={updateField} />
           <Field label="Langues" name="languages" value={values.languages} onChange={updateField} placeholder="FR, EN, AR" />
         </div>
@@ -222,14 +251,14 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
             name="positioning"
             value={values.positioning}
             onChange={updateField}
-            placeholder="Style, image, valeurs portées..."
+            placeholder="Style, histoire, valeurs portées, territoire..."
           />
           <TextArea
             label="Types de deals recherchés"
             name="targetPartnerships"
             value={values.targetPartnerships}
             onChange={updateField}
-            placeholder="Ambassadeur, post IG, stories, events..."
+            placeholder="Ambassadeur, visibilité maillot, réseaux sociaux, événements..."
           />
           <TextArea
             label="Notes"
@@ -285,6 +314,40 @@ function Field({
         step={step}
         className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
       />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  name: keyof PlayerFormValues;
+  value: string;
+  onChange: (name: keyof PlayerFormValues, value: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-white/60">
+        {label}
+      </label>
+      <select
+        name={name}
+        value={value}
+        onChange={(event) => onChange(name, event.target.value)}
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white transition-colors focus:border-[#3EF2A0]/50 focus:outline-none"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value} className="bg-[#020403]">
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

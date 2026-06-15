@@ -129,6 +129,20 @@ export default async function CompanyDetailPage({
               {company.contactEmail && (
                 <InfoRow icon={Mail} label="Email" value={company.contactEmail} />
               )}
+              {company.contactEmail && (
+                <div className="rounded-xl border border-[#3EF2A0]/10 bg-white/[0.025] px-3 py-2 text-xs">
+                  <p className={company.outreachReady ? "text-[#3EF2A0]" : "text-[#f59e0b]"}>
+                    {company.outreachReady
+                      ? `Prêt à contacter · ${company.contactEmailStatus}`
+                      : `Email non qualifié · ${company.contactEmailStatus || "unknown"}`}
+                  </p>
+                  {company.contactEvidence && (
+                    <p className="mt-1 leading-relaxed text-[#8FA69E]">
+                      {company.contactEvidence}
+                    </p>
+                  )}
+                </div>
+              )}
               {company.contactPhone && (
                 <InfoRow icon={Phone} label="Téléphone" value={company.contactPhone} />
               )}
@@ -155,7 +169,7 @@ export default async function CompanyDetailPage({
             <table className="min-w-[660px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
-                  <th className="px-4 py-2.5 font-medium">Joueur</th>
+                  <th className="px-4 py-2.5 font-medium">Profil</th>
                   <th className="px-4 py-2.5 font-medium">Score</th>
                   <th className="px-4 py-2.5 font-medium">Priorité</th>
                   <th className="px-4 py-2.5 font-medium">Statut</th>
@@ -197,7 +211,7 @@ export default async function CompanyDetailPage({
             <table className="min-w-[600px] w-full text-sm">
               <thead>
                 <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
-                  <th className="px-4 py-2.5 font-medium">Joueur</th>
+                  <th className="px-4 py-2.5 font-medium">Profil</th>
                   <th className="px-4 py-2.5 font-medium">Stage</th>
                   <th className="px-4 py-2.5 font-medium">Type</th>
                   <th className="px-4 py-2.5 font-medium">Valeur</th>

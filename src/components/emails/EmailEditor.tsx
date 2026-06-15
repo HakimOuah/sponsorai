@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Send, Save, Trash2, Loader2 } from "lucide-react";
 import { updateEmail, deleteEmail, sendEmail } from "@/lib/actions/emails";
 import { useRouter } from "next/navigation";
+import { canSendOutreach } from "@/lib/agents/contact-quality";
 
 interface EmailEditorProps {
   email: {
@@ -14,7 +15,13 @@ interface EmailEditorProps {
     type: string;
     sentAt: Date | null;
     createdAt: Date;
-    company: { name: string; contactEmail: string | null };
+    company: {
+      name: string;
+      contactEmail: string | null;
+      contactEmailStatus?: string | null;
+      contactVerificationStatus?: string | null;
+      outreachReady?: boolean | null;
+    };
     prospect: {
       player: { firstName: string; lastName: string };
     } | null;
@@ -32,6 +39,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
 
   const isDraft = email.status === "draft";
   const hasChanges = subject !== email.subject || body !== email.body;
+  const sendable = canSendOutreach(email.company);
 
   const handleSave = () => {
     startTransition(async () => {
@@ -55,7 +63,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
         setMessage("Email envoyé !");
         setSendConfirm(false);
       } catch {
-        setMessage("Erreur lors de l'envoi. Vérifiez la config SMTP.");
+        setMessage("Envoi bloqué : vérifiez le contact, l'email et la config SMTP.");
       }
       setTimeout(() => setMessage(""), 5000);
     });
@@ -79,6 +87,14 @@ export function EmailEditor({ email }: EmailEditorProps) {
         <span>
           À : <span className="text-white/60">{email.company.contactEmail || "Pas de contact"}</span>
         </span>
+        {email.company.contactEmail && (
+          <>
+            <span>·</span>
+            <span className={sendable ? "text-[#3EF2A0]" : "text-[#f59e0b]"}>
+              {sendable ? "Contact envoyable" : "Email à vérifier"}
+            </span>
+          </>
+        )}
         <span>·</span>
         <span>{email.company.name}</span>
         {email.prospect && (
@@ -169,7 +185,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
 
             <button
               onClick={handleSend}
-              disabled={isPending || !email.company.contactEmail}
+              disabled={isPending || !sendable}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 ${
                 sendConfirm
                   ? "bg-[#f59e0b] text-[#020403] hover:bg-[#f59e0b]/80"

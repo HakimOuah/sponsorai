@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isUsableEmailStatus } from "@/lib/agents/contact-quality";
 
 export async function getCompanies(filters?: {
   sector?: string;
@@ -105,6 +106,12 @@ export async function getCompanyFilters() {
 }
 
 function extractCompanyData(formData: FormData) {
+  const contactEmail = (formData.get("contactEmail") as string) || null;
+  const contactVerificationStatus =
+    (formData.get("contactVerificationStatus") as string) || null;
+  const contactEmailStatus =
+    (formData.get("contactEmailStatus") as string) || "missing";
+
   return {
     name: formData.get("name") as string,
     sector: (formData.get("sector") as string) || null,
@@ -116,7 +123,14 @@ function extractCompanyData(formData: FormData) {
     estimatedBudget: (formData.get("estimatedBudget") as string) || null,
     contactName: (formData.get("contactName") as string) || null,
     contactRole: (formData.get("contactRole") as string) || null,
-    contactEmail: (formData.get("contactEmail") as string) || null,
+    contactEmail,
+    contactVerificationStatus,
+    contactEmailStatus,
+    outreachReady: Boolean(
+      contactEmail &&
+        contactVerificationStatus === "verified_current" &&
+        isUsableEmailStatus(contactEmailStatus)
+    ),
     contactLinkedin: (formData.get("contactLinkedin") as string) || null,
     contactPhone: (formData.get("contactPhone") as string) || null,
     notes: (formData.get("notes") as string) || null,

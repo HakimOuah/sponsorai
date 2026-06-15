@@ -27,7 +27,7 @@ export default async function EditPlayerPage({
 
       <div className="mb-6 flex items-center gap-3">
         <Users className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Modifier le joueur</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Modifier le profil</h1>
       </div>
 
       <div className="app-panel p-4 sm:p-6">

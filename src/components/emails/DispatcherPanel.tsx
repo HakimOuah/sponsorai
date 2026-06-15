@@ -3,12 +3,19 @@
 import { useState } from "react";
 import { Send, Loader2, Check, AlertTriangle } from "lucide-react";
 import { sendEmail } from "@/lib/actions/emails";
+import { canSendOutreach } from "@/lib/agents/contact-quality";
 
 interface DispatcherPanelProps {
   draftEmails: {
     id: string;
     subject: string;
-    company: { name: string; contactEmail: string | null };
+    company: {
+      name: string;
+      contactEmail: string | null;
+      contactEmailStatus?: string | null;
+      contactVerificationStatus?: string | null;
+      outreachReady?: boolean | null;
+    };
   }[];
 }
 
@@ -18,8 +25,11 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
   const [results, setResults] = useState<{ sent: number; errors: number; noContact: number } | null>(null);
   const [confirmAll, setConfirmAll] = useState(false);
 
-  const sendable = draftEmails.filter((e) => e.company.contactEmail);
+  const sendable = draftEmails.filter((e) => canSendOutreach(e.company));
   const noContact = draftEmails.filter((e) => !e.company.contactEmail);
+  const notQualified = draftEmails.filter(
+    (e) => e.company.contactEmail && !canSendOutreach(e.company)
+  );
 
   const handleSendAll = async () => {
     if (!confirmAll) {
@@ -43,7 +53,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
       setProgress(i + 1);
     }
 
-    setResults({ sent, errors, noContact: noContact.length });
+    setResults({ sent, errors, noContact: noContact.length + notQualified.length });
     setSending(false);
   };
 
@@ -67,7 +77,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
             {draftEmails.length} brouillon{draftEmails.length > 1 ? "s" : ""} prêt{draftEmails.length > 1 ? "s" : ""}
           </h3>
           <p className="text-xs text-[#8FA69E] mt-0.5">
-            {sendable.length} avec contact email · {noContact.length} sans contact
+            {sendable.length} prêt{sendable.length > 1 ? "s" : ""} · {noContact.length} sans email · {notQualified.length} à vérifier
           </p>
         </div>
 
@@ -136,9 +146,24 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
           {results.noContact > 0 && (
             <div className="flex items-center gap-2 text-xs text-[#f59e0b]">
               <AlertTriangle className="h-3 w-3" />
-              {results.noContact} entreprise{results.noContact > 1 ? "s" : ""} sans email de contact — utilisez l&apos;Enrichisseur
+              {results.noContact} entreprise{results.noContact > 1 ? "s" : ""} sans contact envoyable — utilisez l&apos;Enrichisseur
             </div>
           )}
+        </div>
+      )}
+
+      {notQualified.length > 0 && !results && (
+        <div className="flex items-start gap-2 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 px-3 py-2">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#f59e0b]" />
+          <div className="text-xs text-[#f59e0b]">
+            <p className="font-medium">{notQualified.length} brouillon{notQualified.length > 1 ? "s" : ""} avec email non qualifié :</p>
+            <p className="mt-0.5 text-[#f59e0b]/70">
+              {notQualified.map((e) => e.company.name).join(", ")}
+            </p>
+            <p className="mt-1 text-[#f59e0b]/50">
+              L&apos;envoi est bloqué tant que le contact actuel et l&apos;email ne sont pas vérifiés.
+            </p>
+          </div>
         </div>
       )}
 
@@ -162,7 +187,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
       <div className="max-h-48 overflow-y-auto divide-y divide-white/[0.04] rounded-lg border border-[#3EF2A0]/10">
         {draftEmails.map((email) => (
           <div key={email.id} className="flex items-center gap-3 px-3 py-2 text-xs">
-            <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${email.company.contactEmail ? "bg-[#3EF2A0]" : "bg-white/10"}`} />
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${canSendOutreach(email.company) ? "bg-[#3EF2A0]" : email.company.contactEmail ? "bg-[#f59e0b]" : "bg-white/10"}`} />
             <span className="text-white/60 truncate flex-1">{email.subject}</span>
             <span className="hidden shrink-0 text-[#8FA69E] sm:inline">{email.company.name}</span>
           </div>

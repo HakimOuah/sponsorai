@@ -29,7 +29,15 @@ export default async function EmailsPage({ searchParams }: Props) {
     select: {
       id: true,
       subject: true,
-      company: { select: { name: true, contactEmail: true } },
+      company: {
+        select: {
+          name: true,
+          contactEmail: true,
+          contactEmailStatus: true,
+          contactVerificationStatus: true,
+          outreachReady: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });

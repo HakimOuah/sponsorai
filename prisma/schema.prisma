@@ -18,6 +18,8 @@ model User {
 
 model Player {
   id                 String   @id @default(cuid())
+  profileType        String   @default("athlete")
+  sport              String?
   firstName          String
   lastName           String
   age                Int?
@@ -59,6 +61,12 @@ model Company {
   contactName              String?
   contactRole              String?
   contactEmail             String?
+  contactVerificationStatus String?
+  contactEmailStatus       String   @default("missing")
+  contactRoleRelevance     String?
+  contactEvidence          String?
+  contactSource            String?
+  outreachReady            Boolean  @default(false)
   contactLinkedin          String?
   contactPhone             String?
   notes                    String?

@@ -35,7 +35,7 @@ export function ExportButtons() {
   return (
     <div className="flex flex-wrap gap-2">
       <ExportBtn
-        label="Joueurs"
+        label="Talents"
         loading={loading === "players"}
         onClick={() => download("players", exportPlayersCSV)}
       />

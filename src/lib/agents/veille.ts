@@ -25,7 +25,7 @@ export async function runVeille(
   log: LogCallback
 ): Promise<VeilleResult> {
   log("Lancement de la veille concurrentielle...", "info");
-  log("Recherche des dernières actualités sponsoring football...", "info");
+  log("Recherche des dernières actualités sponsoring sportif...", "info");
 
   const prompt = VEILLE_CONCURRENCE_PROMPT
     .replace("{playersList}", playersList)

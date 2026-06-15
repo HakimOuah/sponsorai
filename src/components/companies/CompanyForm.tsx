@@ -69,6 +69,28 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
           <Field label="Nom du contact" name="contactName" defaultValue={company?.contactName} />
           <Field label="Rôle" name="contactRole" defaultValue={company?.contactRole} placeholder="CMO, Head of Partnerships..." />
           <Field label="Email" name="contactEmail" type="email" defaultValue={company?.contactEmail} />
+          <SelectField
+            label="Statut contact"
+            name="contactVerificationStatus"
+            defaultValue={company?.contactVerificationStatus || ""}
+            options={[
+              { value: "", label: "Non vérifié" },
+              { value: "verified_current", label: "Actuel vérifié" },
+              { value: "unverified", label: "À vérifier" },
+              { value: "past_or_wrong_company", label: "Ancien / mauvaise entreprise" },
+            ]}
+          />
+          <SelectField
+            label="Statut email"
+            name="contactEmailStatus"
+            defaultValue={company?.contactEmailStatus || "missing"}
+            options={[
+              { value: "missing", label: "Email manquant" },
+              { value: "public_source", label: "Source publique" },
+              { value: "verified", label: "Vérifié" },
+              { value: "guessed", label: "Devine, non envoyable" },
+            ]}
+          />
           <Field label="LinkedIn" name="contactLinkedin" defaultValue={company?.contactLinkedin} placeholder="https://linkedin.com/in/..." />
           <Field label="Téléphone" name="contactPhone" defaultValue={company?.contactPhone} />
         </div>
@@ -100,6 +122,37 @@ function Field({
         type={type} name={name} defaultValue={defaultValue ?? ""} required={required} placeholder={placeholder}
         className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
       />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  defaultValue,
+  options,
+}: {
+  label: string;
+  name: string;
+  defaultValue?: string | null;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-white/60">
+        {label}
+      </label>
+      <select
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white transition-colors focus:border-[#3EF2A0]/50 focus:outline-none"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value} className="bg-[#020403]">
+            {option.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
