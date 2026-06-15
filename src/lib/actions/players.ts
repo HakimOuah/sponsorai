@@ -4,9 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function getPlayers() {
+export async function getPlayers(filters?: {
+  sport?: string;
+  profileType?: string;
+}) {
   return prisma.player.findMany({
-    where: { active: true },
+    where: {
+      active: true,
+      ...(filters?.sport ? { sport: filters.sport } : {}),
+      ...(filters?.profileType ? { profileType: filters.profileType } : {}),
+    },
     include: {
       _count: {
         select: {
@@ -46,6 +53,16 @@ export async function getPlayer(id: string) {
       },
     },
   });
+}
+
+export async function getPlayerFilters() {
+  const sports = await prisma.player.findMany({
+    where: { active: true, sport: { not: null } },
+    select: { sport: true },
+    distinct: ["sport"],
+    orderBy: { sport: "asc" },
+  });
+  return { sports: sports.map((s) => s.sport!).filter(Boolean) };
 }
 
 export async function createPlayer(formData: FormData) {
@@ -90,9 +107,15 @@ function extractPlayerData(formData: FormData) {
     sport: ((formData.get("sport") as string) || "").trim() || null,
     firstName,
     lastName: lastName || (profileType === "club" ? "Club" : ""),
-    club: formData.get("club") as string,
-    league: formData.get("league") as string,
+    club: ((formData.get("club") as string) || "").trim() || null,
+    league: ((formData.get("league") as string) || "").trim() || null,
     position: (formData.get("position") as string) || null,
+    members: formData.get("members")
+      ? parseInt(formData.get("members") as string)
+      : null,
+    foundedYear: formData.get("foundedYear")
+      ? parseInt(formData.get("foundedYear") as string)
+      : null,
     age: formData.get("age") ? parseInt(formData.get("age") as string) : null,
     nationality: (formData.get("nationality") as string) || null,
     city: (formData.get("city") as string) || null,

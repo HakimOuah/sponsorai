@@ -24,9 +24,11 @@ model Player {
   lastName           String
   age                Int?
   nationality        String?
-  club               String
-  league             String
+  club               String?
+  league             String?
   position           String?
+  members            Int?
+  foundedYear        Int?
   city               String?
   instagram          String?
   followersIG        Int?

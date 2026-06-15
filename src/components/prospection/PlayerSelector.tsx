@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 interface PlayerSelectorProps {
-  players: { id: string; firstName: string; lastName: string; club: string }[];
+  players: { id: string; firstName: string; lastName: string; club: string | null }[];
   selectedId: string;
 }
 

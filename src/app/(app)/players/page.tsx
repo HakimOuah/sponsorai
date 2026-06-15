@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { Users, Plus } from "lucide-react";
-import { getPlayers } from "@/lib/actions/players";
+import { getPlayers, getPlayerFilters } from "@/lib/actions/players";
 import { PlayerCard } from "@/components/players/PlayerCard";
+import { PlayerFilters } from "@/components/players/PlayerFilters";
 
 export const dynamic = "force-dynamic";
 
-export default async function PlayersPage() {
-  const players = await getPlayers();
+export default async function PlayersPage({
+  searchParams,
+}: {
+  searchParams: { sport?: string; profileType?: string };
+}) {
+  const [players, filters] = await Promise.all([
+    getPlayers({
+      sport: searchParams.sport,
+      profileType: searchParams.profileType,
+    }),
+    getPlayerFilters(),
+  ]);
 
   return (
     <div className="min-w-0">
@@ -38,16 +49,22 @@ export default async function PlayersPage() {
         </Link>
       </div>
 
+      {(filters.sports.length > 0 || players.length > 0) && (
+        <PlayerFilters sports={filters.sports} />
+      )}
+
       {players.length === 0 ? (
         <div className="app-panel p-6 text-center sm:p-12">
           <Users className="mx-auto mb-3 h-10 w-10 text-white/10" />
-          <p className="text-[#8FA69E] mb-4">Aucun profil sportif dans le portefeuille</p>
+          <p className="text-[#8FA69E] mb-4">
+            Aucun profil ne correspond — ajoutez un talent ou ajustez les filtres
+          </p>
           <Link
             href="/players/new"
             className="inline-flex items-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2 text-sm font-semibold text-[#020403] transition-all hover:-translate-y-0.5 hover:bg-white"
           >
             <Plus className="h-4 w-4" />
-            Ajouter le premier profil
+            Ajouter un profil
           </Link>
         </div>
       ) : (
