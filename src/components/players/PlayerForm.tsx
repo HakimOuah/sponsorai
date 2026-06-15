@@ -4,7 +4,6 @@ import { Loader2, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { Player } from "@prisma/client";
-import { SPORTS, isKnownSport } from "@/lib/sports";
 
 function SubmitButton({ isEdit }: { isEdit: boolean }) {
   const { pending } = useFormStatus();
@@ -38,8 +37,6 @@ type PlayerFormValues = {
   club: string;
   league: string;
   position: string;
-  members: string;
-  foundedYear: string;
   city: string;
   languages: string;
   instagram: string;
@@ -71,8 +68,6 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
     club: player?.club ?? "",
     league: player?.league ?? "",
     position: player?.position ?? "",
-    members: player?.members?.toString() ?? "",
-    foundedYear: player?.foundedYear?.toString() ?? "",
     city: player?.city ?? "",
     languages: player?.languages ?? "",
     instagram: player?.instagram ?? "",
@@ -89,9 +84,6 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState("");
   const [enrichSuccess, setEnrichSuccess] = useState("");
-  const [sportMode, setSportMode] = useState<"list" | "custom">(
-    player?.sport && !isKnownSport(player.sport) ? "custom" : "list"
-  );
 
   function updateField(name: keyof PlayerFormValues, value: string) {
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -207,39 +199,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
               { value: "club", label: "Club amateur" },
             ]}
           />
-          <div>
-            <label className="block text-sm font-medium text-white/60 mb-1">Sport</label>
-            <input type="hidden" name="sport" value={values.sport} />
-            <select
-              value={sportMode === "custom" ? "__other__" : values.sport}
-              onChange={(e) => {
-                if (e.target.value === "__other__") {
-                  setSportMode("custom");
-                  updateField("sport", "");
-                } else {
-                  setSportMode("list");
-                  updateField("sport", e.target.value);
-                }
-              }}
-              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white transition-colors focus:border-[#3EF2A0]/50 focus:outline-none"
-            >
-              <option value="" className="bg-[#020403]">—</option>
-              {SPORTS.map((s) => (
-                <option key={s} value={s} className="bg-[#020403]">
-                  {s}
-                </option>
-              ))}
-              <option value="__other__" className="bg-[#020403]">Autre…</option>
-            </select>
-            {sportMode === "custom" && (
-              <input
-                value={values.sport}
-                onChange={(e) => updateField("sport", e.target.value)}
-                placeholder="Précise le sport"
-                className="mt-2 w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
-              />
-            )}
-          </div>
+          <Field label="Sport" name="sport" value={values.sport} onChange={updateField} placeholder="Football, basket, tennis..." />
           <Field
             label={values.profileType === "club" ? "Nom du club" : "Prénom / nom public"}
             name="firstName"
@@ -256,15 +216,9 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
           />
           <Field label="Âge" name="age" type="number" value={values.age} onChange={updateField} />
           <Field label="Nationalité" name="nationality" value={values.nationality} onChange={updateField} />
-          <Field label={values.profileType === "club" ? "Structure / association" : "Club / structure"} name="club" value={values.club} onChange={updateField} />
-          <Field label="Championnat / niveau" name="league" value={values.league} onChange={updateField} />
+          <Field label={values.profileType === "club" ? "Structure / association" : "Club / structure"} name="club" value={values.club} onChange={updateField} required />
+          <Field label="Championnat / niveau" name="league" value={values.league} onChange={updateField} required />
           <Field label={values.profileType === "club" ? "Catégorie / discipline" : "Poste / discipline"} name="position" value={values.position} onChange={updateField} />
-          {values.profileType === "club" && (
-            <>
-              <Field label="Effectif / licenciés" name="members" type="number" value={values.members} onChange={updateField} />
-              <Field label="Année de création" name="foundedYear" type="number" value={values.foundedYear} onChange={updateField} />
-            </>
-          )}
           <Field label="Ville" name="city" value={values.city} onChange={updateField} />
           <Field label="Langues" name="languages" value={values.languages} onChange={updateField} placeholder="FR, EN, AR" />
         </div>

@@ -10,7 +10,7 @@ export interface DealData {
   dealType: string | null;
   nextAction: string | null;
   nextActionDate: Date | string | null;
-  player: { firstName: string; lastName: string; club: string | null };
+  player: { firstName: string; lastName: string; club: string };
   company: { name: string; sector: string | null };
   prospect: { priority: string | null; score: number | null };
 }

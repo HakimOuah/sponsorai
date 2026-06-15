@@ -437,12 +437,12 @@ CONTEXTE :
 - Nombre de jours depuis : {daysSince}
 
 Fais une recherche web pour trouver l'actualité récente de ce profil (dernières 2 semaines) :
-- Performance ou résultat récent ADAPTÉ AU SPORT du profil (victoire, podium, classement, record, stat clé, titre, montée)
-- Sélection / convocation / qualification, ou pour un club : résultat d'équipe, événement, tournoi
-- Posts viraux ou forte interaction sur les réseaux sociaux
-- Interview, apparition médiatique, reportage
-- Collaboration, partenariat ou événement récent
-- Buzz, trending topics, temps fort de la communauté locale
+- Performance en match (buts, passes, clean sheets, stats)
+- Posts viraux sur les réseaux sociaux
+- Sélection nationale, convocation
+- Interview, apparition médiatique
+- Collaboration ou événement
+- Buzz, trending topics
 
 Puis rédige une relance personnalisée qui utilise cette actualité comme accroche.
 
@@ -557,11 +557,9 @@ export function buildPlayerProfile(player: {
   lastName: string;
   age?: number | null;
   nationality?: string | null;
-  club?: string | null;
-  league?: string | null;
+  club: string;
+  league: string;
   position?: string | null;
-  members?: number | null;
-  foundedYear?: number | null;
   city?: string | null;
   instagram?: string | null;
   followersIG?: number | null;
@@ -580,11 +578,9 @@ export function buildPlayerProfile(player: {
     `Nom : ${player.firstName} ${player.lastName}`,
     player.age ? `Âge : ${player.age} ans` : null,
     player.nationality ? `Nationalité : ${player.nationality}` : null,
-    player.club ? `Club / structure : ${player.club}` : null,
-    player.league ? `Championnat / niveau : ${player.league}` : null,
-    player.position ? `Poste / discipline : ${player.position}` : null,
-    player.members ? `Effectif / licenciés : ${player.members}` : null,
-    player.foundedYear ? `Année de création : ${player.foundedYear}` : null,
+    `Club : ${player.club}`,
+    `Ligue : ${player.league}`,
+    player.position ? `Poste : ${player.position}` : null,
     player.city ? `Ville : ${player.city}` : null,
     player.instagram
       ? `Instagram : ${player.instagram} (${player.followersIG?.toLocaleString() || "?"} followers)`

@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Pencil, ArrowLeft, Globe, MapPin, ScanLine, Shield } from "lucide-react";
+import { Pencil, ArrowLeft, Globe, MapPin, ScanLine } from "lucide-react";
 import { getPlayer } from "@/lib/actions/players";
-import { getSportMeta } from "@/lib/sports";
 import { PlayerStats } from "@/components/players/PlayerStats";
 import { ArchiveButton } from "@/components/players/ArchiveButton";
 
@@ -15,17 +14,7 @@ export default async function PlayerDetailPage({
 
   if (!player) return notFound();
 
-  const isClub = player.profileType === "club";
-  const initials = isClub
-    ? player.firstName
-        .trim()
-        .split(/\s+/)
-        .map((w) => w.charAt(0))
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : (player.firstName.charAt(0) + player.lastName.charAt(0)).toUpperCase();
-  const sportMeta = getSportMeta(player.sport);
+  const initials = player.firstName.charAt(0) + player.lastName.charAt(0);
 
   return (
     <div className="min-w-0">
@@ -41,27 +30,15 @@ export default async function PlayerDetailPage({
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <div
-            className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-xl font-bold sm:h-16 sm:w-16 sm:text-2xl ${
-              isClub ? "bg-[#f59e0b]/10 text-[#f59e0b]" : "bg-[#3EF2A0]/10 text-[#3EF2A0]"
-            }`}
-          >
-            {isClub ? <Shield className="h-6 w-6 sm:h-7 sm:w-7" /> : initials}
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#3EF2A0]/10 text-xl font-bold text-[#3EF2A0] sm:h-16 sm:w-16 sm:text-2xl">
+            {initials}
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">
               {player.firstName} {player.lastName}
             </h1>
             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#8FA69E]">
-              <span>
-                {[
-                  player.sport ? `${sportMeta.emoji} ${player.sport}` : null,
-                  player.position,
-                  player.club,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
+              <span>{player.position && `${player.position} · `}{player.club}</span>
               {player.league && (
                 <span className="rounded-md bg-white/[0.06] px-2 py-0.5 font-mono text-[11px]">
                   {player.league}
@@ -141,28 +118,6 @@ export default async function PlayerDetailPage({
             )}
           </div>
         </div>
-
-        {isClub && (player.members || player.foundedYear) && (
-          <div className="app-panel p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
-              Le club
-            </h2>
-            <div className="space-y-3">
-              {player.members && (
-                <div>
-                  <p className="text-xs text-[#8FA69E] mb-1">Effectif / licenciés</p>
-                  <p className="text-sm text-white/70">{player.members}</p>
-                </div>
-              )}
-              {player.foundedYear && (
-                <div>
-                  <p className="text-xs text-[#8FA69E] mb-1">Année de création</p>
-                  <p className="text-sm text-white/70">{player.foundedYear}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Réseaux sociaux */}
         <div className="app-panel p-5">

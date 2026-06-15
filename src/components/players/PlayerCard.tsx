@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Camera, AtSign, Shield } from "lucide-react";
+import { Camera, AtSign } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
-import { getSportMeta } from "@/lib/sports";
 import type { Player } from "@prisma/client";
 
 interface PlayerCardProps {
@@ -15,23 +14,9 @@ interface PlayerCardProps {
 }
 
 export function PlayerCard({ player }: PlayerCardProps) {
-  const isClub = player.profileType === "club";
-  const initials = isClub
-    ? player.firstName
-        .trim()
-        .split(/\s+/)
-        .map((w) => w.charAt(0))
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : (player.firstName.charAt(0) + player.lastName.charAt(0)).toUpperCase();
-  const profileLabel = isClub ? "Club" : "Sportif";
-  const sportMeta = getSportMeta(player.sport);
-  const secondary = (
-    isClub ? [player.position, player.city] : [player.position, player.club]
-  )
-    .filter(Boolean)
-    .join(" · ");
+  const initials =
+    player.firstName.charAt(0) + player.lastName.charAt(0);
+  const profileLabel = player.profileType === "club" ? "Club" : "Sportif";
 
   const totalFollowers =
     (player.followersIG || 0) +
@@ -45,14 +30,8 @@ export function PlayerCard({ player }: PlayerCardProps) {
     >
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <div
-          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-lg font-semibold shadow-[0_0_28px_rgba(62,242,160,0.08)] ${
-            isClub
-              ? "border-[#f59e0b]/25 bg-[#f59e0b]/10 text-[#f59e0b]"
-              : "border-[#3EF2A0]/20 bg-[#3EF2A0]/10 text-[#3EF2A0]"
-          }`}
-        >
-          {isClub ? <Shield className="h-5 w-5" /> : initials}
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#3EF2A0]/20 bg-[#3EF2A0]/10 text-lg font-semibold text-[#3EF2A0] shadow-[0_0_28px_rgba(62,242,160,0.08)]">
+          {initials}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -60,24 +39,16 @@ export function PlayerCard({ player }: PlayerCardProps) {
           <h3 className="truncate font-semibold text-[#F8FAF7]">
             {player.firstName} {player.lastName}
           </h3>
-          <p className="truncate text-sm text-[#8FA69E]">{secondary}</p>
+          <p className="truncate text-sm text-[#8FA69E]">
+            {player.sport && `${player.sport} · `}
+            {player.position && `${player.position} · `}
+            {player.club}
+          </p>
         </div>
       </div>
 
       {/* Stats row */}
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        {player.sport && (
-          <span
-            className="rounded-full border px-2.5 py-1 font-mono text-[11px]"
-            style={{
-              borderColor: `${sportMeta.color}40`,
-              backgroundColor: `${sportMeta.color}1a`,
-              color: sportMeta.color,
-            }}
-          >
-            {sportMeta.emoji} {player.sport}
-          </span>
-        )}
+      <div className="mt-4 flex items-center gap-3">
         {player.league && (
           <span className="rounded-full border border-white/[0.10] bg-white/[0.045] px-2.5 py-1 font-mono text-[11px] text-[#D8DEDA]/70">
             {player.league}
@@ -91,11 +62,6 @@ export function PlayerCard({ player }: PlayerCardProps) {
             {player.nationality}
           </span>
         )}
-        {isClub && player.members ? (
-          <span className="rounded-full border border-white/[0.10] bg-white/[0.045] px-2.5 py-1 font-mono text-[11px] text-[#D8DEDA]/70">
-            {player.members} licenciés
-          </span>
-        ) : null}
       </div>
 
       {/* Social + Deals */}
