@@ -5,7 +5,7 @@ import { Play, Loader2 } from "lucide-react";
 import { ConsoleLog, type LogEntry } from "./ConsoleLog";
 
 interface ScanLauncherProps {
-  players: { id: string; firstName: string; lastName: string; club: string }[];
+  players: { id: string; firstName: string; lastName: string; club: string | null }[];
 }
 
 export function ScanLauncher({ players }: ScanLauncherProps) {
