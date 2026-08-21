@@ -59,6 +59,40 @@ const TARGET_TITLES = [
   "vp marketing",
 ];
 
+export async function checkApolloConnection(): Promise<{
+  configured: boolean;
+  ok: boolean;
+  status: number | null;
+}> {
+  const apiKey = process.env.APOLLO_API_KEY;
+
+  if (!apiKey) {
+    return { configured: false, ok: false, status: null };
+  }
+
+  const searchParams = new URLSearchParams({ page: "1", per_page: "1" });
+  searchParams.append("q_organization_domains_list[]", "apollo.io");
+
+  const response = await fetch(
+    `https://api.apollo.io/api/v1/mixed_people/api_search?${searchParams.toString()}`,
+    {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      cache: "no-store",
+    }
+  );
+
+  return {
+    configured: true,
+    ok: response.ok,
+    status: response.status,
+  };
+}
+
 export async function searchApolloContacts(company: Company): Promise<ApolloContact[]> {
   const apiKey = process.env.APOLLO_API_KEY;
   const domain = getCompanyDomain(company.website);

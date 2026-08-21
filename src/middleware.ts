@@ -20,6 +20,7 @@ export const config = {
     "/veille/:path*",
     "/api/agents/:path*",
     "/api/deals/:path*",
+    "/api/integrations/:path*",
     "/api/players/:path*",
   ],
 };
