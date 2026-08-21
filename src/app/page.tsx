@@ -1,7 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { CSSProperties, ReactNode } from "react";
 import { LandingMotionController } from "@/components/landing/LandingMotion";
+import { agentAvatars } from "@/lib/agent-avatars";
 import {
   Activity,
   ArrowRight,
@@ -82,6 +84,7 @@ const agents: Array<{
   name: string;
   role: string;
   icon: LucideIcon;
+  avatar: string;
   text: string;
   command: string;
   result: string;
@@ -91,6 +94,7 @@ const agents: Array<{
     name: "Scout",
     role: "Discovery",
     icon: Search,
+    avatar: agentAvatars.scout,
     text: "Découvre des marques pertinentes et réutilise la connaissance déjà acquise au lieu d'exclure toute entreprise connue.",
     command:
       "Trouve 25 marques cohérentes avec ce profil, hors évidences du marché.",
@@ -105,6 +109,7 @@ const agents: Array<{
     name: "Matchmaker",
     role: "Brand score",
     icon: Target,
+    avatar: agentAvatars.matchmaker,
     text: "Versionne le scoring et combine cohérence de marque, audience, timing et signaux historiques contextualisés.",
     command:
       "Priorise les marques qui ont le meilleur potentiel de conversion réel.",
@@ -119,6 +124,7 @@ const agents: Array<{
     name: "Enrichisseur",
     role: "Contact score",
     icon: Building2,
+    avatar: agentAvatars.enrichisseur,
     text: "Identifie le bon rôle, vérifie l'emploi et la contactabilité, sans exposer les coordonnées brutes côté client.",
     command:
       "Identifie le décideur sponsoring actuel pour chaque marque prioritaire.",
@@ -134,6 +140,7 @@ const agents: Array<{
     name: "Rédacteur",
     role: "Message versionné",
     icon: Mail,
+    avatar: agentAvatars.redacteur,
     text: "Génère un message contextualisé dont la version et l'angle restent associés aux résultats de la campagne.",
     command:
       "Rédige un premier contact crédible à partir du match et du profil.",
@@ -148,6 +155,7 @@ const agents: Array<{
     name: "Dispatcher",
     role: "Sending identity",
     icon: Send,
+    avatar: agentAvatars.dispatcher,
     text: "Envoie depuis l'identité professionnelle connectée, orchestre les relances et conserve le fil de conversation.",
     command:
       "Envoie les messages approuvés et prépare les relances au bon moment.",
@@ -162,6 +170,7 @@ const agents: Array<{
     name: "Veilleur",
     role: "Signals & replies",
     icon: Bot,
+    avatar: agentAvatars.veilleur,
     text: "Détecte les réponses et nouveaux signaux utiles afin d'alimenter les opportunités, preuves et prochaines actions.",
     command:
       "Surveille les réponses et transforme chaque signal en action concrète.",
@@ -927,9 +936,13 @@ function AgentsSection() {
                 href={`#agent-${agent.name.toLowerCase()}`}
                 className="group inline-flex items-center gap-2 rounded-full border border-white/[0.10] bg-white/[0.035] py-1.5 pl-1.5 pr-4 text-sm font-medium text-[#969BA8] transition duration-200 hover:border-[#FF6B3D]/30 hover:bg-white/[0.07] hover:text-white"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.09] bg-[#15110E] transition group-hover:bg-[#FF6B3D]/12">
-                  <agent.icon
-                    className="h-3.5 w-3.5 text-[#FF6B3D]"
+                <span className="relative h-8 w-8 overflow-hidden rounded-full border border-white/[0.12] bg-[#15110E] transition group-hover:border-[#FF6B3D]/35">
+                  <Image
+                    src={agent.avatar}
+                    alt=""
+                    fill
+                    sizes="32px"
+                    className="object-cover object-top transition duration-300 group-hover:scale-110"
                     aria-hidden="true"
                   />
                 </span>
@@ -969,9 +982,13 @@ function AgentsSection() {
                       {agent.result}
                     </div>
                     <div className="mt-4 flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#FF6B3D]/22 bg-[#FF6B3D]/10">
-                        <agent.icon
-                          className="h-4 w-4 text-[#FF6B3D]"
+                      <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-2xl border border-[#FF6B3D]/22 bg-[#0B0908] shadow-[0_0_24px_rgba(255,107,61,0.12)]">
+                        <Image
+                          src={agent.avatar}
+                          alt=""
+                          fill
+                          sizes="40px"
+                          className="object-cover object-top"
                           aria-hidden="true"
                         />
                       </span>
@@ -989,12 +1006,21 @@ function AgentsSection() {
 
                 <div className="flex flex-col p-5 sm:p-8 lg:p-10">
                   <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-center gap-4">
-                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] border border-[#FF6B3D]/22 bg-[#FF6B3D]/10 shadow-[0_0_36px_rgba(255,107,61,0.10)]">
-                        <agent.icon
-                          className="h-7 w-7 text-[#FF6B3D]"
-                          aria-hidden="true"
+                    <div className="flex items-center gap-4 sm:gap-5">
+                      <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[24px] border border-[#FF6B3D]/22 bg-[#0B0908] shadow-[0_18px_48px_rgba(0,0,0,0.28),0_0_42px_rgba(255,107,61,0.10)] sm:h-32 sm:w-32 sm:rounded-[30px]">
+                        <Image
+                          src={agent.avatar}
+                          alt={`Portrait humanoïde de l'agent ${agent.name}`}
+                          fill
+                          sizes="(min-width: 640px) 128px, 96px"
+                          className="object-cover object-top transition duration-500 group-hover:scale-[1.035]"
                         />
+                        <span className="absolute bottom-2 left-2 flex h-8 w-8 items-center justify-center rounded-xl border border-white/[0.12] bg-black/55 backdrop-blur-md sm:bottom-3 sm:left-3">
+                          <agent.icon
+                            className="h-4 w-4 text-[#FF6B3D]"
+                            aria-hidden="true"
+                          />
+                        </span>
                       </span>
                       <div>
                         <p className="text-xs font-semibold text-[#FF6B3D]">

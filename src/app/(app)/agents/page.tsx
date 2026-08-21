@@ -14,6 +14,7 @@ import { AgentCard } from "@/components/agents/AgentCard";
 import { ScanLauncher } from "@/components/agents/ScanLauncher";
 import { RelanceurPanel } from "@/components/agents/RelanceurPanel";
 import { VeillePanel } from "@/components/agents/VeillePanel";
+import { agentAvatars } from "@/lib/agent-avatars";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ const agents = [
     description:
       "Recherche de marques potentielles via web search + Claude. Trouve 25-30 marques par scan.",
     icon: Search,
+    avatar: agentAvatars.scout,
     status: "active" as const,
     color: "#FF6B3D",
   },
@@ -31,6 +33,7 @@ const agents = [
     description:
       "Scoring multi-critères des marques. 6 axes d'analyse, priorité A/B/C.",
     icon: Target,
+    avatar: agentAvatars.matchmaker,
     status: "active" as const,
     color: "#C8CEFF",
   },
@@ -39,6 +42,7 @@ const agents = [
     description:
       "Génération de mails de prospection personnalisés avec templates configurables.",
     icon: PenTool,
+    avatar: agentAvatars.redacteur,
     status: "active" as const,
     color: "#C8CEFF",
   },
@@ -47,6 +51,7 @@ const agents = [
     description:
       "Recherche de contacts décisionnaires (nom, email, LinkedIn) pour chaque entreprise.",
     icon: Database,
+    avatar: agentAvatars.enrichisseur,
     status: "active" as const,
     color: "#f59e0b",
   },
@@ -55,6 +60,7 @@ const agents = [
     description:
       "Envoi en masse des brouillons prêts. Identifie les emails sans contact.",
     icon: Send,
+    avatar: agentAvatars.dispatcher,
     status: "active" as const,
     color: "#ef4444",
   },
@@ -63,6 +69,7 @@ const agents = [
     description:
       "Analyse et catégorisation des réponses reçues. Alerte sur les réponses positives.",
     icon: Eye,
+    avatar: agentAvatars.veilleur,
     status: "active" as const,
     color: "#C8CEFF",
   },
@@ -71,6 +78,7 @@ const agents = [
     description:
       "Relance contextuelle basée sur l'actualité du profil. Timing score et email personnalisé.",
     icon: RefreshCw,
+    avatar: agentAvatars.relanceur,
     status: "active" as const,
     color: "#f59e0b",
   },
@@ -79,6 +87,7 @@ const agents = [
     description:
       "Scan du marché sponsoring : nouveaux deals, fins de contrat, marques entrantes, tendances.",
     icon: Radar,
+    avatar: agentAvatars.veilleConcurrence,
     status: "active" as const,
     color: "#a855f7",
   },
