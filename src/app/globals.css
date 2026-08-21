@@ -963,6 +963,15 @@
   }
 }
 
+@keyframes scan-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 @supports (animation-timeline: view()) {
   .scroll-parallax {
     animation: landing-parallax linear both;

@@ -234,6 +234,11 @@ export async function POST(request: NextRequest) {
 
       // Create companies and prospects
       let created = 0;
+      await sendEvent({
+        message: "Création des opportunités prioritaires...",
+        type: "info",
+        phase: "save",
+      });
       for (const brand of scoredBrands) {
         try {
           const prospect = await createProspectFromBrand(player.id, scan.id, brand);

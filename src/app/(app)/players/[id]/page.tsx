@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Pencil, ArrowLeft, Globe, MapPin, ScanLine } from "lucide-react";
+import { Pencil, ArrowLeft, Globe, MapPin } from "lucide-react";
 import { getPlayer } from "@/lib/actions/players";
 import { PlayerStats } from "@/components/players/PlayerStats";
 import { ArchiveButton } from "@/components/players/ArchiveButton";
+import { PlayerScanButton } from "@/components/players/PlayerScanButton";
 
 export default async function PlayerDetailPage({
   params,
@@ -63,13 +64,10 @@ export default async function PlayerDetailPage({
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
-          <Link
-            href="/agents"
-            className="flex items-center justify-center gap-2 rounded-full bg-[#FF6B3D] px-3 py-2 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F]"
-          >
-            <ScanLine className="h-3.5 w-3.5" />
-            Scanner
-          </Link>
+          <PlayerScanButton
+            playerId={player.id}
+            playerName={`${player.firstName} ${player.lastName}`}
+          />
           <Link
             href={`/players/${player.id}/edit`}
             className="flex items-center justify-center gap-2 rounded-full border border-white/[0.10] px-3 py-2 text-sm text-white/60 transition-colors hover:bg-white/[0.06] hover:text-white"

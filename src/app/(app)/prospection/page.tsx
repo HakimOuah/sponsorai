@@ -89,7 +89,8 @@ export default async function ProspectionPage({
               : "Sélectionnez un profil ou consultez tous les prospects"}
           </p>
           <p className="text-sm text-[#969BA8]/55">
-            Lancez un scan depuis la page Agents pour générer des prospects
+            Lancez un scan depuis la fiche du profil ou la page Agents pour
+            générer des prospects
           </p>
         </div>
       ) : (
