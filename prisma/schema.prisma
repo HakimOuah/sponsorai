@@ -14,6 +14,9 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  sendingIdentities SendingIdentity[]
+  prospectFeedback  ProspectFeedback[]
 }
 
 model Player {
@@ -44,43 +47,59 @@ model Player {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  prospects Prospect[]
-  deals     Deal[]
-  scans     Scan[]
+  prospects             Prospect[]
+  deals                 Deal[]
+  scans                 Scan[]
+  intelligenceSnapshots AthleteIntelligenceSnapshot[]
+  traits                AthleteTrait[]
+  socialAccounts        AthleteSocialAccount[]
+  learningEvents        LearningEvent[]
+  meetings              Meeting[]
+  proposals             Proposal[]
+  contracts             Contract[]
 }
 
 model Company {
-  id                       String   @id @default(cuid())
-  name                     String
-  sector                   String?
-  country                  String?
-  website                  String?
-  description              String?
-  existingSportsSponsoring String?
-  estimatedBudget          String?
-  contactName              String?
-  contactRole              String?
-  contactEmail             String?
+  id                        String   @id @default(cuid())
+  name                      String
+  sector                    String?
+  country                   String?
+  website                   String?
+  description               String?
+  existingSportsSponsoring  String?
+  estimatedBudget           String?
+  employeeCount             Int?
+  companySizeBucket         String   @default("unknown")
+  contactName               String?
+  contactRole               String?
+  contactEmail              String?
   contactVerificationStatus String?
-  contactEmailStatus       String   @default("missing")
-  contactRoleRelevance     String?
-  contactEvidence          String?
-  contactSource            String?
-  outreachReady            Boolean  @default(false)
-  contactLinkedin          String?
-  contactPhone             String?
-  notes                    String?
-  source                   String?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  contactEmailStatus        String   @default("missing")
+  contactRoleRelevance      String?
+  contactEvidence           String?
+  contactSource             String?
+  outreachReady             Boolean  @default(false)
+  contactLinkedin           String?
+  contactPhone              String?
+  notes                     String?
+  source                    String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
-  prospects Prospect[]
-  deals     Deal[]
-  emails    Email[]
+  prospects          Prospect[]
+  deals              Deal[]
+  emails             Email[]
+  contacts           Contact[]           @relation("ContactCompany")
+  employments        Employment[]        @relation("EmploymentCompany")
+  evidence           Evidence[]
+  sponsorships       Sponsorship[]
+  opportunitySignals OpportunitySignal[]
+  learningEvents     LearningEvent[]
+  mailThreads        MailThread[]
 }
 
 model Prospect {
-  id                  String   @id @default(cuid())
+  id                  String    @id @default(cuid())
   playerId            String
   companyId           String
   score               Int?
@@ -90,59 +109,92 @@ model Prospect {
   partnershipType     String?
   estimatedValue      String?
   priority            String?
-  status              String   @default("new")
+  status              String    @default("new")
   scanId              String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  selectedContactId   String?
+  scoreVersion        String    @default("matchmaker-v1")
+  outreachApprovedAt  DateTime?
+  outreachApprovedBy  String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  player  Player  @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  scan    Scan?   @relation(fields: [scanId], references: [id])
-  emails  Email[]
-  deal    Deal?
+  player          Player              @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  company         Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  scan            Scan?               @relation(fields: [scanId], references: [id])
+  selectedContact Contact?            @relation("SelectedContact", fields: [selectedContactId], references: [id])
+  emails          Email[]
+  deal            Deal?
+  feedback        ProspectFeedback[]
+  learningEvents  LearningEvent[]
+  mailThreads     MailThread[]
+  attributions    AttributionRecord[]
 
   @@unique([playerId, companyId])
+  @@index([selectedContactId])
 }
 
 model Deal {
-  id             String    @id @default(cuid())
-  playerId       String
-  companyId      String
-  prospectId     String    @unique
-  stage          String    @default("lead")
-  value          Float?
-  currency       String    @default("EUR")
-  dealType       String?
-  notes          String?
-  nextAction     String?
-  nextActionDate DateTime?
-  closedAt       DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  playerId           String
+  companyId          String
+  prospectId         String    @unique
+  stage              String    @default("lead")
+  value              Float?
+  currency           String    @default("EUR")
+  dealType           String?
+  notes              String?
+  nextAction         String?
+  nextActionDate     DateTime?
+  origin             String    @default("sponsorai")
+  successFeeEligible Boolean   @default(false)
+  closedAt           DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  player   Player   @relation(fields: [playerId], references: [id])
-  company  Company  @relation(fields: [companyId], references: [id])
-  prospect Prospect @relation(fields: [prospectId], references: [id])
+  player         Player             @relation(fields: [playerId], references: [id])
+  company        Company            @relation(fields: [companyId], references: [id])
+  prospect       Prospect           @relation(fields: [prospectId], references: [id])
+  meetings       Meeting[]
+  proposals      Proposal[]
+  contracts      Contract[]
+  events         DealEvent[]
+  learningEvents LearningEvent[]
+  attribution    AttributionRecord?
+  successFee     SuccessFeeRecord?
 }
 
 model Email {
-  id          String    @id @default(cuid())
-  prospectId  String?
-  companyId   String
-  type        String
-  subject     String
-  body        String
-  status      String    @default("draft")
-  sentAt      DateTime?
-  openedAt    DateTime?
-  repliedAt   DateTime?
-  scheduledAt DateTime?
-  messageId   String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  prospectId        String?
+  companyId         String
+  contactId         String?
+  sendingIdentityId String?
+  mailThreadId      String?
+  type              String
+  direction         String    @default("outbound")
+  provider          String?
+  templateVersion   String?
+  subject           String
+  body              String
+  status            String    @default("draft")
+  sentAt            DateTime?
+  openedAt          DateTime?
+  repliedAt         DateTime?
+  scheduledAt       DateTime?
+  messageId         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  prospect Prospect? @relation(fields: [prospectId], references: [id])
-  company  Company   @relation(fields: [companyId], references: [id])
+  prospect        Prospect?        @relation(fields: [prospectId], references: [id])
+  company         Company          @relation(fields: [companyId], references: [id])
+  contact         Contact?         @relation(fields: [contactId], references: [id])
+  sendingIdentity SendingIdentity? @relation(fields: [sendingIdentityId], references: [id])
+  mailThread      MailThread?      @relation(fields: [mailThreadId], references: [id])
+  outreachEvents  OutreachEvent[]
+  learningEvents  LearningEvent[]
+
+  @@index([contactId])
+  @@index([mailThreadId])
 }
 
 model EmailTemplate {
@@ -151,6 +203,7 @@ model EmailTemplate {
   type      String
   subject   String
   body      String
+  version   Int      @default(1)
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -165,6 +218,8 @@ model Scan {
   rawData            Json?
   scoredData         Json?
   playerIntelligence Json?
+  scoutVersion       String   @default("scout-v2")
+  matchmakerVersion  String   @default("matchmaker-v2")
   logs               Json?
   duration           Int?
   createdAt          DateTime @default(now())
@@ -191,4 +246,454 @@ model VeilleRun {
   alerts        Json?
   duration      Int?
   createdAt     DateTime @default(now())
+}
+
+model Contact {
+  id                   String   @id @default(cuid())
+  companyId            String
+  fullName             String
+  roleRaw              String
+  roleNormalized       String
+  provider             String
+  providerExternalId   String?
+  employmentStatus     String   @default("verified_current")
+  employmentConfidence Float    @default(0)
+  relevanceScore       Int      @default(0)
+  contactScore         Float?
+  contactScoreVersion  String   @default("contact-score-v1")
+  contactability       String   @default("missing")
+  source               String?
+  sourceUrl            String?
+  active               Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  company              Company         @relation("ContactCompany", fields: [companyId], references: [id], onDelete: Cascade)
+  employments          Employment[]
+  contactEmails        ContactEmail[]
+  evidence             Evidence[]
+  selectedForProspects Prospect[]      @relation("SelectedContact")
+  emails               Email[]
+  learningEvents       LearningEvent[]
+  mailThreads          MailThread[]
+
+  @@unique([provider, providerExternalId])
+  @@index([companyId, roleNormalized])
+  @@index([contactScore])
+}
+
+model Employment {
+  id              String    @id @default(cuid())
+  contactId       String
+  companyId       String
+  titleRaw        String
+  titleNormalized String
+  status          String    @default("current")
+  startedAt       DateTime?
+  endedAt         DateTime?
+  confidence      Float     @default(0)
+  sourceUrl       String?
+  observedAt      DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  company Company @relation("EmploymentCompany", fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, status])
+  @@index([contactId, status])
+}
+
+model ContactEmail {
+  id         String    @id @default(cuid())
+  contactId  String
+  email      String
+  emailHash  String
+  status     String    @default("missing")
+  source     String?
+  evidence   String?
+  isPrimary  Boolean   @default(false)
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, emailHash])
+  @@index([emailHash])
+}
+
+model Evidence {
+  id                  String   @id @default(cuid())
+  companyId           String?
+  contactId           String?
+  sponsorshipId       String?
+  opportunitySignalId String?
+  evidenceType        String
+  claim               String
+  sourceName          String?
+  sourceUrl           String?
+  excerpt             String?
+  confidence          Float    @default(0.5)
+  observedAt          DateTime @default(now())
+  metadata            Json?
+  createdAt           DateTime @default(now())
+
+  company           Company?           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contact           Contact?           @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  sponsorship       Sponsorship?       @relation(fields: [sponsorshipId], references: [id], onDelete: Cascade)
+  opportunitySignal OpportunitySignal? @relation(fields: [opportunitySignalId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, evidenceType])
+  @@index([contactId, evidenceType])
+}
+
+model Sponsorship {
+  id           String    @id @default(cuid())
+  companyId    String
+  rightsHolder String
+  athleteName  String?
+  sport        String?
+  category     String?
+  territory    String?
+  status       String    @default("observed")
+  startedAt    DateTime?
+  endedAt      DateTime?
+  source       String?
+  observedAt   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  company  Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  evidence Evidence[]
+
+  @@index([companyId, status])
+  @@index([sport, category])
+}
+
+model OpportunitySignal {
+  id          String    @id @default(cuid())
+  companyId   String
+  type        String
+  title       String
+  description String
+  strength    Float     @default(0.5)
+  status      String    @default("unreviewed")
+  sourceUrl   String?
+  detectedAt  DateTime  @default(now())
+  expiresAt   DateTime?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  company  Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  evidence Evidence[]
+
+  @@index([companyId, status])
+  @@index([type, detectedAt])
+}
+
+model AthleteIntelligenceSnapshot {
+  id           String   @id @default(cuid())
+  playerId     String
+  version      String   @default("athlete-intelligence-v1")
+  snapshot     Json
+  sourceScanId String?
+  capturedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId, capturedAt])
+}
+
+model AthleteTrait {
+  id         String   @id @default(cuid())
+  playerId   String
+  type       String
+  value      String
+  confidence Float    @default(0.5)
+  source     String?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, type, value])
+  @@index([playerId, active])
+}
+
+model AthleteSocialAccount {
+  id             String   @id @default(cuid())
+  playerId       String
+  platform       String
+  handle         String
+  url            String?
+  followers      Int?
+  engagementRate Float?
+  capturedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, platform, handle])
+  @@index([playerId, platform])
+}
+
+model LearningEvent {
+  id                String   @id @default(cuid())
+  idempotencyKey    String   @unique
+  type              String
+  prospectId        String?
+  playerId          String?
+  companyId         String?
+  contactId         String?
+  emailId           String?
+  dealId            String?
+  roleRaw           String?
+  roleNormalized    String?
+  sector            String?
+  country           String?
+  companySizeBucket String?
+  sport             String?
+  audienceSize      Int?
+  brandScore        Float?
+  contactScore      Float?
+  scoreVersion      String?
+  templateVersion   String?
+  matchmakerVersion String?
+  outcomeValue      Float?
+  currency          String?
+  context           Json
+  occurredAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  prospect Prospect? @relation(fields: [prospectId], references: [id], onDelete: SetNull)
+  player   Player?   @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  company  Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contact  Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  email    Email?    @relation(fields: [emailId], references: [id], onDelete: SetNull)
+  deal     Deal?     @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([type, occurredAt])
+  @@index([roleNormalized, sector, sport])
+  @@index([prospectId, occurredAt])
+}
+
+model OutreachEvent {
+  id              String   @id @default(cuid())
+  emailId         String
+  type            String
+  provider        String
+  providerEventId String?  @unique
+  metadata        Json?
+  occurredAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  email Email @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  @@index([emailId, occurredAt])
+  @@index([type, occurredAt])
+}
+
+model ProspectFeedback {
+  id            String   @id @default(cuid())
+  prospectId    String
+  userId        String?
+  brandRating   String?
+  contactRating String?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  user     User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([prospectId, createdAt])
+}
+
+model RolePerformanceStat {
+  id                   String   @id @default(cuid())
+  roleNormalized       String
+  sector               String   @default("unknown")
+  companySizeBucket    String   @default("unknown")
+  sport                String   @default("unknown")
+  country              String   @default("unknown")
+  attempts             Int      @default(0)
+  deliveries           Int      @default(0)
+  replies              Int      @default(0)
+  positiveReplies      Int      @default(0)
+  meetings             Int      @default(0)
+  signedDeals          Int      @default(0)
+  signedValue          Float    @default(0)
+  smoothedReplyRate    Float    @default(0)
+  smoothedPositiveRate Float    @default(0)
+  smoothedMeetingRate  Float    @default(0)
+  smoothedDealRate     Float    @default(0)
+  contextualUtility    Float    @default(0)
+  priorStrength        Float    @default(20)
+  scoringVersion       String   @default("role-performance-v1")
+  computedAt           DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([roleNormalized, sector, companySizeBucket, sport, country, scoringVersion])
+  @@index([contextualUtility])
+}
+
+model Meeting {
+  id          String    @id @default(cuid())
+  dealId      String
+  playerId    String
+  status      String    @default("scheduled")
+  scheduledAt DateTime
+  completedAt DateTime?
+  externalUrl String?
+  outcome     String?
+  notes       String?
+  attendees   Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, scheduledAt])
+  @@index([status, scheduledAt])
+}
+
+model Proposal {
+  id          String    @id @default(cuid())
+  dealId      String
+  playerId    String
+  status      String    @default("draft")
+  amount      Float?
+  currency    String    @default("EUR")
+  summary     String?
+  externalUrl String?
+  sentAt      DateTime?
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, status])
+}
+
+model Contract {
+  id          String    @id @default(cuid())
+  dealId      String
+  playerId    String
+  status      String    @default("draft")
+  title       String
+  externalUrl String?
+  sentAt      DateTime?
+  signedAt    DateTime?
+  expiresAt   DateTime?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  deal   Deal   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, status])
+}
+
+model DealEvent {
+  id           String   @id @default(cuid())
+  dealId       String
+  type         String
+  source       String   @default("manual")
+  actor        String?
+  immutableKey String?  @unique
+  data         Json?
+  occurredAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  deal Deal @relation(fields: [dealId], references: [id], onDelete: Cascade)
+
+  @@index([dealId, occurredAt])
+  @@index([type, occurredAt])
+}
+
+model SendingIdentity {
+  id            String    @id @default(cuid())
+  userId        String?
+  purpose       String    @default("outreach")
+  provider      String    @default("smtp")
+  email         String
+  displayName   String?
+  credentialRef String?
+  status        String    @default("pending")
+  isDefault     Boolean   @default(false)
+  verifiedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user        User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  emails      Email[]
+  mailThreads MailThread[]
+
+  @@unique([email, purpose])
+  @@index([userId, purpose, status])
+}
+
+model MailThread {
+  id                String    @id @default(cuid())
+  prospectId        String?
+  companyId         String
+  contactId         String?
+  sendingIdentityId String?
+  externalThreadId  String?
+  subject           String
+  status            String    @default("open")
+  lastMessageAt     DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  prospect        Prospect?        @relation(fields: [prospectId], references: [id], onDelete: SetNull)
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contact         Contact?         @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  sendingIdentity SendingIdentity? @relation(fields: [sendingIdentityId], references: [id], onDelete: SetNull)
+  emails          Email[]
+
+  @@index([prospectId, lastMessageAt])
+  @@index([companyId, status])
+}
+
+model AttributionRecord {
+  id                   String   @id @default(cuid())
+  dealId               String   @unique
+  prospectId           String
+  source               String   @default("sponsorai")
+  initiatedBySponsorAI Boolean  @default(true)
+  immutableKey         String   @unique
+  firstTouchAt         DateTime
+  metadata             Json?
+  createdAt            DateTime @default(now())
+
+  deal       Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  prospect   Prospect          @relation(fields: [prospectId], references: [id], onDelete: Restrict)
+  successFee SuccessFeeRecord?
+
+  @@index([prospectId, firstTouchAt])
+}
+
+model SuccessFeeRecord {
+  id                  String   @id @default(cuid())
+  dealId              String   @unique
+  attributionRecordId String?  @unique
+  status              String   @default("not_applicable")
+  basisAmount         Float?
+  feeRate             Float?
+  feeAmount           Float?
+  currency            String   @default("EUR")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  deal        Deal               @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  attribution AttributionRecord? @relation(fields: [attributionRecordId], references: [id], onDelete: SetNull)
 }

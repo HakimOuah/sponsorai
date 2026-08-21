@@ -37,6 +37,42 @@ export function getRoleRelevanceLabel(role?: string | null): "high" | "medium" |
   return "low";
 }
 
+export function normalizeContactRole(role?: string | null): string {
+  const value = (role || "").toLowerCase();
+
+  if (/sports? partnerships?|sponsorship/.test(value)) return "SPORTS_PARTNERSHIPS";
+  if (/brand partnerships?|strategic partnerships?|alliances?/.test(value)) {
+    return "BRAND_PARTNERSHIPS";
+  }
+  if (/sports? marketing/.test(value)) return "SPORTS_MARKETING";
+  if (/influencer|creator|talent/.test(value)) return "CREATOR_PARTNERSHIPS";
+  if (/communications?|comms|public relations|\bpr\b/.test(value)) {
+    return "COMMUNICATIONS";
+  }
+  if (/community|events?|csr|rse/.test(value)) return "COMMUNITY_EVENTS";
+  if (/marketing|brand|growth/.test(value)) return "MARKETING";
+  return "OTHER";
+}
+
+export function calculateStaticContactScore(input: {
+  role?: string | null;
+  contactability?: string | null;
+  employmentConfidence?: number | null;
+}): number {
+  const roleScore = (getContactRelevance(input.role) / 3) * 55;
+  const contactabilityScore = input.contactability === "verified"
+    ? 25
+    : input.contactability === "public_source"
+      ? 18
+      : 0;
+  const employmentScore = Math.max(
+    0,
+    Math.min(1, input.employmentConfidence || 0)
+  ) * 20;
+
+  return Math.round(Math.min(100, roleScore + contactabilityScore + employmentScore));
+}
+
 export function isUsableEmailStatus(status?: string | null): boolean {
   return status === "verified" || status === "public_source";
 }

@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 import { Send, Save, Trash2, Loader2 } from "lucide-react";
 import { updateEmail, deleteEmail, sendEmail } from "@/lib/actions/emails";
 import { useRouter } from "next/navigation";
-import { canSendOutreach } from "@/lib/agents/contact-quality";
 
 interface EmailEditorProps {
   email: {
@@ -17,12 +16,12 @@ interface EmailEditorProps {
     createdAt: Date;
     company: {
       name: string;
-      contactEmail: string | null;
+      contactRole?: string | null;
       contactEmailStatus?: string | null;
-      contactVerificationStatus?: string | null;
       outreachReady?: boolean | null;
     };
     prospect: {
+      outreachApprovedAt: Date | null;
       player: { firstName: string; lastName: string };
     } | null;
   };
@@ -39,7 +38,10 @@ export function EmailEditor({ email }: EmailEditorProps) {
 
   const isDraft = email.status === "draft";
   const hasChanges = subject !== email.subject || body !== email.body;
-  const sendable = canSendOutreach(email.company);
+  const sendable = Boolean(
+    email.company.outreachReady &&
+      (email.type !== "first_contact" || email.prospect?.outreachApprovedAt)
+  );
 
   const handleSave = () => {
     startTransition(async () => {
@@ -85,13 +87,13 @@ export function EmailEditor({ email }: EmailEditorProps) {
       {/* Meta info */}
       <div className="flex flex-wrap items-center gap-3 text-xs text-[#8FA69E]">
         <span>
-          À : <span className="text-white/60">{email.company.contactEmail || "Pas de contact"}</span>
+          À : <span className="text-white/60">{email.company.contactRole || "Décideur qualifié"}</span>
         </span>
-        {email.company.contactEmail && (
+        {email.company.outreachReady && (
           <>
             <span>·</span>
             <span className={sendable ? "text-[#3EF2A0]" : "text-[#f59e0b]"}>
-              {sendable ? "Contact envoyable" : "Email à vérifier"}
+              {sendable ? "Contact vérifié et outreach approuvé" : "Validation humaine requise"}
             </span>
           </>
         )}

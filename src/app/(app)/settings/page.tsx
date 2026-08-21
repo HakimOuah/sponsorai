@@ -14,6 +14,7 @@ import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/settings/ProfileForm";
 import { PasswordForm } from "@/components/settings/PasswordForm";
 import { ExportButtons } from "@/components/settings/ExportButtons";
+import { SendingIdentityForm } from "@/components/settings/SendingIdentityForm";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,23 @@ export default async function SettingsPage() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email! },
-    select: { id: true, name: true, email: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      sendingIdentities: {
+        where: { purpose: "outreach" },
+        orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+        select: {
+          id: true,
+          email: true,
+          displayName: true,
+          provider: true,
+          status: true,
+          isDefault: true,
+        },
+      },
+    },
   });
 
   if (!user) redirect("/login");
@@ -62,6 +79,10 @@ export default async function SettingsPage() {
           </p>
         </Section>
 
+        <Section icon={Mail} title="Identités de prospection">
+          <SendingIdentityForm identities={user.sendingIdentities} />
+        </Section>
+
         {/* API Keys */}
         <Section icon={Key} title="Clés API">
           <div className="space-y-3 max-w-lg">
@@ -73,7 +94,10 @@ export default async function SettingsPage() {
                   : undefined
               }
             />
-            <EnvField label="Apollo.io API Key" value={undefined} placeholder="Phase 2" />
+            <EnvField
+              label="Apollo.io API Key"
+              value={process.env.APOLLO_API_KEY ? "Configurée" : undefined}
+            />
             <EnvField label="Hunter.io API Key" value={undefined} placeholder="Phase 2" />
           </div>
           <p className="mt-3 text-xs text-[#8FA69E]/55">

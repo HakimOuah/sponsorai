@@ -141,6 +141,33 @@ export default async function PlayerDetailPage({
         </div>
       </div>
 
+      {(player.traits.length > 0 || player.intelligenceSnapshots.length > 0) && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div className="app-panel p-5">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">Athlete traits</h2>
+            <div className="flex flex-wrap gap-2">
+              {player.traits.map((trait) => (
+                <span key={trait.id} className="rounded-full border border-[#3EF2A0]/15 bg-[#3EF2A0]/5 px-3 py-1 text-xs text-[#DDFBEA]">
+                  {trait.value} · {Math.round(trait.confidence * 100)}%
+                </span>
+              ))}
+              {player.traits.length === 0 && <span className="text-xs text-[#8FA69E]">Aucun trait structuré.</span>}
+            </div>
+          </div>
+          <div className="app-panel p-5">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">Intelligence snapshots</h2>
+            <div className="space-y-2">
+              {player.intelligenceSnapshots.map((snapshot) => (
+                <div key={snapshot.id} className="flex items-center justify-between rounded-xl border border-white/[0.06] px-3 py-2 text-xs">
+                  <span className="text-white/70">{snapshot.version}</span>
+                  <span className="font-mono text-[#8FA69E]">{snapshot.capturedAt.toLocaleDateString("fr-FR")}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Prospects */}
       {player.prospects.length > 0 && (
         <div className="mt-6">

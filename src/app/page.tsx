@@ -2,18 +2,32 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import {
+  Activity,
   ArrowRight,
+  ArrowUpRight,
+  BrainCircuit,
+  CalendarCheck,
   Bot,
   Building2,
   Check,
+  CheckCircle2,
   ChevronRight,
+  Clock3,
+  Database,
+  FileText,
+  GitBranch,
   Lock,
   Mail,
   Menu,
+  MessageSquareReply,
   Network,
+  RotateCcw,
   Search,
   Send,
+  ShieldCheck,
+  Sparkles,
   Target,
+  TrendingUp,
   Users,
   X,
   Zap,
@@ -21,16 +35,16 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Vectis Agency - Intelligence sponsoring IA",
+  title: "Vectis Agency - Sponsorship intelligence V2",
   description:
-    "Une plateforme IA premium pour identifier, qualifier et contacter les partenaires les plus pertinents pour sportifs de haut niveau.",
+    "Une plateforme de sponsorship intelligence qui relie discovery, décideurs, outreach, deals et apprentissage à partir des campagnes réelles.",
 };
 
 const navItems = [
-  { label: "Vue d'ensemble", href: "#overview" },
-  { label: "Technologie", href: "#technology" },
+  { label: "Plateforme", href: "#overview" },
+  { label: "Intelligence V2", href: "#technology" },
   { label: "Agents", href: "#agents" },
-  { label: "Ressources", href: "#resources" },
+  { label: "Boucle fermée", href: "#resources" },
 ];
 
 const heroCards: Array<{ title: string; label: string; icon: LucideIcon }> = [
@@ -39,32 +53,28 @@ const heroCards: Array<{ title: string; label: string; icon: LucideIcon }> = [
   { title: "Prospection sûre", label: "Domaine pro", icon: Lock },
 ];
 
-const threats = [
-  "Prospection générique sans angle sportif",
-  "Marques incompatibles ou déjà verrouillées",
-  "Contacts froids sans décideur identifié",
-  "Messages trop longs ou peu crédibles",
-  "Relances oubliées et pipeline dispersé",
-  "Priorisation fondée sur l'intuition",
-  "Conflits de catégorie non détectés",
-  "Signaux d'actualité non exploités",
-  "Manque de preuve commerciale",
-  "Négociations lancées trop tôt",
+const dataBreaks = [
+  "Le contexte d'une marque disparaît après le scan",
+  "Le choix du décideur n'est pas relié au résultat",
+  "Les réponses et meetings restent dispersés",
+  "Les deals conclus hors plateforme deviennent invisibles",
+  "Chaque nouvelle campagne repart presque de zéro",
+  "Le taux de réponse masque les vrais outcomes business",
 ];
 
 const solutionPillars = [
   {
-    title: "Intelligence profil",
-    text: "Comprendre l'actualité, l'image, la communauté, le sport et le territoire avant de chercher les marques.",
+    title: "Sponsorship Graph",
+    text: "Une donnée structurée relie athlètes, marques, signaux, décideurs, preuves, conversations et deals.",
   },
   {
-    title: "Scoring sponsoring",
-    text: "Prouver pourquoi une entreprise a une raison crédible de parler avec ce profil maintenant.",
+    title: "Learning Engine",
+    text: "Les réponses, meetings et signatures renforcent progressivement les scores de marque, de rôle et de message.",
     featured: true,
   },
   {
-    title: "Contrôle de prospection",
-    text: "Garder l'envoi, les relances, les statuts et les réponses dans un pipeline vérifiable.",
+    title: "Closed-loop",
+    text: "Chaque opportunité reste visible du premier match jusqu'au WON ou LOST, même lorsque le meeting ou le contrat est externe.",
   },
 ];
 
@@ -76,70 +86,70 @@ const agents: Array<{
 }> = [
   {
     name: "Scout",
-    role: "Recherche d'entreprises",
+    role: "Discovery",
     icon: Search,
-    text: "Cartographie des marques pertinentes par secteur, pays, budget probable, historique sponsoring et signaux d'opportunité.",
+    text: "Découvre des marques pertinentes et réutilise la connaissance déjà acquise au lieu d'exclure toute entreprise connue.",
   },
   {
     name: "Matchmaker",
-    role: "Scoring commercial",
+    role: "Brand score",
     icon: Target,
-    text: "Classe chaque piste selon la cohérence image, l'audience, l'accessibilité et la probabilité de conversion.",
+    text: "Versionne le scoring et combine cohérence de marque, audience, timing et signaux historiques contextualisés.",
   },
   {
     name: "Enrichisseur",
-    role: "Contacts décideurs",
+    role: "Contact score",
     icon: Building2,
-    text: "Prépare les décideurs marketing, partenariat, communication ou fondateurs à contacter.",
+    text: "Identifie le bon rôle, vérifie l'emploi et la contactabilité, sans exposer les coordonnées brutes côté client.",
   },
   {
     name: "Rédacteur",
-    role: "Emails personnalisés",
+    role: "Message versionné",
     icon: Mail,
-    text: "Transforme le rationnel de match en message court, spécifique et prêt à envoyer depuis votre domaine.",
+    text: "Génère un message contextualisé dont la version et l'angle restent associés aux résultats de la campagne.",
   },
   {
     name: "Dispatcher",
-    role: "Envoi & séquences",
+    role: "Sending identity",
     icon: Send,
-    text: "Orchestre les premiers contacts, les relances et les statuts sans perdre le contexte commercial.",
+    text: "Envoie depuis l'identité professionnelle connectée, orchestre les relances et conserve le fil de conversation.",
   },
   {
     name: "Veilleur",
-    role: "Réponses qualifiées",
+    role: "Signals & replies",
     icon: Bot,
-    text: "Surveille les retours, détecte les signaux chauds et remonte les opportunités au bon moment.",
+    text: "Détecte les réponses et nouveaux signaux utiles afin d'alimenter les opportunités, preuves et prochaines actions.",
   },
 ];
 
 const workflow = [
   {
     number: "01",
-    title: "Profil vérifié",
-    text: "Le nom du sportif ou du club devient un profil commercial enrichi: sport, ville, niveau, audience, actualité, sponsors visibles.",
+    title: "Discover & Match",
+    text: "Le profil athlète et les signaux marché produisent une shortlist resserrée de marques expliquées et scorées.",
   },
   {
     number: "02",
-    title: "Angles calculés",
-    text: "L'IA construit des angles défendables: performance, lifestyle, diaspora, local, événementiel ou contenu social.",
+    title: "Decision maker",
+    text: "Le meilleur rôle est identifié, normalisé et qualifié avant toute validation humaine du premier outreach.",
   },
   {
     number: "03",
-    title: "Marques scorées",
-    text: "Chaque marque est justifiée, scorée et priorisée avant de devenir une opportunité dans le pipeline.",
+    title: "Close the loop",
+    text: "Emails, réponses, meetings, propositions et contrats restent réunis dans la chronologie de l'opportunité.",
   },
   {
     number: "04",
-    title: "Prospection maîtrisée",
-    text: "Les emails partent depuis votre boîte professionnelle avec suivi des relances, réponses et prochaines actions.",
+    title: "Learn & improve",
+    text: "Les outcomes structurés renforcent les statistiques et améliorent les futures recommandations contextualisées.",
   },
 ];
 
 const proofPoints = [
-  "Recherche hors équipementiers évidents",
-  "Conflits de catégorie détectés",
-  "Pipeline A/B/C expliqué",
-  "Relances et réponses historisées",
+  "Validation humaine avant outreach",
+  "Coordonnées privées côté serveur",
+  "Scores et templates versionnés",
+  "Attribution conservée jusqu'au deal",
 ];
 
 export default function LandingPage() {
@@ -158,11 +168,11 @@ export default function LandingPage() {
 
 function SiteNav() {
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-5 z-50 px-5 md:px-10">
-      <nav className="mx-auto flex max-w-[1540px] items-center justify-between">
+    <header className="pointer-events-none fixed inset-x-0 top-3 z-50 px-3 md:px-6">
+      <nav className="pointer-events-auto mx-auto flex max-w-[1540px] items-center justify-between rounded-[24px] border border-white/[0.10] bg-[rgba(5,8,7,0.94)] p-2 shadow-[0_18px_70px_rgba(0,0,0,0.24)] backdrop-blur-2xl">
         <Link
           href="/"
-          className="pointer-events-auto flex items-center gap-3 text-[#F8FAF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3EF2A0]"
+          className="pointer-events-auto flex items-center gap-3 px-1 text-[#F8FAF7] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3EF2A0]"
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] backdrop-blur-xl">
             <Zap className="h-4 w-4 text-[#3EF2A0]" aria-hidden="true" />
@@ -243,7 +253,7 @@ function SiteNav() {
 function HeroSection() {
   return (
     <section id="overview" className="bg-[#F8FAF7] p-3 sm:p-5">
-      <div className="hero-shell relative mx-auto flex min-h-[880px] max-w-[1560px] overflow-hidden rounded-[32px] bg-[#020403] px-5 pb-12 pt-32 text-center text-[#F8FAF7] sm:rounded-[44px] sm:px-10 lg:min-h-[940px]">
+      <div className="hero-shell relative mx-auto min-h-[880px] max-w-[1560px] overflow-hidden rounded-[32px] bg-[#020403] px-5 pb-8 pt-28 text-[#F8FAF7] sm:rounded-[44px] sm:px-10 sm:pt-32 lg:min-h-[920px] lg:px-16">
         <div className="hero-grid" aria-hidden="true" />
         <div className="hero-orbit hero-orbit-one" aria-hidden="true" />
         <div className="hero-orbit hero-orbit-two" aria-hidden="true" />
@@ -256,86 +266,235 @@ function HeroSection() {
           <span className="circuit-dot circuit-dot-three" />
         </div>
 
-        <div className="relative z-10 mx-auto flex w-full min-w-0 max-w-6xl flex-col items-center">
-          <ChipVisual />
-
-          <div className="landing-reveal mt-10">
-            <p className="mx-auto mb-5 w-fit rounded-full border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-semibold text-[#DDFBEA]/78 backdrop-blur-xl">
-              Intelligence sponsoring IA
-            </p>
-            <h1 className="mx-auto max-w-[310px] text-[43px] font-semibold leading-[0.96] tracking-[-0.055em] text-[#F8FAF7] sm:max-w-5xl sm:text-[78px] lg:text-[112px]">
-              Le bon <br className="sm:hidden" />
-              Partenaire <br className="sm:hidden" />
-              Qualifié
+        <div className="relative z-10 mx-auto grid w-full max-w-[1320px] items-center gap-12 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16">
+          <div className="landing-reveal max-w-2xl text-center lg:text-left">
+            <div className="mx-auto mb-7 flex w-fit items-center gap-2 rounded-full border border-[#3EF2A0]/25 bg-[#3EF2A0]/10 px-4 py-2 text-sm font-semibold text-[#DDFBEA] backdrop-blur-xl lg:mx-0">
+              <Sparkles className="h-4 w-4 text-[#3EF2A0]" aria-hidden="true" />
+              SponsorAI V2 · Sponsorship intelligence
+            </div>
+            <h1 className="text-[43px] font-semibold leading-[0.98] tracking-[-0.055em] text-[#F8FAF7] sm:text-[68px] lg:text-[78px]">
+              Chaque campagne rend la suivante{" "}
+              <span className="text-[#3EF2A0]">plus intelligente.</span>
             </h1>
-          </div>
+            <p className="mx-auto mt-7 max-w-xl text-[16px] leading-8 text-[#D8DEDA]/72 sm:text-lg lg:mx-0">
+              Découvrez les bonnes marques, qualifiez le décideur, pilotez
+              l&apos;outreach jusqu&apos;au deal et transformez chaque résultat en
+              donnée propriétaire réutilisable.
+            </p>
 
-          <p
-            className="landing-reveal mx-auto mt-7 max-w-[260px] text-[15px] leading-8 text-[#D8DEDA]/78 sm:max-w-2xl sm:text-xl"
-          >
-            Vectis qualifie les profils sportifs, les marques et les contacts avant le
-            premier email. Une prospection IA structurée pour ne transmettre à
-            l&apos;agent que les leads prêts à avancer.
-          </p>
-
-          <div
-            className="landing-reveal mt-8 flex flex-col items-center gap-4 sm:flex-row"
-          >
-            <Link
-              href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
-              className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[#F8FAF7] px-6 py-4 text-base font-semibold text-[#020403] shadow-[0_0_0_1px_rgba(255,255,255,0.2),0_22px_80px_rgba(62,242,160,0.16)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(62,242,160,0.3)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3EF2A0] active:scale-[0.98]"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#3EF2A0] text-[#003F32]">
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </span>
-              Réserver une démo
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex min-h-14 items-center justify-center rounded-full border border-white/[0.14] bg-white/[0.05] px-6 py-4 text-base font-semibold text-white/78 backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.09] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3EF2A0] active:scale-[0.98]"
-            >
-              Accéder à la plateforme
-            </Link>
-          </div>
-
-          <p
-            className="landing-reveal mt-16 max-w-[270px] text-sm font-medium leading-6 text-[#D8DEDA]/68 sm:mt-20 sm:max-w-none"
-          >
-            Bêta privée · Pensé pour agents sportifs et agences d&apos;image
-          </p>
-
-          <div className="landing-reveal mt-6 grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-3">
-            {heroCards.map((card) => (
-              <div
-                key={card.title}
-                className="group rounded-[22px] border border-white/[0.14] bg-white/[0.08] p-5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition duration-200 hover:-translate-y-1 hover:border-[#3EF2A0]/40 hover:bg-white/[0.11]"
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
+              <Link
+                href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
+                className="group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-[#3EF2A0] px-6 py-4 text-base font-semibold text-[#020403] shadow-[0_20px_70px_rgba(62,242,160,0.2)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#65F6B3] hover:shadow-[0_0_34px_rgba(62,242,160,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-[0.98] sm:w-auto"
               >
-                <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-[#050A0D]/60">
-                  <card.icon className="h-5 w-5 text-[#3EF2A0]" aria-hidden="true" />
-                </div>
-                <p className="text-sm font-semibold text-white">{card.title}</p>
-                <p className="mt-1 text-xs text-[#8FA69E]">{card.label}</p>
-              </div>
-            ))}
+                Réserver une démo
+                <ArrowUpRight
+                  className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  aria-hidden="true"
+                />
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex min-h-14 w-full items-center justify-center rounded-full border border-white/[0.14] bg-white/[0.05] px-6 py-4 text-base font-semibold text-white/82 backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.09] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3EF2A0] active:scale-[0.98] sm:w-auto"
+              >
+                Accéder à la plateforme
+              </Link>
+            </div>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-sm text-[#D8DEDA]/62 lg:justify-start">
+              {["Sponsorship Graph", "Boucle fermée", "Learning Engine"].map((item) => (
+                <span key={item} className="inline-flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-[#3EF2A0]" aria-hidden="true" />
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
+
+          <ProductPreview />
+        </div>
+
+        <div className="relative z-10 mx-auto mt-10 grid w-full max-w-[1320px] grid-cols-1 gap-3 sm:grid-cols-3 lg:mt-14">
+          {heroCards.map((card) => (
+            <div
+              key={card.title}
+              className="group flex items-center gap-4 rounded-[20px] border border-white/[0.11] bg-white/[0.055] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:border-[#3EF2A0]/28 hover:bg-white/[0.08]"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#050A0D]/60">
+                <card.icon className="h-5 w-5 text-[#3EF2A0]" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{card.title}</p>
+                <p className="mt-0.5 text-xs text-[#8FA69E]">{card.label}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function ChipVisual() {
+function ProductPreview() {
+  const opportunities = [
+    {
+      brand: "Maison M",
+      profile: "Attaquant · Ligue 1",
+      score: 94,
+      state: "Décideur vérifié",
+    },
+    {
+      brand: "Atlas Mobility",
+      profile: "Milieu · International",
+      score: 88,
+      state: "Email prêt",
+    },
+    {
+      brand: "North Studio",
+      profile: "Défenseur · Espoir",
+      score: 82,
+      state: "À qualifier",
+    },
+  ];
+
   return (
-    <div className="chip-wrap">
-      <div className="chip-pins chip-pins-top" aria-hidden="true" />
-      <div className="chip-pins chip-pins-bottom" aria-hidden="true" />
-      <div className="chip-pins chip-pins-left" aria-hidden="true" />
-      <div className="chip-pins chip-pins-right" aria-hidden="true" />
-      <div className="chip-core">
-        <div className="chip-grid" aria-hidden="true" />
-        <span className="text-lg font-semibold tracking-[-0.04em] text-[#F8FAF7]">
-          VCT
-        </span>
+    <div className="landing-reveal relative mx-auto w-full max-w-[680px]">
+      <div
+        className="absolute -inset-8 rounded-full bg-[#3EF2A0]/10 blur-3xl"
+        aria-hidden="true"
+      />
+      <div className="relative overflow-hidden rounded-[28px] border border-white/[0.14] bg-[#F7F8F6] text-[#111713] shadow-[0_42px_140px_rgba(0,0,0,0.52),0_0_0_1px_rgba(62,242,160,0.05)]">
+        <div className="flex items-center justify-between border-b border-black/[0.08] bg-white px-4 py-3 sm:px-5">
+          <div className="flex items-center gap-2" aria-hidden="true">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#FF6B5F]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#F8C34A]" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#3EF2A0]" />
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#516058]">
+            Aperçu SponsorAI V2
+          </span>
+          <span className="flex items-center gap-1.5 rounded-full bg-[#E4FAEE] px-2.5 py-1 text-[10px] font-semibold text-[#006B55]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#00B878]" />
+            Démo
+          </span>
+        </div>
+
+        <div className="grid min-h-[460px] grid-cols-[64px_1fr] sm:grid-cols-[150px_1fr]">
+          <div className="border-r border-white/10 bg-[#050807] p-3 text-white sm:p-4">
+            <div className="mb-7 flex h-9 w-9 items-center justify-center rounded-xl bg-[#3EF2A0] text-[#020403]">
+              <Zap className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <div className="space-y-2">
+              {[
+                { icon: Activity, label: "Vue d'ensemble", active: true },
+                { icon: Search, label: "Prospection" },
+                { icon: Target, label: "Pipeline" },
+                { icon: Mail, label: "Emails" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={
+                    "flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs " +
+                    (item.active
+                      ? "bg-white/[0.11] text-white"
+                      : "text-white/48")
+                  }
+                >
+                  <item.icon
+                    className={
+                      "h-4 w-4 shrink-0 " +
+                      (item.active ? "text-[#3EF2A0]" : "")
+                    }
+                    aria-hidden="true"
+                  />
+                  <span className="hidden sm:inline">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="min-w-0 p-4 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium text-[#647068]">
+                  Bonjour Hakim,
+                </p>
+                <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] sm:text-2xl">
+                  Décisions prioritaires
+                </h2>
+              </div>
+              <span className="hidden rounded-full bg-[#0A0D0B] px-4 py-2 text-xs font-semibold text-white sm:inline-flex">
+                Lancer un scan
+              </span>
+            </div>
+
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              {[
+                { value: "18", label: "Marques scorées" },
+                { value: "7", label: "Contacts qualifiés" },
+                { value: "4", label: "Actions dues" },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-black/[0.07] bg-white p-3"
+                >
+                  <p className="font-mono text-lg font-semibold sm:text-xl">
+                    {stat.value}
+                  </p>
+                  <p className="mt-1 text-[9px] leading-4 text-[#6D756F] sm:text-[10px]">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 overflow-hidden rounded-[20px] border border-black/[0.08] bg-white">
+              <div className="flex items-center justify-between border-b border-black/[0.07] px-4 py-3">
+                <span className="text-xs font-semibold">Recommandations V2</span>
+                <span className="text-[10px] text-[#6D756F]">
+                  Mis à jour maintenant
+                </span>
+              </div>
+              {opportunities.map((item, index) => (
+                <div
+                  key={item.brand}
+                  className="flex items-center gap-3 border-b border-black/[0.06] px-4 py-3 last:border-0"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E4FAEE] text-xs font-bold text-[#006B55]">
+                    {item.brand.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-semibold sm:text-sm">
+                      {item.brand}
+                    </p>
+                    <p className="mt-0.5 truncate text-[10px] text-[#768079]">
+                      {item.profile}
+                    </p>
+                  </div>
+                  <div className="hidden text-right sm:block">
+                    <p className="text-[10px] font-medium text-[#006B55]">
+                      {item.state}
+                    </p>
+                    <p className="mt-0.5 text-[9px] text-[#8A938D]">
+                      Priorité {String.fromCharCode(65 + index)}
+                    </p>
+                  </div>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#00B878]/20 bg-[#E4FAEE] font-mono text-xs font-bold text-[#006B55]">
+                    {item.score}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex items-center justify-between rounded-2xl bg-[#0A0D0B] px-4 py-3 text-white">
+              <span className="flex min-w-0 items-center gap-2 text-[10px] text-white/68 sm:text-xs">
+                <Clock3 className="h-4 w-4 shrink-0 text-[#3EF2A0]" />
+                3 relances recommandées aujourd&apos;hui
+              </span>
+              <ArrowRight className="h-4 w-4 text-[#3EF2A0]" />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -346,62 +505,138 @@ function ProblemSection() {
     <section className="bg-[#F8FAF7] px-5 py-24 sm:px-8 lg:py-36">
       <div className="mx-auto max-w-[1480px]">
         <SectionIntro
-          badge="Le problème"
+          badge="La rupture V2"
           title={
             <>
-              Nouveaux usages IA,{" "}
-              <span className="text-[#3EF2A0]">nouveaux risques</span>
+              Un CRM enregistre.{" "}
+              <span className="text-[#3EF2A0]">SponsorAI apprend.</span>
             </>
           }
-          text="Dans le sponsoring sportif, l'automatisation crée de la vitesse. Sans qualification, elle crée aussi du bruit, des messages faibles et des opportunités qui n'auraient jamais dû entrer dans le pipeline."
+          text="La valeur ne vient pas seulement des marques trouvées. Elle vient du lien conservé entre une décision, son contexte et son outcome réel."
         />
 
-        <div className="mt-16 grid overflow-hidden rounded-[32px] bg-[#DDFBEA] shadow-[0_28px_90px_rgba(0,63,50,0.12)] lg:grid-cols-[1fr_1fr] lg:rounded-[44px]">
-          <div className="relative min-h-[360px] overflow-hidden bg-[#020403] p-8 text-white sm:min-h-[520px] sm:p-12">
-            <div className="threat-visual-orb threat-visual-left" aria-hidden="true" />
-            <div className="threat-visual-orb threat-visual-right" aria-hidden="true" />
-            <div className="threat-float threat-float-one" aria-hidden="true" />
-            <div className="threat-float threat-float-two" aria-hidden="true" />
-            <div className="threat-float threat-float-three" aria-hidden="true" />
-            <div className="relative z-10 flex h-full min-h-[300px] items-center justify-center">
-              <div className="text-center">
-                <p className="text-4xl font-semibold tracking-[-0.04em] text-[#F8FAF7] sm:text-6xl">
-                  Nouveaux risques
-                </p>
-                <div className="mx-auto mt-4 h-px w-56 bg-gradient-to-r from-transparent via-[#DDFBEA] to-transparent" />
-              </div>
-            </div>
-          </div>
-
-          <div className="p-7 sm:p-12 lg:p-16">
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] text-[#003F32] sm:text-5xl">
-              Le problème
+        <div className="mt-16 grid items-center gap-10 rounded-[32px] bg-[#DDFBEA] p-6 shadow-[0_28px_90px_rgba(0,63,50,0.12)] sm:p-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16 lg:rounded-[44px] lg:p-16">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#006B55]">
+              Les données qui se perdaient
+            </p>
+            <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-[#003F32] sm:text-5xl">
+              Fermer les angles morts du sponsoring.
             </h2>
-            <div className="mt-10 grid gap-x-10 gap-y-5 sm:grid-cols-2">
-              {threats.map((threat) => (
+            <div className="mt-9 grid gap-y-4">
+              {dataBreaks.map((item) => (
                 <div
-                  key={threat}
-                  className="group flex items-start gap-3 text-[15px] font-semibold leading-6 text-[#004C3B] transition duration-200 hover:translate-x-1"
+                  key={item}
+                  className="group flex items-start gap-3 text-[15px] font-semibold leading-6 text-[#004C3B]"
                 >
                   <ChevronRight
-                    className="mt-1 h-4 w-4 shrink-0 text-[#006B55] transition group-hover:text-[#2CFF93]"
+                    className="mt-1 h-4 w-4 shrink-0 text-[#006B55]"
                     aria-hidden="true"
                   />
-                  <span>{threat}</span>
+                  <span>{item}</span>
                 </div>
               ))}
             </div>
             <Link
               href="#technology"
-              className="mt-12 inline-flex items-center gap-3 rounded-full bg-[#006B55] px-5 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#004C3B] hover:shadow-[0_20px_45px_rgba(0,76,59,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3EF2A0] active:scale-[0.98]"
+              className="mt-10 inline-flex items-center gap-3 rounded-full bg-[#006B55] px-5 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#004C3B] hover:shadow-[0_20px_45px_rgba(0,76,59,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3EF2A0] active:scale-[0.98]"
             >
-              Voir les solutions
+              Découvrir le moteur V2
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
+
+          <ContactIntelligencePreview />
         </div>
       </div>
     </section>
+  );
+}
+
+function ContactIntelligencePreview() {
+  return (
+    <div className="overflow-hidden rounded-[28px] border border-[#003F32]/10 bg-[#F7F8F6] shadow-[0_30px_90px_rgba(0,63,50,0.16)]">
+      <div className="flex items-center justify-between border-b border-black/[0.07] bg-white px-5 py-4">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#006B55]">
+            Aperçu V2 · Contact intelligence
+          </p>
+          <h3 className="mt-1 text-lg font-semibold text-[#111713]">
+            Décideur recommandé
+          </h3>
+        </div>
+        <span className="rounded-full bg-[#E4FAEE] px-3 py-1.5 text-[10px] font-semibold text-[#006B55]">
+          Validation requise
+        </span>
+      </div>
+
+      <div className="p-5 sm:p-7">
+        <div className="rounded-[22px] border border-black/[0.08] bg-white p-5">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#0A0D0B] text-[#3EF2A0]">
+              <Users className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-lg font-semibold text-[#111713]">
+                    Head of Sports Partnerships
+                  </p>
+                  <p className="mt-1 text-sm text-[#6D756F]">
+                    Rôle normalisé · entreprise cible
+                  </p>
+                </div>
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#00B878]/25 bg-[#E4FAEE] font-mono text-base font-bold text-[#006B55]">
+                  96
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-2 sm:grid-cols-3">
+                {[
+                  ["Emploi actuel", "Vérifié"],
+                  ["Contactabilité", "Vérifiée"],
+                  ["Pertinence", "Très forte"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-2xl bg-[#F3F5F2] p-3">
+                    <p className="text-[10px] text-[#778079]">{label}</p>
+                    <p className="mt-1 text-xs font-semibold text-[#005F4A]">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#006B55]/10 bg-[#EAF8F0] px-4 py-3">
+            <ShieldCheck className="h-5 w-5 shrink-0 text-[#006B55]" />
+            <p className="text-xs leading-5 text-[#365C50]">
+              Email, téléphone et URL directe restent privés côté serveur.
+              L&apos;outreach est exécuté depuis SponsorAI.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {["Excellent", "Acceptable", "Mauvais"].map((feedback, index) => (
+            <div
+              key={feedback}
+              className={
+                "rounded-2xl border px-3 py-3 text-center text-[11px] font-semibold " +
+                (index === 0
+                  ? "border-[#00B878]/25 bg-[#E4FAEE] text-[#006B55]"
+                  : "border-black/[0.07] bg-white text-[#737D76]")
+              }
+            >
+              {feedback}
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-center text-[10px] text-[#6D756F]">
+          Aperçu illustratif — le feedback humain devient une donnée SponsorAI.
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -411,60 +646,137 @@ function SolutionSection() {
       <DotField />
       <div className="relative z-10 mx-auto max-w-[1480px]">
         <SectionIntro
-          badge="Solutions"
+          badge="Sponsorship intelligence"
           title={
             <>
-              Faire évoluer la confiance <br className="hidden sm:block" />
-              <span className="text-[#3EF2A0]">IA avec Vectis</span>
+              Transformer les outcomes <br className="hidden sm:block" />
+              <span className="text-[#3EF2A0]">en avantage propriétaire.</span>
             </>
           }
-          text="Une architecture d'agents spécialisés qui transforme la recherche, le scoring et l'outreach en système contrôlé."
+          text="Chaque contact sélectionné, email, réponse, meeting et deal conserve le contexte de la décision pour améliorer les recommandations futures."
         />
 
-        <div className="solution-panel mt-16 grid overflow-hidden rounded-[32px] bg-[#003F32] p-8 text-white shadow-[0_38px_120px_rgba(0,63,50,0.22)] sm:p-12 lg:grid-cols-[0.9fr_120px_1.2fr] lg:rounded-[44px] lg:p-24">
-          <div className="flex items-center">
-            <h3 className="solution-word text-5xl font-semibold tracking-[-0.055em] text-[#3EF2A0] sm:text-7xl lg:text-8xl">
-              Verifiable
-            </h3>
-          </div>
-
-          <div className="relative my-12 hidden justify-center lg:flex">
-            <div className="solution-line" aria-hidden="true" />
-            {[0, 1, 2].map((dot) => (
-              <span
-                key={dot}
-                className={
-                  dot === 1
-                    ? "absolute left-1/2 top-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#3EF2A0] shadow-[0_0_32px_rgba(62,242,160,0.55)]"
-                    : "absolute left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-[#3EF2A0]/80 shadow-[0_0_22px_rgba(62,242,160,0.35)]"
-                }
-                style={{ top: dot === 0 ? "16%" : dot === 1 ? "50%" : "84%" }}
-              />
-            ))}
-          </div>
-
-          <div className="space-y-8">
+        <div className="solution-panel mt-16 grid items-center gap-10 overflow-hidden rounded-[32px] bg-[#003F32] p-6 text-white shadow-[0_38px_120px_rgba(0,63,50,0.22)] sm:p-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-16 lg:rounded-[44px] lg:p-16">
+          <div className="space-y-5">
+            <div className="mb-8">
+              <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#3EF2A0]">
+                Data moat V2
+              </p>
+              <h3 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-[#F8FAF7] sm:text-5xl">
+                La mémoire est dans les données. Pas dans une vague mémoire LLM.
+              </h3>
+            </div>
             {solutionPillars.map((pillar) => (
               <article
                 key={pillar.title}
                 className={
                   pillar.featured
-                    ? "rounded-[28px] border border-[#3EF2A0]/28 bg-white/[0.08] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
-                    : "p-2"
+                    ? "rounded-[24px] border border-[#3EF2A0]/28 bg-white/[0.08] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+                    : "rounded-[24px] border border-white/[0.08] p-5"
                 }
               >
-                <h4 className="text-2xl font-semibold tracking-[-0.04em] text-[#3EF2A0]">
+                <h4 className="text-xl font-semibold tracking-[-0.04em] text-[#3EF2A0]">
                   {pillar.title}
                 </h4>
-                <p className="mt-3 max-w-xl text-base leading-7 text-[#D8DEDA]/78">
+                <p className="mt-2 max-w-xl text-sm leading-6 text-[#D8DEDA]/72">
                   {pillar.text}
                 </p>
               </article>
             ))}
           </div>
+
+          <LearningEnginePreview />
         </div>
       </div>
     </section>
+  );
+}
+
+function LearningEnginePreview() {
+  const events = [
+    ["EMAIL_SENT", "184", "Contexte conservé"],
+    ["POSITIVE_REPLY", "31", "Outcome qualifié"],
+    ["MEETING_BOOKED", "14", "Signal business"],
+    ["SIGNED", "5", "Valeur attribuée"],
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-[28px] border border-white/[0.14] bg-[#F7F8F6] text-[#111713] shadow-[0_34px_110px_rgba(0,0,0,0.32)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.07] bg-white px-5 py-4">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#006B55]">
+            Aperçu V2 · Learning engine
+          </p>
+          <h3 className="mt-1 text-lg font-semibold">
+            Performance contextualisée des rôles
+          </h3>
+        </div>
+        <span className="rounded-full bg-[#E4FAEE] px-3 py-1.5 text-[10px] font-semibold text-[#006B55]">
+          Score versionné
+        </span>
+      </div>
+
+      <div className="p-5 sm:p-7">
+        <div className="flex flex-wrap gap-2">
+          {["Sports partnerships", "Sportswear", "+5 000 salariés", "Football"].map(
+            (filter) => (
+              <span
+                key={filter}
+                className="rounded-full border border-black/[0.08] bg-white px-3 py-1.5 text-[10px] font-medium text-[#536159]"
+              >
+                {filter}
+              </span>
+            )
+          )}
+        </div>
+
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          {events.map(([event, value, label]) => (
+            <div
+              key={event}
+              className="rounded-[20px] border border-black/[0.07] bg-white p-4"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-mono text-[9px] text-[#647068]">{event}</p>
+                <p className="font-mono text-lg font-bold text-[#006B55]">
+                  {value}
+                </p>
+              </div>
+              <p className="mt-3 text-[10px] text-[#788179]">{label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-[22px] bg-[#0A0D0B] p-5 text-white">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs text-white/55">Utilité historique lissée</p>
+              <p className="mt-1 text-lg font-semibold">
+                Le volume protège contre les faux signaux
+              </p>
+            </div>
+            <BrainCircuit className="h-7 w-7 shrink-0 text-[#3EF2A0]" />
+          </div>
+          <div className="mt-5 flex h-24 items-end gap-2" aria-hidden="true">
+            {[28, 42, 36, 58, 51, 68, 62, 78, 73, 86].map((height, index) => (
+              <span
+                key={index}
+                className="flex-1 rounded-t bg-gradient-to-t from-[#006B55] to-[#3EF2A0]"
+                style={{ height: height + "%" }}
+              />
+            ))}
+          </div>
+          <div className="mt-3 flex items-center gap-2 text-[10px] text-white/55">
+            <TrendingUp className="h-3.5 w-3.5 text-[#3EF2A0]" />
+            Bayesian smoothing · scoring pondéré · versionnement
+          </div>
+        </div>
+
+        <p className="mt-3 text-center text-[10px] text-[#6D756F]">
+          Données illustratives — aucun résultat réel affiché.
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -478,13 +790,13 @@ function AgentsSection() {
               Équipe d&apos;agents
             </p>
             <h2 className="text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-[#F8FAF7] md:text-7xl">
-              Six agents. Un pipeline maîtrisé.
+              Six agents. Une intelligence partagée.
             </h2>
           </div>
           <p className="max-w-2xl text-lg leading-8 text-[#8FA69E]">
-            Chaque agent possède un rôle clair. Le résultat n&apos;est pas une
-            liste de noms, mais une séquence commerciale qualifiée, traçable et
-            prête à être activée.
+            Chaque agent garde un rôle clair, mais leurs décisions alimentent
+            le même graphe, la même chronologie et le même historique
+            d&apos;outcomes.
           </p>
         </div>
 
@@ -523,10 +835,10 @@ function WorkflowSection() {
         <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div>
             <p className="mb-5 w-fit rounded-full border border-[#8FA69E]/35 bg-white px-4 py-2 text-sm font-semibold text-[#004C3B] shadow-sm">
-              Système opérationnel
+              Closed-loop V2
             </p>
             <h2 className="text-5xl font-semibold leading-[1.03] tracking-[-0.055em] text-[#003F32] md:text-7xl">
-              Du signal sportif au deal qualifié.
+              Du premier signal au deal attribué.
             </h2>
           </div>
           <div className="rounded-[28px] bg-[#DDFBEA] p-6">
@@ -543,7 +855,9 @@ function WorkflowSection() {
           </div>
         </div>
 
-        <div className="mt-14 grid gap-4 lg:grid-cols-4">
+        <ClosedLoopPreview />
+
+        <div className="mt-10 grid gap-4 lg:grid-cols-4">
           {workflow.map((step) => (
             <article
               key={step.number}
@@ -564,6 +878,112 @@ function WorkflowSection() {
   );
 }
 
+function ClosedLoopPreview() {
+  const stages = [
+    { label: "Match", icon: Target, done: true },
+    { label: "Contact", icon: Users, done: true },
+    { label: "Outreach", icon: Send, done: true },
+    { label: "Reply", icon: MessageSquareReply, done: true },
+    { label: "Meeting", icon: CalendarCheck, done: true },
+    { label: "Proposal", icon: FileText, done: true },
+    { label: "Signed", icon: CheckCircle2, done: true },
+    { label: "Learn", icon: RotateCcw, done: false },
+  ];
+
+  return (
+    <div className="mt-14 overflow-hidden rounded-[32px] border border-[#003F32]/10 bg-[#0A0D0B] p-5 text-white shadow-[0_28px_90px_rgba(0,63,50,0.14)] sm:p-8 lg:rounded-[40px]">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#3EF2A0]">
+            Aperçu V2 · Deal timeline
+          </p>
+          <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
+            Une opportunité, une chronologie complète
+          </h3>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#3EF2A0]/20 bg-[#3EF2A0]/10 px-3 py-2 text-[10px] font-semibold text-[#DDFBEA]">
+          <GitBranch className="h-3.5 w-3.5 text-[#3EF2A0]" />
+          Attribution SponsorAI conservée
+        </span>
+      </div>
+
+      <div className="mt-7 grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+        <div className="rounded-[24px] border border-white/[0.09] bg-white/[0.045] p-4 sm:p-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
+            {stages.map((stage, index) => (
+              <div key={stage.label} className="relative">
+                <div
+                  className={
+                    "flex min-h-24 flex-col items-center justify-center rounded-2xl border px-2 text-center " +
+                    (stage.done
+                      ? "border-[#3EF2A0]/22 bg-[#3EF2A0]/10"
+                      : "border-white/[0.09] bg-white/[0.035]")
+                  }
+                >
+                  <stage.icon
+                    className={
+                      "h-5 w-5 " +
+                      (stage.done ? "text-[#3EF2A0]" : "text-white/40")
+                    }
+                    aria-hidden="true"
+                  />
+                  <p className="mt-3 text-[10px] font-semibold">{stage.label}</p>
+                  <p className="mt-1 font-mono text-[8px] text-white/38">
+                    {String(index + 1).padStart(2, "0")}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 flex items-start gap-3 rounded-2xl bg-black/25 p-4">
+            <Database className="mt-0.5 h-5 w-5 shrink-0 text-[#3EF2A0]" />
+            <p className="text-xs leading-6 text-white/58">
+              À chaque étape, SponsorAI conserve le contexte au moment de la
+              décision : athlète, marque, rôle, scores, versions et outcome.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          {[
+            {
+              icon: CalendarCheck,
+              title: "Meeting externe",
+              text: "Outcome enregistré manuellement ou via une future intégration calendrier.",
+            },
+            {
+              icon: FileText,
+              title: "Contrat externe",
+              text: "Le document peut venir de la marque sans rendre le deal invisible.",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Attribution immutable",
+              text: "L'origine de l'opportunité reste traçable jusqu'au WON ou LOST.",
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="rounded-[22px] border border-white/[0.09] bg-white/[0.045] p-4"
+            >
+              <item.icon className="h-5 w-5 text-[#3EF2A0]" aria-hidden="true" />
+              <p className="mt-3 text-sm font-semibold">{item.title}</p>
+              <p className="mt-2 text-[11px] leading-5 text-white/48">
+                {item.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-4 text-center text-[10px] text-white/38">
+        Aperçu illustratif de l&apos;architecture cible V2.
+      </p>
+    </div>
+  );
+}
+
 function FinalCTA() {
   return (
     <section className="bg-[#F8FAF7] p-3 sm:p-5">
@@ -571,15 +991,15 @@ function FinalCTA() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(62,242,160,0.18),transparent_35%),linear-gradient(180deg,#020403,#050A0D)]" />
         <div className="relative z-10 mx-auto max-w-4xl">
           <p className="mx-auto mb-5 w-fit rounded-full border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-semibold text-[#DDFBEA]/78">
-            Bêta privée
+            V2 progressive · Bêta privée
           </p>
           <h2 className="text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-[#F8FAF7] md:text-7xl">
-            Automatisez la recherche. Gardez la négociation.
+            Ne perdez plus ce que vos campagnes vous apprennent.
           </h2>
           <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-[#D8DEDA]/72">
-            Vectis Agency aide les agents, managers et agences d&apos;image à
-            industrialiser la recherche de partenaires sans perdre la qualité du
-            jugement commercial.
+            Vectis transforme progressivement chaque marque, contact, réponse,
+            meeting et deal en intelligence réutilisable — avec validation
+            humaine avant le premier outreach.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
             <Link

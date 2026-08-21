@@ -2,7 +2,8 @@ import { anthropic } from "@/lib/claude";
 import { EMAIL_PATTERN_PROMPT, ENRICHISSEUR_PROMPT } from "./prompts";
 import type { Company } from "@prisma/client";
 import type { LogCallback } from "./scout";
-import { searchApolloContacts } from "./apollo";
+import { searchStructuredContactProviders } from "@/lib/contacts/providers";
+import type { ContactCandidate } from "@/lib/contacts/types";
 import {
   getCompanyDomain,
   getContactRelevance,
@@ -10,22 +11,7 @@ import {
   isUsableEmailStatus,
 } from "./contact-quality";
 
-export interface EnrichContact {
-  name: string;
-  role: string;
-  email: string | null;
-  email_status: "verified" | "public_source" | "guessed" | "missing";
-  email_evidence?: string | null;
-  email_pattern?: string | null;
-  email_candidates?: string[];
-  linkedin: string | null;
-  confidence: "high" | "medium" | "low";
-  verification_status: "verified_current" | "unverified" | "past_or_wrong_company";
-  current_at_company: boolean;
-  role_relevance?: "high" | "medium" | "low";
-  evidence: string;
-  source: string;
-}
+export type EnrichContact = ContactCandidate;
 
 export interface EnrichResult {
   contacts: EnrichContact[];
@@ -133,7 +119,7 @@ export async function runEnrichisseur(
   log(`${result.contacts.length} contact(s) vérifié(s)`, "success");
   result.contacts.forEach((c, i) => {
     log(
-      `  ${i + 1}. ${c.name} — ${c.role} [${c.confidence}]${c.email ? ` · ${c.email}` : ""}`,
+      `  ${i + 1}. ${c.role} [${c.confidence}] · contactabilité: ${c.email_status}`,
       "data"
     );
   });
@@ -313,17 +299,13 @@ function inferPatternFromCandidates(candidates: string[]): string {
 }
 
 async function tryApolloSearch(company: Company, log: LogCallback): Promise<EnrichContact[]> {
-  if (!process.env.APOLLO_API_KEY) {
-    log("Apollo non configuré — passage en web search stricte", "info");
-    return [];
+  const contacts = await searchStructuredContactProviders(company, (message) =>
+    log(message, "info")
+  );
+
+  if (contacts.length === 0) {
+    log("Aucun provider structuré disponible — passage en web search stricte", "info");
   }
 
-  try {
-    log("Recherche Apollo sur rôles partenariats/marketing...", "info");
-    return await searchApolloContacts(company);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Erreur Apollo inconnue";
-    log(`${message} — fallback web search`, "info");
-    return [];
-  }
+  return contacts;
 }

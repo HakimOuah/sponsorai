@@ -4,6 +4,8 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { EmailGenerator } from "@/components/emails/EmailGenerator";
+import { OutreachApproval } from "./OutreachApproval";
+import { ProspectFeedback } from "./ProspectFeedback";
 import type { ScoreDetails } from "@/types";
 
 interface BrandResultCardProps {
@@ -16,13 +18,24 @@ interface BrandResultCardProps {
     partnershipType: string | null;
     estimatedValue: string | null;
     status: string;
+    outreachApprovedAt: Date | null;
+    selectedContactId: string | null;
     scoreDetails: ScoreDetails | null;
     company: {
       id: string;
       name: string;
       sector: string | null;
       country: string | null;
-      contactEmail: string | null;
+      outreachReady: boolean;
+      contacts: {
+        id: string;
+        roleRaw: string;
+        roleNormalized: string;
+        employmentStatus: string;
+        contactability: string;
+        relevanceScore: number;
+        contactScore: number | null;
+      }[];
     };
     deal: { id: string; stage: string } | null;
     emails?: { sentAt: Date | null; status: string }[];
@@ -99,7 +112,7 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
                 <span>{prospect.company.country}</span>
               </>
             )}
-            {prospect.company.contactEmail && (
+            {(prospect.company.outreachReady || prospect.company.contacts.length > 0) && (
               <>
                 <span>·</span>
                 <span className="text-[#DDFBEA]">contact</span>
@@ -173,6 +186,14 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
               </div>
 
               {/* Email generator */}
+              <OutreachApproval
+                prospectId={prospect.id}
+                approved={Boolean(prospect.outreachApprovedAt)}
+                selectedContactId={prospect.selectedContactId}
+                contacts={prospect.company.contacts}
+                legacyContactReady={prospect.company.outreachReady}
+              />
+              <ProspectFeedback prospectId={prospect.id} />
               <EmailGenerator
                 prospectId={prospect.id}
                 companyName={prospect.company.name}

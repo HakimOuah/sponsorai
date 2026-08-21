@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { runRedacteur } from "@/lib/agents/redacteur";
 import { runEnrichisseur } from "@/lib/agents/enrichisseur";
 import { canSendOutreach, isUsableEmailStatus } from "@/lib/agents/contact-quality";
+import { persistContactCandidates } from "@/lib/contacts/persistence";
 
 export async function POST(request: NextRequest) {
   const { prospectId, emailType } = await request.json();
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
     if (!canSendOutreach(company)) {
       const enrichment = await runEnrichisseur(company, () => undefined);
       const bestContact = enrichment.contacts[0];
+      await persistContactCandidates(company.id, enrichment.contacts);
 
       if (bestContact) {
         await prisma.company.update({
@@ -99,6 +101,7 @@ export async function POST(request: NextRequest) {
         subject: generated.subject,
         body: generated.body,
         status: "draft",
+        templateVersion: `redacteur-v1:${emailType}`,
       },
     });
 

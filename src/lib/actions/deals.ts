@@ -3,6 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { isDealStage, prospectStatusForDealStage } from "@/lib/pipeline";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
+import { recordLearningEvent } from "@/lib/learning/events";
+import {
+  ensureSponsorAIAttribution,
+  ensureSuccessFeeRecord,
+} from "@/lib/deals/attribution";
 
 export async function getDeals() {
   return prisma.deal.findMany({
@@ -26,23 +32,47 @@ export async function updateDealStage(dealId: string, stage: string) {
     data.closedAt = new Date();
   }
 
-  await prisma.deal.update({
-    where: { id: dealId },
-    data,
-  });
+  const previous = await prisma.deal.findUnique({ where: { id: dealId } });
+  if (!previous) throw new Error("Deal not found");
 
-  // Sync prospect status
-  const deal = await prisma.deal.findUnique({
-    where: { id: dealId },
-    select: { prospectId: true },
-  });
-
-  if (deal) {
-    await prisma.prospect.update({
-      where: { id: deal.prospectId },
+  const occurredAt = new Date();
+  await prisma.$transaction([
+    prisma.deal.update({ where: { id: dealId }, data }),
+    prisma.prospect.update({
+      where: { id: previous.prospectId },
       data: { status: prospectStatusForDealStage(stage) },
+    }),
+    prisma.dealEvent.create({
+      data: {
+        dealId,
+        type: "STAGE_CHANGED",
+        source: "manual",
+        data: { from: previous.stage, to: stage } as Prisma.InputJsonValue,
+        occurredAt,
+      },
+    }),
+  ]);
+
+  await ensureSponsorAIAttribution(dealId);
+
+  const learningType = stage === "negotiation"
+    ? "NEGOTIATION_STARTED"
+    : stage === "signed"
+      ? "SIGNED"
+      : stage === "lost"
+        ? "LOST"
+        : null;
+  if (learningType) {
+    await recordLearningEvent({
+      type: learningType,
+      idempotencyKey: `deal:${dealId}:stage:${stage}:${occurredAt.toISOString()}`,
+      dealId,
+      prospectId: previous.prospectId,
+      outcomeValue: previous.value,
+      currency: previous.currency,
     });
   }
+  if (stage === "signed") await ensureSuccessFeeRecord(dealId);
 
   await prisma.activityLog.create({
     data: {
@@ -53,6 +83,7 @@ export async function updateDealStage(dealId: string, stage: string) {
   });
 
   revalidatePath("/pipeline");
+  revalidatePath(`/pipeline/${dealId}`);
 }
 
 export async function updateDeal(

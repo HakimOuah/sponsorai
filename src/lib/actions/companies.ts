@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isUsableEmailStatus } from "@/lib/agents/contact-quality";
 
 export async function getCompanies(filters?: {
   sector?: string;
@@ -22,7 +21,14 @@ export async function getCompanies(filters?: {
 
   return prisma.company.findMany({
     where,
-    include: {
+    select: {
+      id: true,
+      name: true,
+      sector: true,
+      country: true,
+      website: true,
+      source: true,
+      outreachReady: true,
       _count: {
         select: {
           prospects: true,
@@ -54,6 +60,29 @@ export async function getCompany(id: string) {
       emails: {
         orderBy: { createdAt: "desc" },
         take: 20,
+      },
+      contacts: {
+        where: { active: true },
+        orderBy: [{ contactScore: "desc" }, { relevanceScore: "desc" }],
+        select: {
+          id: true,
+          roleRaw: true,
+          roleNormalized: true,
+          employmentStatus: true,
+          contactability: true,
+          relevanceScore: true,
+          contactScore: true,
+          contactScoreVersion: true,
+          source: true,
+        },
+      },
+      sponsorships: {
+        orderBy: { observedAt: "desc" },
+        take: 10,
+      },
+      opportunitySignals: {
+        orderBy: { detectedAt: "desc" },
+        take: 10,
       },
       _count: {
         select: { prospects: true, deals: true, emails: true },
@@ -106,11 +135,18 @@ export async function getCompanyFilters() {
 }
 
 function extractCompanyData(formData: FormData) {
-  const contactEmail = (formData.get("contactEmail") as string) || null;
-  const contactVerificationStatus =
-    (formData.get("contactVerificationStatus") as string) || null;
-  const contactEmailStatus =
-    (formData.get("contactEmailStatus") as string) || "missing";
+  const employeeCountValue = formData.get("employeeCount") as string | null;
+  const employeeCount = employeeCountValue ? Number.parseInt(employeeCountValue, 10) : null;
+  const allowedSizeBuckets = new Set([
+    "unknown",
+    "1-10",
+    "11-50",
+    "51-200",
+    "201-1000",
+    "1001-5000",
+    "5001+",
+  ]);
+  const requestedSizeBucket = (formData.get("companySizeBucket") as string) || "unknown";
 
   return {
     name: formData.get("name") as string,
@@ -121,18 +157,13 @@ function extractCompanyData(formData: FormData) {
     existingSportsSponsoring:
       (formData.get("existingSportsSponsoring") as string) || null,
     estimatedBudget: (formData.get("estimatedBudget") as string) || null,
-    contactName: (formData.get("contactName") as string) || null,
-    contactRole: (formData.get("contactRole") as string) || null,
-    contactEmail,
-    contactVerificationStatus,
-    contactEmailStatus,
-    outreachReady: Boolean(
-      contactEmail &&
-        contactVerificationStatus === "verified_current" &&
-        isUsableEmailStatus(contactEmailStatus)
-    ),
-    contactLinkedin: (formData.get("contactLinkedin") as string) || null,
-    contactPhone: (formData.get("contactPhone") as string) || null,
+    employeeCount:
+      employeeCount !== null && Number.isFinite(employeeCount) && employeeCount >= 0
+        ? employeeCount
+        : null,
+    companySizeBucket: allowedSizeBuckets.has(requestedSizeBucket)
+      ? requestedSizeBucket
+      : "unknown",
     notes: (formData.get("notes") as string) || null,
     source: (formData.get("source") as string) || "manual",
   };

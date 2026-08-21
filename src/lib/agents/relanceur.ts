@@ -49,11 +49,20 @@ export async function runRelanceur(
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    tools: [
+      {
+        type: "web_search_20250305",
+        name: "web_search",
+        max_uses: 8,
+      },
+    ],
     messages: [{ role: "user", content: prompt }],
   });
 
-  const text =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const text = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
 
   const cleaned = text
     .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')

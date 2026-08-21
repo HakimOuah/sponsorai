@@ -1,9 +1,14 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getMailFrom, mailer } from "@/lib/mailer";
 import { revalidatePath } from "next/cache";
 import { canSendOutreach } from "@/lib/agents/contact-quality";
+import { getSendingProvider } from "@/lib/email/providers";
+import {
+  formatSendingIdentity,
+  resolveOutreachSendingIdentity,
+} from "@/lib/email/identities";
+import { recordLearningEvent } from "@/lib/learning/events";
 
 export async function getEmails(filters?: {
   status?: string;
@@ -31,11 +36,26 @@ export async function getEmails(filters?: {
 export async function getEmail(id: string) {
   return prisma.email.findUnique({
     where: { id },
-    include: {
-      company: true,
+    select: {
+      id: true,
+      subject: true,
+      body: true,
+      status: true,
+      type: true,
+      sentAt: true,
+      createdAt: true,
+      company: {
+        select: {
+          name: true,
+          contactRole: true,
+          contactEmailStatus: true,
+          outreachReady: true,
+        },
+      },
       prospect: {
-        include: {
-          player: true,
+        select: {
+          outreachApprovedAt: true,
+          player: { select: { firstName: true, lastName: true } },
         },
       },
     },
@@ -98,34 +118,103 @@ export async function sendEmail(emailId: string) {
     include: {
       company: true,
       prospect: {
-        include: { player: true },
+        include: {
+          player: true,
+          selectedContact: {
+            include: {
+              contactEmails: {
+                where: { status: { in: ["verified", "public_source"] } },
+                orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
+                take: 1,
+              },
+            },
+          },
+        },
       },
     },
   });
 
   if (!email) throw new Error("Email not found");
-  if (!email.company.contactEmail) throw new Error("No contact email for this company");
-  if (!canSendOutreach(email.company)) {
+  const selectedContactReady = Boolean(
+    email.prospect?.selectedContact &&
+      email.prospect.selectedContact.active &&
+      email.prospect.selectedContact.employmentStatus === "verified_current" &&
+      email.prospect.selectedContact.contactEmails[0]
+  );
+  if (!selectedContactReady && !canSendOutreach(email.company)) {
     throw new Error(
       "Contact email is not verified enough for outreach. Run the enricher first."
     );
   }
 
-  const info = await mailer.sendMail({
-    from: getMailFrom(),
+  if (
+    email.type === "first_contact" &&
+    !email.prospect?.outreachApprovedAt
+  ) {
+    throw new Error("Human approval is required before first outreach");
+  }
+
+  const privateContactEmail =
+    email.prospect?.selectedContact?.contactEmails[0]?.email ||
+    email.company.contactEmail;
+
+  if (!privateContactEmail) {
+    throw new Error("No qualified contact email is available");
+  }
+
+  const identity = await resolveOutreachSendingIdentity(email.sendingIdentityId);
+  const provider = getSendingProvider(identity.provider);
+
+  const result = await provider.send({
+    from: formatSendingIdentity(identity),
     replyTo: process.env.SMTP_REPLY_TO || process.env.SMTP_FROM || process.env.SMTP_USER,
-    to: email.company.contactEmail,
+    to: privateContactEmail,
     subject: email.subject,
     text: email.body,
   });
+
+  const thread = email.mailThreadId
+    ? await prisma.mailThread.findUnique({ where: { id: email.mailThreadId } })
+    : await prisma.mailThread.create({
+        data: {
+          prospectId: email.prospectId,
+          companyId: email.companyId,
+          contactId: email.prospect?.selectedContactId || null,
+          sendingIdentityId: identity.id,
+          subject: email.subject,
+          lastMessageAt: new Date(),
+        },
+      });
 
   await prisma.email.update({
     where: { id: emailId },
     data: {
       status: "sent",
       sentAt: new Date(),
-      messageId: info.messageId || null,
+      messageId: result.messageId,
+      provider: result.provider,
+      sendingIdentityId: identity.id,
+      contactId: email.prospect?.selectedContactId || null,
+      mailThreadId: thread?.id || null,
     },
+  });
+
+  await prisma.outreachEvent.create({
+    data: {
+      emailId,
+      type: "EMAIL_SENT",
+      provider: result.provider,
+      providerEventId: result.messageId,
+      metadata: { accepted: result.accepted },
+    },
+  });
+
+  await recordLearningEvent({
+    type: "EMAIL_SENT",
+    idempotencyKey: `email:${emailId}:sent`,
+    prospectId: email.prospectId,
+    emailId,
+    contactId: email.prospect?.selectedContactId,
   });
 
   // Update prospect status if still "new"
@@ -145,7 +234,7 @@ export async function sendEmail(emailId: string) {
     data: {
       type: "email_sent",
       message: `Email envoyé à ${email.company.name}`,
-      metadata: { emailId, to: email.company.contactEmail },
+      metadata: { emailId, provider: result.provider },
     },
   });
 

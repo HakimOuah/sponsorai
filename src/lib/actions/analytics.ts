@@ -1,8 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { getLearningMetrics } from "@/lib/learning/metrics";
+import { rebuildRolePerformanceStats } from "@/lib/learning/stats";
 
 export async function getAnalyticsData() {
+  await rebuildRolePerformanceStats();
   const [
     dealsByStage,
     dealsAll,
@@ -236,6 +239,14 @@ export async function getAnalyticsData() {
         : 0,
   };
 
+  const [learning, rolePerformance] = await Promise.all([
+    getLearningMetrics(),
+    prisma.rolePerformanceStat.findMany({
+      orderBy: [{ contextualUtility: "desc" }, { attempts: "desc" }],
+      take: 10,
+    }),
+  ]);
+
   return {
     funnel,
     ca: { signed: signedValue, pipeline: pipelineValue, lost: lostValue },
@@ -243,5 +254,7 @@ export async function getAnalyticsData() {
     responseByPlayer,
     responseBySector,
     agentPerf,
+    learning,
+    rolePerformance,
   };
 }

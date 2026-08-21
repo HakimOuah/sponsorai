@@ -3,17 +3,16 @@
 import { useState } from "react";
 import { Send, Loader2, Check, AlertTriangle } from "lucide-react";
 import { sendEmail } from "@/lib/actions/emails";
-import { canSendOutreach } from "@/lib/agents/contact-quality";
+
+const MAX_APPROVED_BATCH_SIZE = 30;
 
 interface DispatcherPanelProps {
   draftEmails: {
     id: string;
     subject: string;
+    prospect: { outreachApprovedAt: Date | null } | null;
     company: {
       name: string;
-      contactEmail: string | null;
-      contactEmailStatus?: string | null;
-      contactVerificationStatus?: string | null;
       outreachReady?: boolean | null;
     };
   }[];
@@ -25,10 +24,14 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
   const [results, setResults] = useState<{ sent: number; errors: number; noContact: number } | null>(null);
   const [confirmAll, setConfirmAll] = useState(false);
 
-  const sendable = draftEmails.filter((e) => canSendOutreach(e.company));
-  const noContact = draftEmails.filter((e) => !e.company.contactEmail);
+  const approved = draftEmails.filter(
+    (email) => email.company.outreachReady && email.prospect?.outreachApprovedAt
+  );
+  const sendable = approved.slice(0, MAX_APPROVED_BATCH_SIZE);
+  const deferred = Math.max(0, approved.length - sendable.length);
+  const noContact = draftEmails.filter((e) => !e.company.outreachReady);
   const notQualified = draftEmails.filter(
-    (e) => e.company.contactEmail && !canSendOutreach(e.company)
+    (email) => email.company.outreachReady && !email.prospect?.outreachApprovedAt
   );
 
   const handleSendAll = async () => {
@@ -77,8 +80,13 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
             {draftEmails.length} brouillon{draftEmails.length > 1 ? "s" : ""} prêt{draftEmails.length > 1 ? "s" : ""}
           </h3>
           <p className="text-xs text-[#8FA69E] mt-0.5">
-            {sendable.length} prêt{sendable.length > 1 ? "s" : ""} · {noContact.length} sans email · {notQualified.length} à vérifier
+            {sendable.length} dans ce lot approuvé · {noContact.length} sans contact · {notQualified.length} à valider
           </p>
+          {deferred > 0 && (
+            <p className="mt-1 text-[11px] text-[#f59e0b]">
+              {deferred} brouillon{deferred > 1 ? "s" : ""} reporté{deferred > 1 ? "s" : ""} au lot suivant (limite pilote : 30).
+            </p>
+          )}
         </div>
 
         {!results && (
@@ -161,7 +169,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
               {notQualified.map((e) => e.company.name).join(", ")}
             </p>
             <p className="mt-1 text-[#f59e0b]/50">
-              L&apos;envoi est bloqué tant que le contact actuel et l&apos;email ne sont pas vérifiés.
+              L&apos;envoi est bloqué tant que le représentant n&apos;a pas validé le premier outreach.
             </p>
           </div>
         </div>
@@ -187,7 +195,7 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
       <div className="max-h-48 overflow-y-auto divide-y divide-white/[0.04] rounded-lg border border-[#3EF2A0]/10">
         {draftEmails.map((email) => (
           <div key={email.id} className="flex items-center gap-3 px-3 py-2 text-xs">
-            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${canSendOutreach(email.company) ? "bg-[#3EF2A0]" : email.company.contactEmail ? "bg-[#f59e0b]" : "bg-white/10"}`} />
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${email.company.outreachReady && email.prospect?.outreachApprovedAt ? "bg-[#3EF2A0]" : email.company.outreachReady ? "bg-[#f59e0b]" : "bg-white/10"}`} />
             <span className="text-white/60 truncate flex-1">{email.subject}</span>
             <span className="hidden shrink-0 text-[#8FA69E] sm:inline">{email.company.name}</span>
           </div>

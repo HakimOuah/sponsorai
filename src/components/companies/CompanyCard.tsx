@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { Globe, MapPin } from "lucide-react";
-import type { Company } from "@prisma/client";
-
 interface CompanyCardProps {
-  company: Company & {
+  company: {
+    id: string;
+    name: string;
+    sector: string | null;
+    country: string | null;
+    website: string | null;
+    source: string | null;
+    outreachReady: boolean;
     _count: {
       prospects: number;
       deals: number;
@@ -58,9 +63,9 @@ export function CompanyCard({ company }: CompanyCardProps) {
             <Globe className="h-3 w-3" />
           </span>
         )}
-        {company.contactEmail && (
+        {company.outreachReady && (
           <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] ${company.outreachReady ? "bg-[#3EF2A0]/10 text-[#3EF2A0]" : "bg-[#f59e0b]/10 text-[#f59e0b]"}`}>
-            {company.outreachReady ? "envoyable" : "à vérifier"}
+            contact vérifié
           </span>
         )}
       </div>

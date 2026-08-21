@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runVeilleur } from "@/lib/agents/veilleur";
 import { isDealStage, prospectStatusForDealStage } from "@/lib/pipeline";
+import { recordLearningEvent } from "@/lib/learning/events";
 
 export async function POST(request: NextRequest) {
   const { emailId, replyContent } = await request.json();
@@ -51,6 +52,23 @@ export async function POST(request: NextRequest) {
       log
     );
 
+    const inboundEmail = await prisma.email.create({
+      data: {
+        prospectId: email.prospectId,
+        companyId: email.companyId,
+        contactId: email.contactId,
+        sendingIdentityId: email.sendingIdentityId,
+        mailThreadId: email.mailThreadId,
+        type: "reply",
+        direction: "inbound",
+        provider: email.provider,
+        subject: `Re: ${email.subject}`,
+        body: replyContent,
+        status: "replied",
+        repliedAt: new Date(),
+      },
+    });
+
     // Update email status to replied
     await prisma.email.update({
       where: { id: emailId },
@@ -84,7 +102,59 @@ export async function POST(request: NextRequest) {
             nextAction: analysis.next_action,
           },
         });
+        await prisma.dealEvent.create({
+          data: {
+            dealId: email.prospect.deal.id,
+            type: "REPLY_RECEIVED",
+            source: "mailbox",
+            immutableKey: `email:${inboundEmail.id}:reply-received`,
+            data: {
+              sentiment: analysis.sentiment,
+              category: analysis.category,
+            },
+          },
+        });
       }
+    }
+
+    if (email.mailThreadId) {
+      await prisma.mailThread.update({
+        where: { id: email.mailThreadId },
+        data: { lastMessageAt: new Date() },
+      });
+    }
+
+    await recordLearningEvent({
+      type: "REPLIED",
+      idempotencyKey: `email:${inboundEmail.id}:replied`,
+      prospectId: email.prospectId,
+      emailId: inboundEmail.id,
+      dealId: email.prospect?.deal?.id,
+      contactId: email.contactId,
+      extraContext: {
+        sentiment: analysis.sentiment,
+        category: analysis.category,
+        urgency: analysis.urgency,
+      },
+    });
+    if (analysis.sentiment === "positive" || analysis.category === "meeting_request") {
+      await recordLearningEvent({
+        type: "POSITIVE_REPLY",
+        idempotencyKey: `email:${inboundEmail.id}:positive-reply`,
+        prospectId: email.prospectId,
+        emailId: inboundEmail.id,
+        dealId: email.prospect?.deal?.id,
+        contactId: email.contactId,
+      });
+    } else if (analysis.sentiment === "negative") {
+      await recordLearningEvent({
+        type: "NEGATIVE_REPLY",
+        idempotencyKey: `email:${inboundEmail.id}:negative-reply`,
+        prospectId: email.prospectId,
+        emailId: inboundEmail.id,
+        dealId: email.prospect?.deal?.id,
+        contactId: email.contactId,
+      });
     }
 
     // Log activity

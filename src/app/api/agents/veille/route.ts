@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { runVeille } from "@/lib/agents/veille";
 import type { Prisma } from "@prisma/client";
+import { ingestVeilleAlerts } from "@/lib/veille/ingest";
 
 export async function POST() {
   // Gather context
@@ -50,6 +51,11 @@ export async function POST() {
 
         const duration = Math.round((Date.now() - startTime) / 1000);
         const highCount = result.alerts.filter((a: { priority: string }) => a.priority === "high").length;
+        const graphUpdates = await ingestVeilleAlerts(result.alerts);
+        log(
+          `${graphUpdates.signalsCreated} signal(s) et ${graphUpdates.sponsorshipsCreated} sponsoring(s) ajoutés au graphe`,
+          "success"
+        );
 
         // Persist results in VeilleRun
         await prisma.veilleRun.update({

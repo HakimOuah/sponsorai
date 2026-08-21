@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function updateProfile(
   userId: string,
@@ -31,6 +33,66 @@ export async function changePassword(
     where: { id: userId },
     data: { password: hashed },
   });
+}
+
+export async function createSendingIdentity(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) throw new Error("Unauthorized");
+
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const displayName = String(formData.get("displayName") || "").trim();
+  if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error("Adresse email invalide");
+
+  const smtpEmail = (process.env.SMTP_FROM || process.env.SMTP_USER || "").toLowerCase();
+  const active = smtpEmail === email;
+  await prisma.sendingIdentity.upsert({
+    where: { email_purpose: { email, purpose: "outreach" } },
+    update: {
+      userId,
+      displayName: displayName || null,
+      provider: "smtp",
+      credentialRef: active ? "env:SMTP" : null,
+      status: active ? "active" : "pending",
+      verifiedAt: active ? new Date() : null,
+    },
+    create: {
+      userId,
+      email,
+      displayName: displayName || null,
+      purpose: "outreach",
+      provider: "smtp",
+      credentialRef: active ? "env:SMTP" : null,
+      status: active ? "active" : "pending",
+      verifiedAt: active ? new Date() : null,
+      isDefault: active,
+    },
+  });
+
+  revalidatePath("/settings");
+}
+
+export async function setDefaultSendingIdentity(identityId: string) {
+  const session = await getServerSession(authOptions);
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+  if (!userId) throw new Error("Unauthorized");
+
+  const identity = await prisma.sendingIdentity.findFirst({
+    where: { id: identityId, userId, purpose: "outreach", status: "active" },
+  });
+  if (!identity) throw new Error("Identity is not active");
+
+  await prisma.$transaction([
+    prisma.sendingIdentity.updateMany({
+      where: { userId, purpose: "outreach" },
+      data: { isDefault: false },
+    }),
+    prisma.sendingIdentity.update({
+      where: { id: identityId },
+      data: { isDefault: true },
+    }),
+  ]);
+  revalidatePath("/settings");
 }
 
 export async function exportPlayersCSV() {
@@ -80,6 +142,20 @@ export async function exportPlayersCSV() {
 
 export async function exportCompaniesCSV() {
   const companies = await prisma.company.findMany({
+    select: {
+      name: true,
+      sector: true,
+      country: true,
+      website: true,
+      source: true,
+      companySizeBucket: true,
+      contacts: {
+        where: { active: true },
+        orderBy: [{ contactScore: "desc" }, { relevanceScore: "desc" }],
+        select: { roleRaw: true, contactability: true },
+        take: 1,
+      },
+    },
     orderBy: { name: "asc" },
   });
 
@@ -88,9 +164,9 @@ export async function exportCompaniesCSV() {
     "Secteur",
     "Pays",
     "Website",
-    "Contact",
-    "Rôle",
-    "Email",
+    "Taille",
+    "Rôle décideur",
+    "Contactabilité",
     "Source",
   ];
 
@@ -100,9 +176,9 @@ export async function exportCompaniesCSV() {
       c.sector || "",
       c.country || "",
       c.website || "",
-      c.contactName || "",
-      c.contactRole || "",
-      c.contactEmail || "",
+      c.companySizeBucket,
+      c.contacts[0]?.roleRaw || "",
+      c.contacts[0]?.contactability || "missing",
       c.source || "",
     ].join(";")
   );

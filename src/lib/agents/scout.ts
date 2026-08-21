@@ -8,6 +8,7 @@ import {
 } from "./prompts";
 import type { ScoutBrand, PlayerIntelligence } from "@/types";
 import type { Player } from "@prisma/client";
+import { filterAlreadyEvaluatedBrands } from "./scout-deduplication";
 
 export type LogCallback = (message: string, type?: "info" | "success" | "error" | "data") => void;
 
@@ -93,13 +94,13 @@ export async function runScout(
   log(`Profil : ${player.firstName} ${player.lastName} (${player.club})`, "info");
 
   if (excludedBrands.length > 0) {
-    log(`${excludedBrands.length} marques exclues (déjà en base)`, "info");
+    log(`${excludedBrands.length} marques exclues (déjà évaluées pour ce profil)`, "info");
   }
 
   // Build exclusion section
   let exclusionSection = "";
   if (excludedBrands.length > 0) {
-    exclusionSection = `MARQUES À EXCLURE ABSOLUMENT (déjà dans notre base de données, NE PAS les proposer) :\n${excludedBrands.map((b) => `- ${b}`).join("\n")}`;
+    exclusionSection = `MARQUES À EXCLURE ABSOLUMENT (déjà évaluées pour ce profil sportif, NE PAS les proposer à nouveau) :\n${excludedBrands.map((b) => `- ${b}`).join("\n")}`;
   }
   if (intelligence?.existing_partnerships?.length) {
     exclusionSection += `\n\nPARTENARIATS EXISTANTS DU PROFIL (CONFLITS D'EXCLUSIVITÉ À ÉVITER) :\n${intelligence.existing_partnerships.map((p) => `- ${p} (et tous ses concurrents directs)`).join("\n")}`;
@@ -169,16 +170,11 @@ export async function runScout(
   const brands = extractJSON<ScoutBrand>(structureText);
 
   // Post-filter: remove any excluded brands that slipped through
-  const filteredBrands = brands.filter((brand) => {
-    const nameNorm = brand.name.toLowerCase().trim();
-    return !excludedBrands.some(
-      (ex) => ex.toLowerCase().trim() === nameNorm
-    );
-  });
+  const filteredBrands = filterAlreadyEvaluatedBrands(brands, excludedBrands);
 
   const removed = brands.length - filteredBrands.length;
   if (removed > 0) {
-    log(`${removed} marques en doublon filtrées (déjà en base)`, "info");
+    log(`${removed} marques en doublon filtrées (déjà évaluées pour ce profil)`, "info");
   }
 
   log(`${filteredBrands.length} marques structurées avec succès`, "success");

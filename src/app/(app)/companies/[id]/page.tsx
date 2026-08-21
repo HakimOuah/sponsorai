@@ -5,10 +5,7 @@ import {
   ArrowLeft,
   Globe,
   MapPin,
-  Mail,
-  Phone,
-  Link2,
-  User,
+  ShieldCheck,
 } from "lucide-react";
 import { getCompany } from "@/lib/actions/companies";
 import { DeleteCompanyButton } from "@/components/companies/DeleteCompanyButton";
@@ -107,6 +104,16 @@ export default async function CompanyDetailPage({
                 <p className="text-sm text-white/70">{company.estimatedBudget}</p>
               </div>
             )}
+            {(company.employeeCount !== null || company.companySizeBucket !== "unknown") && (
+              <div>
+                <p className="text-xs text-[#8FA69E] mb-1">Taille entreprise</p>
+                <p className="text-sm text-white/70">
+                  {company.employeeCount !== null
+                    ? `${company.employeeCount.toLocaleString("fr-FR")} employés`
+                    : company.companySizeBucket}
+                </p>
+              </div>
+            )}
             {company.notes && (
               <div>
                 <p className="text-xs text-[#8FA69E] mb-1">Notes</p>
@@ -121,34 +128,27 @@ export default async function CompanyDetailPage({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
             Contact
           </h2>
-          {company.contactName || company.contactEmail ? (
-            <div className="space-y-3">
-              {company.contactName && (
-                <InfoRow icon={User} label="Nom" value={`${company.contactName}${company.contactRole ? ` — ${company.contactRole}` : ""}`} />
-              )}
-              {company.contactEmail && (
-                <InfoRow icon={Mail} label="Email" value={company.contactEmail} />
-              )}
-              {company.contactEmail && (
-                <div className="rounded-xl border border-[#3EF2A0]/10 bg-white/[0.025] px-3 py-2 text-xs">
-                  <p className={company.outreachReady ? "text-[#3EF2A0]" : "text-[#f59e0b]"}>
-                    {company.outreachReady
-                      ? `Prêt à contacter · ${company.contactEmailStatus}`
-                      : `Email non qualifié · ${company.contactEmailStatus || "unknown"}`}
+          {company.contacts.length > 0 ? (
+            <div className="space-y-2">
+              {company.contacts.map((contact) => (
+                <div key={contact.id} className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5 text-sm text-white/80">
+                      <ShieldCheck className="h-3.5 w-3.5 text-[#3EF2A0]" /> {contact.roleRaw}
+                    </span>
+                    <span className="font-mono text-xs text-[#3EF2A0]">{contact.contactScore ?? "—"}/100</span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#8FA69E]">
+                    {contact.employmentStatus === "verified_current" ? "Poste actuel vérifié" : "Poste à vérifier"} · contactabilité {contact.contactability}
                   </p>
-                  {company.contactEvidence && (
-                    <p className="mt-1 leading-relaxed text-[#8FA69E]">
-                      {company.contactEvidence}
-                    </p>
-                  )}
+                  <p className="mt-1 text-[11px] text-[#8FA69E]/60">Coordonnées conservées côté serveur</p>
                 </div>
-              )}
-              {company.contactPhone && (
-                <InfoRow icon={Phone} label="Téléphone" value={company.contactPhone} />
-              )}
-              {company.contactLinkedin && (
-                <InfoRow icon={Link2} label="LinkedIn" value={company.contactLinkedin} isLink />
-              )}
+              ))}
+            </div>
+          ) : company.contactRole || company.outreachReady ? (
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
+              <p className="text-sm text-white/80">{company.contactRole || "Décideur qualifié"}</p>
+              <p className="mt-1 text-xs text-[#8FA69E]">Contactabilité {company.contactEmailStatus} · coordonnées privées</p>
             </div>
           ) : (
             <p className="text-sm text-[#8FA69E]/55 mb-3">Aucun contact renseigné</p>
@@ -158,6 +158,39 @@ export default async function CompanyDetailPage({
           </div>
         </div>
       </div>
+
+      {(company.opportunitySignals.length > 0 || company.sponsorships.length > 0) && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          <div>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">Opportunity signals</h2>
+            <div className="app-panel divide-y divide-white/[0.04]">
+              {company.opportunitySignals.map((signal) => (
+                <div key={signal.id} className="p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-white/80">{signal.title}</p>
+                    <span className="font-mono text-xs text-[#3EF2A0]">{Math.round(signal.strength * 100)}</span>
+                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-[#8FA69E]">{signal.description}</p>
+                  <p className="mt-1 text-[10px] uppercase tracking-wider text-[#8FA69E]/55">{signal.type} · {signal.status}</p>
+                </div>
+              ))}
+              {company.opportunitySignals.length === 0 && <p className="p-4 text-xs text-[#8FA69E]">Aucun signal structuré.</p>}
+            </div>
+          </div>
+          <div>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">Sponsorship graph</h2>
+            <div className="app-panel divide-y divide-white/[0.04]">
+              {company.sponsorships.map((item) => (
+                <div key={item.id} className="p-4">
+                  <p className="text-sm font-medium text-white/80">{item.rightsHolder}</p>
+                  <p className="mt-1 text-xs text-[#8FA69E]">{item.sport || "Sport non précisé"}{item.category ? ` · ${item.category}` : ""} · {item.status}</p>
+                </div>
+              ))}
+              {company.sponsorships.length === 0 && <p className="p-4 text-xs text-[#8FA69E]">Aucun sponsoring observé.</p>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Prospects */}
       {company.prospects.length > 0 && (

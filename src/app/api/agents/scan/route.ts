@@ -1,8 +1,14 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runPlayerResearch, runScout } from "@/lib/agents/scout";
+import {
+  buildEvaluatedBrandsQuery,
+  getExcludedBrandNames,
+} from "@/lib/agents/scout-deduplication";
 import { runMatchmaker } from "@/lib/agents/matchmaker";
 import type { ScoredBrand, PlayerIntelligence } from "@/types";
+import { applyMatchmakerLearning } from "@/lib/agents/matchmaker-learning";
+import { recordLearningEvent } from "@/lib/learning/events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,15 +58,16 @@ export async function POST(request: NextRequest) {
     try {
       await sendEvent({ message: "Démarrage du scan v2...", type: "info", phase: "init" });
 
-      // --- Load existing data for deduplication ---
-      const existingCompanies = await prisma.company.findMany({
-        select: { name: true },
-      });
-      const excludedBrands = existingCompanies.map((c) => c.name);
+      // A brand can be relevant to several athletes. Only exclude brands that
+      // have already been evaluated for the current player.
+      const evaluatedBrands = await prisma.prospect.findMany(
+        buildEvaluatedBrandsQuery(player.id)
+      );
+      const excludedBrands = getExcludedBrandNames(evaluatedBrands);
 
       if (excludedBrands.length > 0) {
         await sendEvent({
-          message: `${excludedBrands.length} marques déjà en base (seront exclues de la recherche)`,
+          message: `${excludedBrands.length} marques déjà évaluées pour ${player.firstName} ${player.lastName} (seront exclues de la recherche)`,
           type: "info",
           phase: "init",
         });
@@ -84,6 +91,64 @@ export async function POST(request: NextRequest) {
             playerIntelligence: playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
           },
         });
+
+        await prisma.athleteIntelligenceSnapshot.create({
+          data: {
+            playerId: player.id,
+            sourceScanId: scan.id,
+            snapshot: playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
+          },
+        });
+
+        for (const value of playerIntelligence.key_values || []) {
+          await prisma.athleteTrait.upsert({
+            where: {
+              playerId_type_value: {
+                playerId: player.id,
+                type: "key_value",
+                value,
+              },
+            },
+            update: { confidence: 0.7, source: `scan:${scan.id}`, active: true },
+            create: {
+              playerId: player.id,
+              type: "key_value",
+              value,
+              confidence: 0.7,
+              source: `scan:${scan.id}`,
+            },
+          });
+        }
+
+        const socialAccounts = [
+          { platform: "instagram", handle: player.instagram, followers: player.followersIG },
+          { platform: "tiktok", handle: player.tiktok, followers: player.followersTK },
+          { platform: "x", handle: player.twitter, followers: player.followersX },
+        ].filter((account): account is { platform: string; handle: string; followers: number | null } => Boolean(account.handle));
+
+        for (const account of socialAccounts) {
+          await prisma.athleteSocialAccount.upsert({
+            where: {
+              playerId_platform_handle: {
+                playerId: player.id,
+                platform: account.platform,
+                handle: account.handle,
+              },
+            },
+            update: {
+              followers: account.followers,
+              engagementRate: player.engagementRate,
+              capturedAt: new Date(),
+            },
+            create: {
+              playerId: player.id,
+              platform: account.platform,
+              handle: account.handle,
+              followers: account.followers,
+              engagementRate: player.engagementRate,
+            },
+          });
+        }
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : "unknown";
         researchLog(`Erreur recherche profil: ${errMsg} — on continue sans intelligence`, "error");
@@ -116,7 +181,44 @@ export async function POST(request: NextRequest) {
         sendEvent({ message, type, phase: "matchmaker" }).catch(() => {});
       };
 
-      const scoredBrands = await runMatchmaker(player, brands, matchLog, playerIntelligence);
+      const baseScoredBrands = await runMatchmaker(player, brands, matchLog, playerIntelligence);
+      const historicalCompanies = baseScoredBrands.length > 0
+        ? await prisma.company.findMany({
+            where: {
+              OR: baseScoredBrands.map((brand) => ({
+                name: { equals: brand.name, mode: "insensitive" },
+              })),
+            },
+            select: {
+              name: true,
+              prospects: {
+                select: {
+                  feedback: { select: { brandRating: true } },
+                },
+              },
+              opportunitySignals: {
+                where: { status: { in: ["unreviewed", "active"] } },
+                select: { strength: true },
+              },
+            },
+          })
+        : [];
+      const scoredBrands = applyMatchmakerLearning(
+        baseScoredBrands,
+        historicalCompanies.map((company) => ({
+          name: company.name,
+          brandRatings: company.prospects.flatMap((prospect) =>
+            prospect.feedback
+              .map((feedback) => feedback.brandRating)
+              .filter((rating): rating is string => Boolean(rating))
+          ),
+          opportunityStrengths: company.opportunitySignals.map((signal) => signal.strength),
+        }))
+      );
+      const adjustedCount = scoredBrands.filter((brand) => brand.learning_adjustment).length;
+      if (adjustedCount > 0) {
+        matchLog(`${adjustedCount} score(s) ajusté(s) par les retours et signaux historiques`, "success");
+      }
 
       // Save scored data
       await prisma.scan.update({
@@ -134,7 +236,12 @@ export async function POST(request: NextRequest) {
       let created = 0;
       for (const brand of scoredBrands) {
         try {
-          await createProspectFromBrand(player.id, scan.id, brand);
+          const prospect = await createProspectFromBrand(player.id, scan.id, brand);
+          await recordLearningEvent({
+            type: "BRAND_MATCHED",
+            idempotencyKey: `scan:${scan.id}:prospect:${prospect.id}:matched`,
+            prospectId: prospect.id,
+          });
           created++;
         } catch (err) {
           await sendEvent({
@@ -220,7 +327,7 @@ async function createProspectFromBrand(
   }
 
   // Upsert prospect
-  await prisma.prospect.upsert({
+  return prisma.prospect.upsert({
     where: {
       playerId_companyId: {
         playerId,
@@ -236,6 +343,7 @@ async function createProspectFromBrand(
       estimatedValue: brand.estimated_budget,
       priority: brand.priority,
       scanId,
+      scoreVersion: brand.score_version || "matchmaker-v2-learning-v1",
     },
     create: {
       playerId,
@@ -249,6 +357,7 @@ async function createProspectFromBrand(
       priority: brand.priority,
       status: "new",
       scanId,
+      scoreVersion: brand.score_version || "matchmaker-v2-learning-v1",
     },
   });
 }

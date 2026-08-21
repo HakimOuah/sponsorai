@@ -29,12 +29,10 @@ export default async function EmailsPage({ searchParams }: Props) {
     select: {
       id: true,
       subject: true,
+      prospect: { select: { outreachApprovedAt: true } },
       company: {
         select: {
           name: true,
-          contactEmail: true,
-          contactEmailStatus: true,
-          contactVerificationStatus: true,
           outreachReady: true,
         },
       },
@@ -63,7 +61,7 @@ export default async function EmailsPage({ searchParams }: Props) {
       {draftEmails.length > 0 && (
         <div className="mb-6">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
-            Dispatcher — Envoi en masse
+            Dispatcher — Envois approuvés
           </h2>
           <DispatcherPanel draftEmails={draftEmails} />
         </div>

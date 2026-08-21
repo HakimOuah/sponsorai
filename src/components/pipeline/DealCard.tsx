@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export interface DealData {
   id: string;
@@ -87,6 +88,12 @@ export function DealCard({ deal }: DealCardProps) {
           )}
         </div>
       )}
+      <Link
+        href={`/pipeline/${deal.id}`}
+        className="mt-3 inline-flex items-center gap-1 text-[11px] text-[#3EF2A0] hover:underline"
+      >
+        Ouvrir le workspace <ArrowRight className="h-3 w-3" />
+      </Link>
     </div>
   );
 }

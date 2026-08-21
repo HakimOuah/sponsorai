@@ -116,7 +116,7 @@ export default async function DashboardPage() {
                         {p.score}/10
                       </span>
                     )}
-                    {p.company.contactEmail ? (
+                    {p.company.outreachReady ? (
                       <span className="h-1.5 w-1.5 rounded-full bg-[#3EF2A0] shrink-0" title="Contact disponible" />
                     ) : (
                       <span className="h-1.5 w-1.5 rounded-full bg-white/10 shrink-0" title="Pas de contact" />

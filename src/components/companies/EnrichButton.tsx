@@ -1,22 +1,17 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Database, Loader2, Check, User, Mail, Link2 } from "lucide-react";
+import { Database, Loader2, Check, ShieldCheck } from "lucide-react";
 
 interface EnrichContact {
-  name: string;
   role: string;
-  email: string | null;
-  email_status?: "verified" | "public_source" | "guessed" | "missing";
-  email_evidence?: string | null;
-  email_pattern?: string | null;
-  email_candidates?: string[];
-  linkedin: string | null;
-  confidence: string;
-  verification_status?: string;
-  current_at_company?: boolean;
-  evidence?: string;
-  source: string;
+  roleNormalized: string;
+  currentRoleVerified: boolean;
+  contactability: "verified" | "public_source" | "guessed" | "missing";
+  relevance: number;
+  score: number | null;
+  scoreVersion: string;
+  source: string | null;
 }
 
 interface EnrichButtonProps {
@@ -99,12 +94,6 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
     }
   };
 
-  const confidenceColor: Record<string, string> = {
-    high: "text-[#3EF2A0]",
-    medium: "text-[#f59e0b]",
-    low: "text-[#8FA69E]",
-  };
-
   if (!expanded) {
     return (
       <button
@@ -185,58 +174,22 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
               className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] p-3"
             >
               <div className="mb-1 flex flex-wrap items-center gap-2">
-                <User className="h-3.5 w-3.5 text-[#8FA69E]" />
-                <span className="text-sm font-medium text-white">{c.name}</span>
-                <span className="text-xs text-[#8FA69E]">— {c.role}</span>
-                <span
-                  className={`font-mono text-[10px] sm:ml-auto ${confidenceColor[c.confidence] || "text-[#8FA69E]"}`}
-                >
-                  {c.confidence} · vérifié
+                <ShieldCheck className="h-3.5 w-3.5 text-[#3EF2A0]" />
+                <span className="text-sm font-medium text-white">{c.role}</span>
+                <span className="font-mono text-[10px] text-[#3EF2A0] sm:ml-auto">
+                  score {c.score ?? "—"}/100
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-3 text-xs">
-                {c.email && (
-                  <span className="flex items-center gap-1 text-[#DDFBEA]">
-                    <Mail className="h-3 w-3" />
-                    {c.email}
-                    <span className={c.email_status === "verified" ? "text-[#3EF2A0]" : "text-[#f59e0b]"}>
-                      · {c.email_status === "verified" ? "vérifié" : "source publique"}
-                    </span>
-                  </span>
-                )}
-                {c.linkedin && (
-                  <a
-                    href={c.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[#DDFBEA] hover:underline"
-                  >
-                    <Link2 className="h-3 w-3" />
-                    LinkedIn
-                  </a>
-                )}
-                <span className="text-[#8FA69E]/55 sm:ml-auto">{c.source}</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#8FA69E]">
+                <span>{c.roleNormalized}</span>
+                <span>·</span>
+                <span>{c.currentRoleVerified ? "poste actuel vérifié" : "poste à vérifier"}</span>
+                <span>·</span>
+                <span>contactabilité {c.contactability}</span>
               </div>
-              {c.evidence && (
-                <p className="mt-2 text-[11px] leading-relaxed text-[#8FA69E]">
-                  Preuve : {c.evidence}
-                </p>
-              )}
-              {c.email_evidence && (
-                <p className="mt-1 text-[11px] leading-relaxed text-[#8FA69E]">
-                  Email : {c.email_evidence}
-                </p>
-              )}
-              {!c.email && c.email_candidates && c.email_candidates.length > 0 && (
-                <div className="mt-2 rounded-lg border border-[#f59e0b]/15 bg-[#f59e0b]/5 px-2.5 py-2">
-                  <p className="text-[11px] font-medium text-[#f59e0b]">
-                    Pattern probable {c.email_pattern ? `(${c.email_pattern})` : ""} — non envoyable
-                  </p>
-                  <p className="mt-1 break-all font-mono text-[11px] leading-relaxed text-[#D8DEDA]/70">
-                    {c.email_candidates.join(" · ")}
-                  </p>
-                </div>
-              )}
+              <p className="mt-2 text-[11px] text-[#8FA69E]/70">
+                Coordonnées conservées côté serveur · {c.source || "source structurée"}
+              </p>
             </div>
           ))}
 

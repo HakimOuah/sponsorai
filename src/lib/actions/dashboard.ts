@@ -76,7 +76,7 @@ export async function getDashboardData() {
       },
       include: {
         player: { select: { firstName: true, lastName: true, club: true } },
-        company: { select: { name: true, sector: true, contactEmail: true } },
+        company: { select: { name: true, sector: true, outreachReady: true } },
       },
       orderBy: [{ priority: "asc" }, { score: "desc" }],
       take: 5,

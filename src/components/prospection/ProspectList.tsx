@@ -16,13 +16,24 @@ type Prospect = {
   partnershipType: string | null;
   estimatedValue: string | null;
   status: string;
+  outreachApprovedAt: Date | null;
+  selectedContactId: string | null;
   scoreDetails: unknown;
   company: {
     id: string;
     name: string;
     sector: string | null;
     country: string | null;
-    contactEmail: string | null;
+    outreachReady: boolean;
+    contacts: {
+      id: string;
+      roleRaw: string;
+      roleNormalized: string;
+      employmentStatus: string;
+      contactability: string;
+      relevanceScore: number;
+      contactScore: number | null;
+    }[];
   };
   deal: { id: string; stage: string } | null;
   emails?: { sentAt: Date | null; status: string }[];

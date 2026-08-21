@@ -1,6 +1,7 @@
 import { anthropic } from "@/lib/claude";
 import { VEILLE_CONCURRENCE_PROMPT } from "./prompts";
 import type { LogCallback } from "./scout";
+import { buildVeilleRequest } from "./veille-request";
 
 export interface VeilleAlert {
   type: "new_deal" | "contract_end" | "brand_entering" | "brand_leaving" | "trend";
@@ -33,14 +34,12 @@ export async function runVeille(
 
   log("Appel Claude avec web search...", "info");
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8192,
-    messages: [{ role: "user", content: prompt }],
-  });
+  const response = await anthropic.messages.create(buildVeilleRequest(prompt));
 
-  const text =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const text = response.content
+    .filter((block) => block.type === "text")
+    .map((block) => block.text)
+    .join("\n");
 
   const cleaned = text
     .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')

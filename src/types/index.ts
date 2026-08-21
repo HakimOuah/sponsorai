@@ -92,4 +92,7 @@ export interface ScoredBrand extends ScoutBrand {
   priority: Priority;
   score_details: ScoreDetails;
   recommended_approach: string;
+  base_score?: number;
+  learning_adjustment?: number;
+  score_version?: string;
 }

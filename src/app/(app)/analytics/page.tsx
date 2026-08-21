@@ -7,6 +7,8 @@ import {
   Target,
   ArrowDownRight,
   Mail,
+  Activity,
+  BadgeCheck,
 } from "lucide-react";
 import { getAnalyticsData } from "@/lib/actions/analytics";
 
@@ -45,6 +47,18 @@ export default async function AnalyticsPage() {
           bg="bg-red-400"
         />
       </div>
+
+      <section className="mb-6">
+        <SectionHeader icon={Activity} label="Learning Engine · KPI pilote" color="text-[#3EF2A0]" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          <LearningCard label="Precision@20" value={data.learning.precisionSample > 0 ? percent(data.learning.precisionAt20) : "—"} detail={`${data.learning.precisionSample} avis`} />
+          <LearningCard label="Contact coverage" value={percent(data.learning.contactCoverage)} />
+          <LearningCard label="Emails vérifiés" value={percent(data.learning.verifiedEmailRate)} />
+          <LearningCard label="Delivery rate" value={percent(data.learning.deliveryRate)} />
+          <LearningCard label="Positive reply" value={percent(data.learning.positiveResponseRate)} />
+          <LearningCard label="Meeting rate" value={percent(data.learning.meetingRate)} />
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Funnel */}
@@ -210,6 +224,28 @@ export default async function AnalyticsPage() {
           />
         </div>
       </section>
+
+      <section className="mt-6">
+        <SectionHeader icon={BadgeCheck} label="Utilité contextuelle des rôles" color="text-[#DDFBEA]" />
+        <div className="app-panel overflow-x-auto">
+          <table className="min-w-[760px] w-full text-sm">
+            <thead><tr className="border-b border-white/[0.06] text-left text-xs text-[#8FA69E]"><th className="px-4 py-3">Rôle</th><th className="px-4 py-3">Contexte</th><th className="px-4 py-3">Tentatives</th><th className="px-4 py-3">Reply lissé</th><th className="px-4 py-3">Meeting lissé</th><th className="px-4 py-3">Utility</th></tr></thead>
+            <tbody>
+              {data.rolePerformance.map((role) => (
+                <tr key={role.id} className="border-b border-white/[0.04] last:border-0">
+                  <td className="px-4 py-3 font-medium text-white/80">{role.roleNormalized}</td>
+                  <td className="px-4 py-3 text-xs text-[#8FA69E]">{role.sector} · {role.sport} · {role.country}</td>
+                  <td className="px-4 py-3 font-mono text-white/60">{role.attempts}</td>
+                  <td className="px-4 py-3 font-mono text-[#DDFBEA]">{percent(role.smoothedReplyRate)}</td>
+                  <td className="px-4 py-3 font-mono text-[#DDFBEA]">{percent(role.smoothedMeetingRate)}</td>
+                  <td className="px-4 py-3 font-mono text-[#3EF2A0]">{Math.round(role.contextualUtility * 100)}</td>
+                </tr>
+              ))}
+              {data.rolePerformance.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-xs text-[#8FA69E]">Les statistiques apparaîtront après les premiers envois approuvés.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
   );
 }
@@ -336,5 +372,19 @@ function PerfCard({
 function EmptyState({ text }: { text: string }) {
   return (
     <div className="px-4 py-8 text-center text-xs text-[#8FA69E]/55">{text}</div>
+  );
+}
+
+function percent(value: number): string {
+  return `${Math.round(value * 100)}%`;
+}
+
+function LearningCard({ label, value, detail }: { label: string; value: string; detail?: string }) {
+  return (
+    <div className="app-panel p-3">
+      <p className="text-[10px] text-[#8FA69E]">{label}</p>
+      <p className="mt-1 font-mono text-lg font-bold text-white">{value}</p>
+      {detail && <p className="text-[10px] text-[#8FA69E]/60">{detail}</p>}
+    </div>
   );
 }

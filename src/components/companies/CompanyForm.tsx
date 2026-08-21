@@ -1,7 +1,21 @@
 "use client";
 
 import { useFormStatus } from "react-dom";
-import type { Company } from "@prisma/client";
+
+export interface EditableCompany {
+  id: string;
+  name: string;
+  sector: string | null;
+  country: string | null;
+  website: string | null;
+  description: string | null;
+  existingSportsSponsoring: string | null;
+  estimatedBudget: string | null;
+  employeeCount: number | null;
+  companySizeBucket: string;
+  notes: string | null;
+  source: string | null;
+}
 
 function SubmitButton({ isEdit }: { isEdit: boolean }) {
   const { pending } = useFormStatus();
@@ -22,7 +36,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
 
 interface CompanyFormProps {
   action: (formData: FormData) => void;
-  company?: Company | null;
+  company?: EditableCompany | null;
 }
 
 export function CompanyForm({ action, company }: CompanyFormProps) {
@@ -41,6 +55,23 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
           <Field label="Pays" name="country" defaultValue={company?.country} />
           <Field label="Site web" name="website" defaultValue={company?.website} placeholder="https://..." />
           <Field label="Budget estimé" name="estimatedBudget" defaultValue={company?.estimatedBudget} placeholder="petit / moyen / gros" />
+          <Field label="Effectif estimé" name="employeeCount" type="number" defaultValue={company?.employeeCount?.toString()} placeholder="5000" />
+          <div>
+            <label className="block text-sm font-medium text-white/60 mb-1">Taille entreprise</label>
+            <select
+              name="companySizeBucket"
+              defaultValue={company?.companySizeBucket || "unknown"}
+              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+            >
+              <option value="unknown">Non renseignée</option>
+              <option value="1-10">1–10</option>
+              <option value="11-50">11–50</option>
+              <option value="51-200">51–200</option>
+              <option value="201-1000">201–1 000</option>
+              <option value="1001-5000">1 001–5 000</option>
+              <option value="5001+">Plus de 5 000</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm font-medium text-white/60 mb-1">Source</label>
             <select
@@ -60,40 +91,11 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
         </div>
       </section>
 
-      {/* Contact */}
-      <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-4">
-          Contact
-        </h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Nom du contact" name="contactName" defaultValue={company?.contactName} />
-          <Field label="Rôle" name="contactRole" defaultValue={company?.contactRole} placeholder="CMO, Head of Partnerships..." />
-          <Field label="Email" name="contactEmail" type="email" defaultValue={company?.contactEmail} />
-          <SelectField
-            label="Statut contact"
-            name="contactVerificationStatus"
-            defaultValue={company?.contactVerificationStatus || ""}
-            options={[
-              { value: "", label: "Non vérifié" },
-              { value: "verified_current", label: "Actuel vérifié" },
-              { value: "unverified", label: "À vérifier" },
-              { value: "past_or_wrong_company", label: "Ancien / mauvaise entreprise" },
-            ]}
-          />
-          <SelectField
-            label="Statut email"
-            name="contactEmailStatus"
-            defaultValue={company?.contactEmailStatus || "missing"}
-            options={[
-              { value: "missing", label: "Email manquant" },
-              { value: "public_source", label: "Source publique" },
-              { value: "verified", label: "Vérifié" },
-              { value: "guessed", label: "Devine, non envoyable" },
-            ]}
-          />
-          <Field label="LinkedIn" name="contactLinkedin" defaultValue={company?.contactLinkedin} placeholder="https://linkedin.com/in/..." />
-          <Field label="Téléphone" name="contactPhone" defaultValue={company?.contactPhone} />
-        </div>
+      <section className="rounded-2xl border border-[#3EF2A0]/10 bg-[#3EF2A0]/[0.03] p-4">
+        <h2 className="text-sm font-semibold text-white">Contacts privés</h2>
+        <p className="mt-1 text-xs leading-relaxed text-[#8FA69E]">
+          Les décideurs sont gérés par l’Enrichisseur. Les emails, téléphones et liens directs restent côté serveur et ne sont pas exposés dans ce formulaire.
+        </p>
       </section>
 
       {/* Notes */}
@@ -122,37 +124,6 @@ function Field({
         type={type} name={name} defaultValue={defaultValue ?? ""} required={required} placeholder={placeholder}
         className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
       />
-    </div>
-  );
-}
-
-function SelectField({
-  label,
-  name,
-  defaultValue,
-  options,
-}: {
-  label: string;
-  name: string;
-  defaultValue?: string | null;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-white/60">
-        {label}
-      </label>
-      <select
-        name={name}
-        defaultValue={defaultValue ?? ""}
-        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white transition-colors focus:border-[#3EF2A0]/50 focus:outline-none"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-[#020403]">
-            {option.label}
-          </option>
-        ))}
-      </select>
     </div>
   );
 }

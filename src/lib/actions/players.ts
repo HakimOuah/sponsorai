@@ -25,17 +25,28 @@ export async function getPlayer(id: string) {
     where: { id },
     include: {
       deals: {
-        include: { company: true },
+        include: { company: { select: { id: true, name: true } } },
         orderBy: { updatedAt: "desc" },
       },
       prospects: {
-        include: { company: true },
+        include: { company: { select: { id: true, name: true } } },
         orderBy: { score: "desc" },
         take: 20,
       },
       scans: {
         orderBy: { createdAt: "desc" },
         take: 10,
+      },
+      intelligenceSnapshots: {
+        orderBy: { capturedAt: "desc" },
+        take: 3,
+      },
+      traits: {
+        where: { active: true },
+        orderBy: { confidence: "desc" },
+      },
+      socialAccounts: {
+        orderBy: { capturedAt: "desc" },
       },
       _count: {
         select: {

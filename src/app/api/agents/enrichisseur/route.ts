@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runEnrichisseur } from "@/lib/agents/enrichisseur";
 import { isUsableEmailStatus } from "@/lib/agents/contact-quality";
+import { persistContactCandidates } from "@/lib/contacts/persistence";
 
 export async function POST(request: NextRequest) {
   const { companyId } = await request.json();
@@ -40,6 +41,10 @@ export async function POST(request: NextRequest) {
 
       try {
         const result = await runEnrichisseur(company, log);
+        const publicContacts = await persistContactCandidates(
+          companyId,
+          result.contacts
+        );
 
         // Update company only with a contact verified as currently working there.
         const bestContact = result.contacts[0];
@@ -95,26 +100,6 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Store additional verified contacts as notes if multiple found.
-        if (result.contacts.length > 1) {
-          const contactsText = result.contacts
-            .map(
-              (c, i) =>
-                `${i + 1}. ${c.name} — ${c.role}${c.email ? ` (${c.email}, ${c.email_status})` : " (email manquant)"}${c.email_candidates?.length ? ` [candidats: ${c.email_candidates.join(", ")}]` : ""}${c.linkedin ? ` [LinkedIn: ${c.linkedin}]` : ""} [${c.confidence}] — preuve: ${c.evidence}`
-            )
-            .join("\n");
-
-          const existingNotes = company.notes || "";
-          const newNotes = existingNotes
-            ? `${existingNotes}\n\n--- Contacts enrichis ---\n${contactsText}`
-            : `--- Contacts enrichis ---\n${contactsText}`;
-
-          await prisma.company.update({
-            where: { id: companyId },
-            data: { notes: newNotes },
-          });
-        }
-
         // Log activity
         await prisma.activityLog.create({
           data: {
@@ -127,7 +112,7 @@ export async function POST(request: NextRequest) {
         send({
           type: "done",
           result: {
-            contacts: result.contacts,
+            contacts: publicContacts,
             insights: result.company_insights,
           },
         });

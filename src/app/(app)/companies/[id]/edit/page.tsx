@@ -15,6 +15,20 @@ export default async function EditCompanyPage({
   if (!company) return notFound();
 
   const updateAction = updateCompany.bind(null, company.id);
+  const editableCompany = {
+    id: company.id,
+    name: company.name,
+    sector: company.sector,
+    country: company.country,
+    website: company.website,
+    description: company.description,
+    existingSportsSponsoring: company.existingSportsSponsoring,
+    estimatedBudget: company.estimatedBudget,
+    employeeCount: company.employeeCount,
+    companySizeBucket: company.companySizeBucket,
+    notes: company.notes,
+    source: company.source,
+  };
 
   return (
     <div className="min-w-0">
@@ -32,7 +46,7 @@ export default async function EditCompanyPage({
       </div>
 
       <div className="app-panel p-4 sm:p-6">
-        <CompanyForm action={updateAction} company={company} />
+        <CompanyForm action={updateAction} company={editableCompany} />
       </div>
     </div>
   );
