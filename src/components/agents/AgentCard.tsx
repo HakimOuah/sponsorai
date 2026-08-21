@@ -47,7 +47,7 @@ export function AgentCard({
           />
           <Image
             src={avatar}
-            alt={`Avatar humanoïde de l'agent ${name}`}
+            alt={`Avatar 3D de l'agent ${name}`}
             fill
             sizes="96px"
             className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"

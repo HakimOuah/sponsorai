@@ -1010,7 +1010,7 @@ function AgentsSection() {
                       <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[24px] border border-[#FF6B3D]/22 bg-[#0B0908] shadow-[0_18px_48px_rgba(0,0,0,0.28),0_0_42px_rgba(255,107,61,0.10)] sm:h-32 sm:w-32 sm:rounded-[30px]">
                         <Image
                           src={agent.avatar}
-                          alt={`Portrait humanoïde de l'agent ${agent.name}`}
+                          alt={`Portrait 3D de l'agent ${agent.name}`}
                           fill
                           sizes="(min-width: 640px) 128px, 96px"
                           className="object-cover object-top transition duration-500 group-hover:scale-[1.035]"
