@@ -16,9 +16,17 @@ export function AgentCard({
   color,
 }: AgentCardProps) {
   const statusConfig = {
-    active: { label: "Actif", bg: "bg-[#3EF2A0]/10", text: "text-[#3EF2A0]" },
-    inactive: { label: "Inactif", bg: "bg-white/[0.06]", text: "text-[#8FA69E]" },
-    coming_soon: { label: "Bientôt", bg: "bg-[#f59e0b]/10", text: "text-[#f59e0b]" },
+    active: { label: "Actif", bg: "bg-[#FF6B3D]/10", text: "text-[#FF6B3D]" },
+    inactive: {
+      label: "Inactif",
+      bg: "bg-white/[0.06]",
+      text: "text-[#969BA8]",
+    },
+    coming_soon: {
+      label: "Bientôt",
+      bg: "bg-[#f59e0b]/10",
+      text: "text-[#f59e0b]",
+    },
   };
 
   const s = statusConfig[status];
@@ -39,7 +47,7 @@ export function AgentCard({
         </span>
       </div>
       <h3 className="font-semibold text-white mb-1">{name}</h3>
-      <p className="text-sm text-[#8FA69E] leading-relaxed">{description}</p>
+      <p className="text-sm text-[#969BA8] leading-relaxed">{description}</p>
     </div>
   );
 }

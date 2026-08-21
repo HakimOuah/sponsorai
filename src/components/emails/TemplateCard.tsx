@@ -48,26 +48,28 @@ export function TemplateCard({ template }: TemplateCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3
-              className="font-semibold text-white truncate cursor-pointer hover:text-[#3EF2A0] transition-colors"
+              className="font-semibold text-white truncate cursor-pointer hover:text-[#FF6B3D] transition-colors"
               onClick={() => setExpanded(!expanded)}
             >
               {template.name}
             </h3>
-            <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[#8FA69E] shrink-0">
+            <span className="rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[#969BA8] shrink-0">
               {typeLabels[template.type] || template.type}
             </span>
           </div>
-          <p className="text-xs text-[#8FA69E] truncate mt-0.5">{template.subject}</p>
+          <p className="text-xs text-[#969BA8] truncate mt-0.5">
+            {template.subject}
+          </p>
         </div>
 
         <button
           onClick={handleToggle}
           disabled={isPending}
-          className="shrink-0 text-[#8FA69E] hover:text-white/60 transition-colors"
+          className="shrink-0 text-[#969BA8] hover:text-white/60 transition-colors"
           title={template.active ? "Désactiver" : "Activer"}
         >
           {template.active ? (
-            <ToggleRight className="h-5 w-5 text-[#3EF2A0]" />
+            <ToggleRight className="h-5 w-5 text-[#FF6B3D]" />
           ) : (
             <ToggleLeft className="h-5 w-5" />
           )}
@@ -77,7 +79,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
           onClick={handleDelete}
           disabled={isPending}
           className={`shrink-0 transition-colors ${
-            deleteConfirm ? "text-red-400" : "text-[#8FA69E] hover:text-red-400"
+            deleteConfirm ? "text-red-400" : "text-[#969BA8] hover:text-red-400"
           }`}
         >
           <Trash2 className="h-4 w-4" />
@@ -85,7 +87,7 @@ export function TemplateCard({ template }: TemplateCardProps) {
         {deleteConfirm && (
           <button
             onClick={() => setDeleteConfirm(false)}
-            className="text-[10px] text-[#8FA69E] hover:text-white/60"
+            className="text-[10px] text-[#969BA8] hover:text-white/60"
           >
             Annuler
           </button>
@@ -93,15 +95,16 @@ export function TemplateCard({ template }: TemplateCardProps) {
       </div>
 
       {expanded && (
-        <div className="border-t border-[#3EF2A0]/10 px-4 pb-4 pt-3">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
+        <div className="border-t border-[#FF6B3D]/10 px-4 pb-4 pt-3">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
             Corps du template
           </p>
           <div className="rounded-lg bg-white/[0.045] p-3 text-sm text-white/60 whitespace-pre-wrap leading-relaxed">
             {template.body}
           </div>
-          <p className="mt-2 text-[10px] text-[#8FA69E]/55">
-            Variables disponibles : {"{joueur}"} (profil sportif), {"{marque}"}, {"{rationnel}"}, {"{secteur}"}, {"{type_partenariat}"}
+          <p className="mt-2 text-[10px] text-[#969BA8]/55">
+            Variables disponibles : {"{joueur}"} (profil sportif), {"{marque}"},{" "}
+            {"{rationnel}"}, {"{secteur}"}, {"{type_partenariat}"}
           </p>
         </div>
       )}

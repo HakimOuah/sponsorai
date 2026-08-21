@@ -102,7 +102,7 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
           value={selectedPlayer}
           onChange={(e) => setSelectedPlayer(e.target.value)}
           disabled={isRunning}
-          className="flex-1 rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors disabled:opacity-50"
+          className="flex-1 rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2.5 text-sm text-white focus:border-[#FF6B3D]/50 focus:outline-none transition-colors disabled:opacity-50"
         >
           <option value="">Sélectionner un profil sportif...</option>
           {players.map((p) => (
@@ -115,7 +115,7 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
         <button
           onClick={startScan}
           disabled={!selectedPlayer || isRunning}
-          className="flex items-center gap-2 rounded-full bg-[#F8FAF7] px-5 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#2CFF93] transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 rounded-full bg-[#FF6B3D] px-5 py-2.5 text-sm font-semibold text-[#0B0D12] hover:bg-[#FF865F] transition-colors disabled:opacity-50"
         >
           {isRunning ? (
             <>
@@ -136,7 +136,7 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
         <div
           className={`rounded-lg border px-4 py-3 text-sm ${
             result.success
-              ? "border-[#3EF2A0]/20 bg-[#3EF2A0]/5 text-[#3EF2A0]"
+              ? "border-[#FF6B3D]/20 bg-[#FF6B3D]/5 text-[#FF6B3D]"
               : "border-red-500/20 bg-red-500/5 text-red-400"
           }`}
         >

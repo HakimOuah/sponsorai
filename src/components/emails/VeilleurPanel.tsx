@@ -64,7 +64,7 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-3 py-2.5 text-sm text-[#DDFBEA] transition-colors hover:bg-[#DDFBEA]/10 sm:w-auto sm:py-2"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#C8CEFF]/20 bg-[#C8CEFF]/5 px-3 py-2.5 text-sm text-[#C8CEFF] transition-colors hover:bg-[#C8CEFF]/10 sm:w-auto sm:py-2"
       >
         <Eye className="h-4 w-4" />
         Analyser une réponse
@@ -73,30 +73,54 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
   }
 
   const sentimentConfig = {
-    positive: { icon: ThumbsUp, color: "text-[#3EF2A0]", bg: "bg-[#3EF2A0]/10 border-[#3EF2A0]/20", label: "Positif" },
-    neutral: { icon: Minus, color: "text-[#f59e0b]", bg: "bg-[#f59e0b]/10 border-[#f59e0b]/20", label: "Neutre" },
-    negative: { icon: ThumbsDown, color: "text-red-400", bg: "bg-red-500/10 border-red-500/20", label: "Négatif" },
-    question: { icon: HelpCircle, color: "text-[#DDFBEA]", bg: "bg-[#DDFBEA]/10 border-[#DDFBEA]/20", label: "Question" },
+    positive: {
+      icon: ThumbsUp,
+      color: "text-[#FF6B3D]",
+      bg: "bg-[#FF6B3D]/10 border-[#FF6B3D]/20",
+      label: "Positif",
+    },
+    neutral: {
+      icon: Minus,
+      color: "text-[#f59e0b]",
+      bg: "bg-[#f59e0b]/10 border-[#f59e0b]/20",
+      label: "Neutre",
+    },
+    negative: {
+      icon: ThumbsDown,
+      color: "text-red-400",
+      bg: "bg-red-500/10 border-red-500/20",
+      label: "Négatif",
+    },
+    question: {
+      icon: HelpCircle,
+      color: "text-[#C8CEFF]",
+      bg: "bg-[#C8CEFF]/10 border-[#C8CEFF]/20",
+      label: "Question",
+    },
   };
 
   const urgencyConfig = {
     high: { color: "text-red-400", label: "Haute" },
     medium: { color: "text-[#f59e0b]", label: "Moyenne" },
-    low: { color: "text-[#8FA69E]", label: "Basse" },
+    low: { color: "text-[#969BA8]", label: "Basse" },
   };
 
   return (
     <div className="app-panel space-y-4 p-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <Eye className="h-4 w-4 text-[#DDFBEA]" />
+          <Eye className="h-4 w-4 text-[#C8CEFF]" />
           <h3 className="truncate text-sm font-semibold text-white">
             Veilleur — {companyName}
           </h3>
         </div>
         <button
-          onClick={() => { setIsOpen(false); setAnalysis(null); setError(""); }}
-          className="text-xs text-[#8FA69E] hover:text-white/60"
+          onClick={() => {
+            setIsOpen(false);
+            setAnalysis(null);
+            setError("");
+          }}
+          className="text-xs text-[#969BA8] hover:text-white/60"
         >
           Fermer
         </button>
@@ -106,7 +130,7 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
       {!analysis && (
         <div className="space-y-3">
           <div>
-            <label className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1 block">
+            <label className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1 block">
               Collez la réponse reçue
             </label>
             <textarea
@@ -114,14 +138,14 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
               onChange={(e) => setReplyContent(e.target.value)}
               rows={6}
               placeholder="Bonjour, merci pour votre proposition. Nous serions effectivement intéressés pour discuter..."
-              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-3 text-sm text-white/80 placeholder-white/20 focus:border-[#DDFBEA]/30 focus:outline-none leading-relaxed resize-y"
+              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-3 text-sm text-white/80 placeholder-white/20 focus:border-[#C8CEFF]/30 focus:outline-none leading-relaxed resize-y"
             />
           </div>
 
           <button
             onClick={analyze}
             disabled={loading || !replyContent.trim()}
-            className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#DDFBEA] px-4 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#DDFBEA]/80 disabled:opacity-40 sm:w-auto sm:py-2"
+            className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#C8CEFF] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#C8CEFF]/80 disabled:opacity-40 sm:w-auto sm:py-2"
           >
             {loading ? (
               <>
@@ -141,74 +165,88 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
       {error && <p className="text-xs text-red-400">{error}</p>}
 
       {/* Results */}
-      {analysis && (() => {
-        const sc = sentimentConfig[analysis.sentiment];
-        const SentimentIcon = sc.icon;
-        const uc = urgencyConfig[analysis.urgency];
+      {analysis &&
+        (() => {
+          const sc = sentimentConfig[analysis.sentiment];
+          const SentimentIcon = sc.icon;
+          const uc = urgencyConfig[analysis.urgency];
 
-        return (
-          <div className="space-y-3">
-            {/* Sentiment banner */}
-            <div className={`flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:gap-3 ${sc.bg}`}>
-              <SentimentIcon className={`h-5 w-5 ${sc.color}`} />
-              <div>
-                <span className={`text-sm font-semibold ${sc.color}`}>{sc.label}</span>
-                <span className="text-xs text-[#8FA69E] ml-2">— {analysis.category}</span>
+          return (
+            <div className="space-y-3">
+              {/* Sentiment banner */}
+              <div
+                className={`flex flex-col gap-2 rounded-lg border p-3 sm:flex-row sm:items-center sm:gap-3 ${sc.bg}`}
+              >
+                <SentimentIcon className={`h-5 w-5 ${sc.color}`} />
+                <div>
+                  <span className={`text-sm font-semibold ${sc.color}`}>
+                    {sc.label}
+                  </span>
+                  <span className="text-xs text-[#969BA8] ml-2">
+                    — {analysis.category}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 sm:ml-auto">
+                  <Clock className={`h-3 w-3 ${uc.color}`} />
+                  <span className={`text-xs font-mono ${uc.color}`}>
+                    Urgence {uc.label.toLowerCase()}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 sm:ml-auto">
-                <Clock className={`h-3 w-3 ${uc.color}`} />
-                <span className={`text-xs font-mono ${uc.color}`}>
-                  Urgence {uc.label.toLowerCase()}
+
+              {/* Summary */}
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
+                  Résumé
+                </p>
+                <p className="text-sm text-white/70">{analysis.summary}</p>
+              </div>
+
+              {/* Next action */}
+              <div className="flex items-start gap-2 rounded-lg bg-white/[0.045] p-3">
+                <ArrowRight className="h-4 w-4 text-[#FF6B3D] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-0.5">
+                    Action recommandée
+                  </p>
+                  <p className="text-sm text-white/80">
+                    {analysis.next_action}
+                  </p>
+                </div>
+              </div>
+
+              {/* Key info */}
+              {analysis.key_info && (
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b] mt-0.5 shrink-0" />
+                  <p className="text-xs text-[#f59e0b]">{analysis.key_info}</p>
+                </div>
+              )}
+
+              {/* Stage suggestion */}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#969BA8]">
+                <span>Stage suggéré :</span>
+                <span className="rounded bg-white/[0.06] px-2 py-0.5 font-mono text-white/50">
+                  {analysis.suggested_stage}
+                </span>
+                <span className="text-white/15">
+                  — prospect et deal mis à jour automatiquement
                 </span>
               </div>
+
+              {/* Reset */}
+              <button
+                onClick={() => {
+                  setAnalysis(null);
+                  setReplyContent("");
+                }}
+                className="text-xs text-[#969BA8] hover:text-white/60"
+              >
+                Analyser une autre réponse
+              </button>
             </div>
-
-            {/* Summary */}
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
-                Résumé
-              </p>
-              <p className="text-sm text-white/70">{analysis.summary}</p>
-            </div>
-
-            {/* Next action */}
-            <div className="flex items-start gap-2 rounded-lg bg-white/[0.045] p-3">
-              <ArrowRight className="h-4 w-4 text-[#3EF2A0] mt-0.5 shrink-0" />
-              <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-0.5">
-                  Action recommandée
-                </p>
-                <p className="text-sm text-white/80">{analysis.next_action}</p>
-              </div>
-            </div>
-
-            {/* Key info */}
-            {analysis.key_info && (
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b] mt-0.5 shrink-0" />
-                <p className="text-xs text-[#f59e0b]">{analysis.key_info}</p>
-              </div>
-            )}
-
-            {/* Stage suggestion */}
-            <div className="flex flex-wrap items-center gap-2 text-xs text-[#8FA69E]">
-              <span>Stage suggéré :</span>
-              <span className="rounded bg-white/[0.06] px-2 py-0.5 font-mono text-white/50">
-                {analysis.suggested_stage}
-              </span>
-              <span className="text-white/15">— prospect et deal mis à jour automatiquement</span>
-            </div>
-
-            {/* Reset */}
-            <button
-              onClick={() => { setAnalysis(null); setReplyContent(""); }}
-              className="text-xs text-[#8FA69E] hover:text-white/60"
-            >
-              Analyser une autre réponse
-            </button>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }

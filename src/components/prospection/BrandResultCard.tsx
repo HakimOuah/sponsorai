@@ -53,13 +53,17 @@ const criteriaLabels: Record<string, string> = {
   timing: "Timing",
 };
 
-export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCardProps) {
+export function BrandResultCard({
+  prospect,
+  selected,
+  onToggle,
+}: BrandResultCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const priorityColors: Record<string, string> = {
-    A: "bg-[#3EF2A0]/10 text-[#3EF2A0] border-[#3EF2A0]/20",
-    B: "bg-[#DDFBEA]/10 text-[#DDFBEA] border-[#DDFBEA]/20",
-    C: "bg-white/[0.06] text-[#8FA69E] border-[#3EF2A0]/10",
+    A: "bg-[#FF6B3D]/10 text-[#FF6B3D] border-[#FF6B3D]/20",
+    B: "bg-[#C8CEFF]/10 text-[#C8CEFF] border-[#C8CEFF]/20",
+    C: "bg-white/[0.06] text-[#969BA8] border-[#FF6B3D]/10",
   };
 
   const p = prospect.priority || "C";
@@ -68,7 +72,10 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
   // Check if relance is suggested: contacted > 7 days ago, no reply
   const lastEmail = prospect.emails?.[0];
   const daysSinceContact = lastEmail?.sentAt
-    ? Math.floor((Date.now() - new Date(lastEmail.sentAt).getTime()) / (1000 * 60 * 60 * 24))
+    ? Math.floor(
+        (Date.now() - new Date(lastEmail.sentAt).getTime()) /
+          (1000 * 60 * 60 * 24),
+      )
     : 0;
   const needsRelance =
     lastEmail &&
@@ -78,7 +85,9 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
     daysSinceContact >= 7;
 
   return (
-    <div className={`rounded-2xl border transition-all ${selected ? "border-[#3EF2A0]/30 bg-[#3EF2A0]/[0.02]" : "border-[#3EF2A0]/10 bg-[#061511]"}`}>
+    <div
+      className={`rounded-2xl border transition-all ${selected ? "border-[#FF6B3D]/30 bg-[#FF6B3D]/[0.02]" : "border-[#FF6B3D]/10 bg-[#141720]"}`}
+    >
       {/* Main row */}
       <div className="grid grid-cols-[auto_auto_minmax(0,1fr)_auto] gap-3 p-3 sm:flex sm:items-center sm:p-4">
         {/* Checkbox */}
@@ -86,25 +95,29 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
           type="checkbox"
           checked={selected}
           onChange={() => onToggle(prospect.id)}
-          className="h-4 w-4 rounded border-white/20 bg-white/5 text-[#3EF2A0] focus:ring-[#3EF2A0]/50 shrink-0"
+          className="h-4 w-4 rounded border-white/20 bg-white/5 text-[#FF6B3D] focus:ring-[#FF6B3D]/50 shrink-0"
         />
 
         {/* Priority badge */}
-        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border font-mono text-sm font-bold ${priorityColors[p]}`}>
+        <span
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border font-mono text-sm font-bold ${priorityColors[p]}`}
+        >
           {p}
         </span>
 
         {/* Brand info */}
         <div className="min-w-0 sm:flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-white truncate">{prospect.company.name}</h3>
+            <h3 className="font-semibold text-white truncate">
+              {prospect.company.name}
+            </h3>
             {prospect.deal && (
-              <span className="rounded-full bg-[#3EF2A0]/10 px-2 py-0.5 font-mono text-[10px] text-[#3EF2A0]">
+              <span className="rounded-full bg-[#FF6B3D]/10 px-2 py-0.5 font-mono text-[10px] text-[#FF6B3D]">
                 deal
               </span>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[#8FA69E]">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-[#969BA8]">
             {prospect.company.sector && <span>{prospect.company.sector}</span>}
             {prospect.company.country && (
               <>
@@ -112,10 +125,11 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
                 <span>{prospect.company.country}</span>
               </>
             )}
-            {(prospect.company.outreachReady || prospect.company.contacts.length > 0) && (
+            {(prospect.company.outreachReady ||
+              prospect.company.contacts.length > 0) && (
               <>
                 <span>·</span>
-                <span className="text-[#DDFBEA]">contact</span>
+                <span className="text-[#C8CEFF]">contact</span>
               </>
             )}
           </div>
@@ -126,11 +140,13 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
           <span className="font-mono text-lg font-bold text-white">
             {prospect.score ?? "—"}
           </span>
-          <span className="text-xs text-[#8FA69E]">/10</span>
+          <span className="text-xs text-[#969BA8]">/10</span>
         </div>
 
         {/* Status */}
-        <span className={`col-span-2 w-fit rounded-full px-2 py-0.5 font-mono text-[11px] capitalize shrink-0 sm:col-span-1 ${statusColor(prospect.status)}`}>
+        <span
+          className={`col-span-2 w-fit rounded-full px-2 py-0.5 font-mono text-[11px] capitalize shrink-0 sm:col-span-1 ${statusColor(prospect.status)}`}
+        >
           {prospect.status}
         </span>
 
@@ -148,28 +164,38 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
         {/* Expand */}
         <button
           onClick={() => setExpanded(!expanded)}
-          className="justify-self-end p-1 text-[#8FA69E] transition-colors hover:text-white/60 sm:shrink-0"
+          className="justify-self-end p-1 text-[#969BA8] transition-colors hover:text-white/60 sm:shrink-0"
         >
-          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {expanded ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )}
         </button>
       </div>
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-[#3EF2A0]/10 px-4 pb-4 pt-3">
+        <div className="border-t border-[#FF6B3D]/10 px-4 pb-4 pt-3">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Left: rationale + approach */}
             <div className="space-y-3">
               {prospect.rationale && (
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">Rationnel</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
+                    Rationnel
+                  </p>
                   <p className="text-sm text-white/70">{prospect.rationale}</p>
                 </div>
               )}
               {prospect.recommendedApproach && (
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">Approche recommandée</p>
-                  <p className="text-sm text-white/70">{prospect.recommendedApproach}</p>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
+                    Approche recommandée
+                  </p>
+                  <p className="text-sm text-white/70">
+                    {prospect.recommendedApproach}
+                  </p>
                 </div>
               )}
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -203,16 +229,21 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
             {/* Right: score breakdown */}
             {scoreDetails && (
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-2">Score détaillé</p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-2">
+                  Score détaillé
+                </p>
                 <div className="space-y-1.5">
                   {Object.entries(scoreDetails).map(([key, value]) => (
-                    <div key={key} className="grid grid-cols-[5rem_minmax(0,1fr)_1.5rem] items-center gap-2 sm:grid-cols-[6rem_minmax(0,1fr)_1.5rem]">
-                      <span className="truncate text-xs text-[#8FA69E]">
+                    <div
+                      key={key}
+                      className="grid grid-cols-[5rem_minmax(0,1fr)_1.5rem] items-center gap-2 sm:grid-cols-[6rem_minmax(0,1fr)_1.5rem]"
+                    >
+                      <span className="truncate text-xs text-[#969BA8]">
                         {criteriaLabels[key] || key}
                       </span>
                       <div className="flex-1 h-1.5 rounded-full bg-white/[0.06]">
                         <div
-                          className="h-full rounded-full bg-[#3EF2A0]"
+                          className="h-full rounded-full bg-[#FF6B3D]"
                           style={{ width: `${(value as number) * 10}%` }}
                         />
                       </div>
@@ -234,11 +265,11 @@ export function BrandResultCard({ prospect, selected, onToggle }: BrandResultCar
 function statusColor(status: string): string {
   const colors: Record<string, string> = {
     new: "bg-white/[0.06] text-white/50",
-    contacted: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
-    replied: "bg-[#3EF2A0]/10 text-[#3EF2A0]",
-    meeting: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
+    contacted: "bg-[#C8CEFF]/10 text-[#C8CEFF]",
+    replied: "bg-[#FF6B3D]/10 text-[#FF6B3D]",
+    meeting: "bg-[#C8CEFF]/10 text-[#C8CEFF]",
     offer: "bg-[#f59e0b]/10 text-[#f59e0b]",
-    signed: "bg-[#3EF2A0]/15 text-[#3EF2A0]",
+    signed: "bg-[#FF6B3D]/15 text-[#FF6B3D]",
     lost: "bg-red-500/10 text-red-400",
   };
   return colors[status] || colors.new;

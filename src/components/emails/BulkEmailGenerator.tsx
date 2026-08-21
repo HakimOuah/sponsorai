@@ -8,7 +8,10 @@ interface BulkEmailGeneratorProps {
   onDone?: () => void;
 }
 
-export function BulkEmailGenerator({ prospectIds, onDone }: BulkEmailGeneratorProps) {
+export function BulkEmailGenerator({
+  prospectIds,
+  onDone,
+}: BulkEmailGeneratorProps) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
@@ -54,10 +57,11 @@ export function BulkEmailGenerator({ prospectIds, onDone }: BulkEmailGeneratorPr
 
   if (done) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-[#3EF2A0]/20 bg-[#3EF2A0]/5 px-3 py-2 text-xs">
-        <Check className="h-3.5 w-3.5 text-[#3EF2A0]" />
-        <span className="text-[#3EF2A0]">
-          {results.success} email{results.success > 1 ? "s" : ""} généré{results.success > 1 ? "s" : ""}
+      <div className="flex items-center gap-2 rounded-lg border border-[#FF6B3D]/20 bg-[#FF6B3D]/5 px-3 py-2 text-xs">
+        <Check className="h-3.5 w-3.5 text-[#FF6B3D]" />
+        <span className="text-[#FF6B3D]">
+          {results.success} email{results.success > 1 ? "s" : ""} généré
+          {results.success > 1 ? "s" : ""}
         </span>
         {results.errors > 0 && (
           <span className="text-red-400">
@@ -70,14 +74,14 @@ export function BulkEmailGenerator({ prospectIds, onDone }: BulkEmailGeneratorPr
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-3 py-2 text-xs text-[#DDFBEA]">
+      <div className="flex items-center gap-2 rounded-lg border border-[#C8CEFF]/20 bg-[#C8CEFF]/5 px-3 py-2 text-xs text-[#C8CEFF]">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
         <span>
           Génération… {progress}/{prospectIds.length}
         </span>
         <div className="ml-2 h-1.5 flex-1 rounded-full bg-white/[0.06]">
           <div
-            className="h-full rounded-full bg-[#DDFBEA] transition-all"
+            className="h-full rounded-full bg-[#C8CEFF] transition-all"
             style={{
               width: `${(progress / prospectIds.length) * 100}%`,
             }}
@@ -91,7 +95,7 @@ export function BulkEmailGenerator({ prospectIds, onDone }: BulkEmailGeneratorPr
     <button
       onClick={generate}
       disabled={prospectIds.length === 0}
-      className="flex items-center justify-center gap-1.5 rounded-full border border-[#DDFBEA]/20 bg-[#DDFBEA]/10 px-3 py-2 text-xs font-medium text-[#DDFBEA] transition-colors hover:bg-[#DDFBEA]/20 disabled:opacity-40 sm:py-1.5"
+      className="flex items-center justify-center gap-1.5 rounded-full border border-[#C8CEFF]/20 bg-[#C8CEFF]/10 px-3 py-2 text-xs font-medium text-[#C8CEFF] transition-colors hover:bg-[#C8CEFF]/20 disabled:opacity-40 sm:py-1.5"
     >
       <PenTool className="h-3 w-3" />
       Générer {prospectIds.length} email{prospectIds.length > 1 ? "s" : ""}

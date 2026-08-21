@@ -23,7 +23,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-full bg-[#F8FAF7] px-6 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] disabled:opacity-50 sm:w-auto"
+      className="w-full rounded-full bg-[#FF6B3D] px-6 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F] disabled:opacity-50 sm:w-auto"
     >
       {pending
         ? "Enregistrement..."
@@ -46,22 +46,50 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
     <form action={action} className="min-w-0 space-y-6 sm:space-y-8">
       {/* Infos */}
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-4">
           Informations
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Nom" name="name" defaultValue={company?.name} required />
-          <Field label="Secteur" name="sector" defaultValue={company?.sector} placeholder="Tech, Fashion, F&B..." />
+          <Field
+            label="Nom"
+            name="name"
+            defaultValue={company?.name}
+            required
+          />
+          <Field
+            label="Secteur"
+            name="sector"
+            defaultValue={company?.sector}
+            placeholder="Tech, Fashion, F&B..."
+          />
           <Field label="Pays" name="country" defaultValue={company?.country} />
-          <Field label="Site web" name="website" defaultValue={company?.website} placeholder="https://..." />
-          <Field label="Budget estimé" name="estimatedBudget" defaultValue={company?.estimatedBudget} placeholder="petit / moyen / gros" />
-          <Field label="Effectif estimé" name="employeeCount" type="number" defaultValue={company?.employeeCount?.toString()} placeholder="5000" />
+          <Field
+            label="Site web"
+            name="website"
+            defaultValue={company?.website}
+            placeholder="https://..."
+          />
+          <Field
+            label="Budget estimé"
+            name="estimatedBudget"
+            defaultValue={company?.estimatedBudget}
+            placeholder="petit / moyen / gros"
+          />
+          <Field
+            label="Effectif estimé"
+            name="employeeCount"
+            type="number"
+            defaultValue={company?.employeeCount?.toString()}
+            placeholder="5000"
+          />
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1">Taille entreprise</label>
+            <label className="block text-sm font-medium text-white/60 mb-1">
+              Taille entreprise
+            </label>
             <select
               name="companySizeBucket"
               defaultValue={company?.companySizeBucket || "unknown"}
-              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#FF6B3D]/50 focus:outline-none transition-colors"
             >
               <option value="unknown">Non renseignée</option>
               <option value="1-10">1–10</option>
@@ -73,11 +101,13 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1">Source</label>
+            <label className="block text-sm font-medium text-white/60 mb-1">
+              Source
+            </label>
             <select
               name="source"
               defaultValue={company?.source || "manual"}
-              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+              className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white focus:border-[#FF6B3D]/50 focus:outline-none transition-colors"
             >
               <option value="manual">Manuel</option>
               <option value="scout">Scout IA</option>
@@ -86,24 +116,39 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
           </div>
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <TextArea label="Description" name="description" defaultValue={company?.description} />
-          <TextArea label="Sponsoring sportif existant" name="existingSportsSponsoring" defaultValue={company?.existingSportsSponsoring} />
+          <TextArea
+            label="Description"
+            name="description"
+            defaultValue={company?.description}
+          />
+          <TextArea
+            label="Sponsoring sportif existant"
+            name="existingSportsSponsoring"
+            defaultValue={company?.existingSportsSponsoring}
+          />
         </div>
       </section>
 
-      <section className="rounded-2xl border border-[#3EF2A0]/10 bg-[#3EF2A0]/[0.03] p-4">
+      <section className="rounded-2xl border border-[#FF6B3D]/10 bg-[#FF6B3D]/[0.03] p-4">
         <h2 className="text-sm font-semibold text-white">Contacts privés</h2>
-        <p className="mt-1 text-xs leading-relaxed text-[#8FA69E]">
-          Les décideurs sont gérés par l’Enrichisseur. Les emails, téléphones et liens directs restent côté serveur et ne sont pas exposés dans ce formulaire.
+        <p className="mt-1 text-xs leading-relaxed text-[#969BA8]">
+          Les décideurs sont gérés par l’Enrichisseur. Les emails, téléphones et
+          liens directs restent côté serveur et ne sont pas exposés dans ce
+          formulaire.
         </p>
       </section>
 
       {/* Notes */}
       <section>
-        <TextArea label="Notes" name="notes" defaultValue={company?.notes} placeholder="Notes internes..." />
+        <TextArea
+          label="Notes"
+          name="notes"
+          defaultValue={company?.notes}
+          placeholder="Notes internes..."
+        />
       </section>
 
-      <div className="flex flex-col gap-3 border-t border-[#3EF2A0]/10 pt-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 border-t border-[#FF6B3D]/10 pt-6 sm:flex-row sm:items-center">
         <SubmitButton isEdit={isEdit} />
       </div>
     </form>
@@ -111,34 +156,60 @@ export function CompanyForm({ action, company }: CompanyFormProps) {
 }
 
 function Field({
-  label, name, type = "text", defaultValue, required, placeholder,
+  label,
+  name,
+  type = "text",
+  defaultValue,
+  required,
+  placeholder,
 }: {
-  label: string; name: string; type?: string; defaultValue?: string | null; required?: boolean; placeholder?: string;
+  label: string;
+  name: string;
+  type?: string;
+  defaultValue?: string | null;
+  required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <div>
       <label className="block text-sm font-medium text-white/60 mb-1">
-        {label}{required && <span className="text-[#3EF2A0] ml-0.5">*</span>}
+        {label}
+        {required && <span className="text-[#FF6B3D] ml-0.5">*</span>}
       </label>
       <input
-        type={type} name={name} defaultValue={defaultValue ?? ""} required={required} placeholder={placeholder}
-        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+        type={type}
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        required={required}
+        placeholder={placeholder}
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#FF6B3D]/50 focus:outline-none transition-colors"
       />
     </div>
   );
 }
 
 function TextArea({
-  label, name, defaultValue, placeholder,
+  label,
+  name,
+  defaultValue,
+  placeholder,
 }: {
-  label: string; name: string; defaultValue?: string | null; placeholder?: string;
+  label: string;
+  name: string;
+  defaultValue?: string | null;
+  placeholder?: string;
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-white/60 mb-1">{label}</label>
+      <label className="block text-sm font-medium text-white/60 mb-1">
+        {label}
+      </label>
       <textarea
-        name={name} defaultValue={defaultValue ?? ""} placeholder={placeholder} rows={3}
-        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors resize-none"
+        name={name}
+        defaultValue={defaultValue ?? ""}
+        placeholder={placeholder}
+        rows={3}
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#FF6B3D]/50 focus:outline-none transition-colors resize-none"
       />
     </div>
   );

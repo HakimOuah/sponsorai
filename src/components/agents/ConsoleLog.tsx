@@ -23,8 +23,8 @@ export function ConsoleLog({ logs, isRunning }: ConsoleLogProps) {
   }, [logs]);
 
   const typeColors: Record<string, string> = {
-    info: "text-[#DDFBEA]",
-    success: "text-[#3EF2A0]",
+    info: "text-[#C8CEFF]",
+    success: "text-[#FF6B3D]",
     error: "text-red-400",
     data: "text-white/50",
   };
@@ -39,14 +39,14 @@ export function ConsoleLog({ logs, isRunning }: ConsoleLogProps) {
   };
 
   return (
-    <div className="rounded-xl border border-[#3EF2A0]/10 bg-[#080b12] overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-[#3EF2A0]/10 px-4 py-2.5">
-        <Terminal className="h-4 w-4 text-[#8FA69E]" />
-        <span className="font-mono text-xs text-[#8FA69E]">Console</span>
+    <div className="rounded-xl border border-[#FF6B3D]/10 bg-[#080b12] overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-[#FF6B3D]/10 px-4 py-2.5">
+        <Terminal className="h-4 w-4 text-[#969BA8]" />
+        <span className="font-mono text-xs text-[#969BA8]">Console</span>
         {isRunning && (
           <span className="ml-auto flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-[#3EF2A0] animate-pulse" />
-            <span className="font-mono text-[11px] text-[#3EF2A0]">
+            <span className="h-2 w-2 rounded-full bg-[#FF6B3D] animate-pulse" />
+            <span className="font-mono text-[11px] text-[#FF6B3D]">
               Running
             </span>
           </span>
@@ -54,17 +54,18 @@ export function ConsoleLog({ logs, isRunning }: ConsoleLogProps) {
       </div>
       <div className="h-80 overflow-y-auto p-4 font-mono text-xs leading-relaxed">
         {logs.length === 0 && !isRunning && (
-          <p className="text-[#8FA69E]/55">
-            Sélectionnez un profil sportif et lancez un scan pour voir les logs ici.
+          <p className="text-[#969BA8]/55">
+            Sélectionnez un profil sportif et lancez un scan pour voir les logs
+            ici.
           </p>
         )}
         {logs.map((log, i) => (
           <div key={i} className="flex gap-2 mb-0.5">
-            <span className="text-[#8FA69E]/55 shrink-0 w-16 text-right">
+            <span className="text-[#969BA8]/55 shrink-0 w-16 text-right">
               {formatTime(log.timestamp)}
             </span>
             {log.phase && (
-              <span className="text-[#8FA69E]/55 shrink-0 w-12">
+              <span className="text-[#969BA8]/55 shrink-0 w-12">
                 [{phaseLabels[log.phase] || log.phase}]
               </span>
             )}
@@ -75,8 +76,8 @@ export function ConsoleLog({ logs, isRunning }: ConsoleLogProps) {
         ))}
         {isRunning && (
           <div className="flex gap-2 mb-0.5">
-            <span className="text-[#8FA69E]/55 shrink-0 w-16" />
-            <span className="text-[#3EF2A0] animate-pulse">▊</span>
+            <span className="text-[#969BA8]/55 shrink-0 w-16" />
+            <span className="text-[#FF6B3D] animate-pulse">▊</span>
           </div>
         )}
         <div ref={bottomRef} />

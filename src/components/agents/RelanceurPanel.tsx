@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import {
-  RefreshCw,
-  Loader2,
-  Newspaper,
-  Mail,
-  Clock,
-  Zap,
-} from "lucide-react";
+import { RefreshCw, Loader2, Newspaper, Mail, Clock, Zap } from "lucide-react";
 
 interface NewsItem {
   headline: string;
@@ -42,8 +35,13 @@ interface RelanceurPanelProps {
   defaultProspectId?: string;
 }
 
-export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelProps) {
-  const [selectedProspect, setSelectedProspect] = useState(defaultProspectId || "");
+export function RelanceurPanel({
+  prospects,
+  defaultProspectId,
+}: RelanceurPanelProps) {
+  const [selectedProspect, setSelectedProspect] = useState(
+    defaultProspectId || "",
+  );
   const [isRunning, setIsRunning] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [result, setResult] = useState<RelanceurResult | null>(null);
@@ -117,7 +115,7 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
 
   const timingColor =
     result && result.timing_score >= 7
-      ? "text-[#3EF2A0]"
+      ? "text-[#FF6B3D]"
       : result && result.timing_score >= 4
         ? "text-[#f59e0b]"
         : "text-red-400";
@@ -161,28 +159,28 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
 
       {/* Console logs */}
       {logs.length > 0 && (
-        <div className="rounded-xl border border-[#3EF2A0]/10 bg-[#020403] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
+        <div className="rounded-xl border border-[#FF6B3D]/10 bg-[#0B0D12] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
           {logs.map((log, i) => (
             <div
               key={i}
               className={`flex items-start gap-2 ${
                 log.type === "success"
-                  ? "text-[#3EF2A0]"
+                  ? "text-[#FF6B3D]"
                   : log.type === "data"
-                    ? "text-[#DDFBEA]"
+                    ? "text-[#C8CEFF]"
                     : log.type === "error"
                       ? "text-red-400"
                       : "text-white/50"
               }`}
             >
-              <span className="text-[#8FA69E]/55 shrink-0">
+              <span className="text-[#969BA8]/55 shrink-0">
                 {(log.timestamp / 1000).toFixed(1)}s
               </span>
               <span>{log.message}</span>
             </div>
           ))}
           {isRunning && (
-            <div className="flex items-center gap-2 text-[#8FA69E]">
+            <div className="flex items-center gap-2 text-[#969BA8]">
               <Loader2 className="h-3 w-3 animate-spin" />
               <span>En cours…</span>
             </div>
@@ -209,7 +207,7 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
             <span className={`text-2xl font-bold font-mono ${timingColor}`}>
               {result.timing_score}/10
             </span>
-            <span className="text-xs text-[#8FA69E] flex-1">
+            <span className="text-xs text-[#969BA8] flex-1">
               {result.timing_rationale}
             </span>
           </div>
@@ -217,7 +215,7 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
           {/* News found */}
           <div className="app-panel p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Newspaper className="h-4 w-4 text-[#DDFBEA]" />
+              <Newspaper className="h-4 w-4 text-[#C8CEFF]" />
               <h4 className="text-sm font-semibold text-white">
                 Actualités trouvées ({result.news_found.length})
               </h4>
@@ -229,23 +227,27 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
                   className="rounded-lg bg-white/[0.02] p-3 space-y-1"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm text-white/80">{news.headline}</span>
+                    <span className="text-sm text-white/80">
+                      {news.headline}
+                    </span>
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 font-mono text-[10px] ${
                         news.relevance === "high"
-                          ? "bg-[#3EF2A0]/10 text-[#3EF2A0]"
-                          : "bg-[#DDFBEA]/10 text-[#DDFBEA]"
+                          ? "bg-[#FF6B3D]/10 text-[#FF6B3D]"
+                          : "bg-[#C8CEFF]/10 text-[#C8CEFF]"
                       }`}
                     >
                       {news.relevance}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-[#8FA69E]">
+                  <div className="flex items-center gap-2 text-xs text-[#969BA8]">
                     <span>{news.source}</span>
                     <span>·</span>
                     <span>{news.date}</span>
                   </div>
-                  <p className="text-xs text-[#8FA69E]">{news.hook_potential}</p>
+                  <p className="text-xs text-[#969BA8]">
+                    {news.hook_potential}
+                  </p>
                 </div>
               ))}
             </div>
@@ -255,7 +257,7 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
           <div className="flex items-start gap-2 rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/5 p-3">
             <Zap className="h-4 w-4 text-[#f59e0b] mt-0.5 shrink-0" />
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-0.5">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-0.5">
                 Accroche choisie
               </p>
               <p className="text-sm text-white/80">{result.best_hook}</p>
@@ -265,23 +267,23 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
           {/* Generated email */}
           <div className="app-panel p-4">
             <div className="flex items-center gap-2 mb-3">
-              <Mail className="h-4 w-4 text-[#DDFBEA]" />
+              <Mail className="h-4 w-4 text-[#C8CEFF]" />
               <h4 className="text-sm font-semibold text-white">
                 Email de relance généré
               </h4>
-              <span className="rounded-full bg-[#DDFBEA]/10 px-2 py-0.5 font-mono text-[10px] text-[#DDFBEA]">
+              <span className="rounded-full bg-[#C8CEFF]/10 px-2 py-0.5 font-mono text-[10px] text-[#C8CEFF]">
                 brouillon
               </span>
             </div>
             <div className="space-y-2">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-0.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-0.5">
                   Objet
                 </p>
                 <p className="text-sm text-white/80">{result.email.subject}</p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-0.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-0.5">
                   Corps
                 </p>
                 <p className="text-sm text-white/60 whitespace-pre-line leading-relaxed">
@@ -289,7 +291,7 @@ export function RelanceurPanel({ prospects, defaultProspectId }: RelanceurPanelP
                 </p>
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-[#8FA69E]">
+            <div className="mt-3 flex items-center gap-2 text-xs text-[#969BA8]">
               <Mail className="h-3 w-3" />
               <span>
                 Sauvegardé en brouillon — retrouvez-le dans la section Emails

@@ -58,7 +58,9 @@ export function ProspectList({ prospects }: ProspectListProps) {
   };
 
   const selectAllA = () => {
-    const aIds = prospects.filter((p) => p.priority === "A" && !p.deal).map((p) => p.id);
+    const aIds = prospects
+      .filter((p) => p.priority === "A" && !p.deal)
+      .map((p) => p.id);
     setSelected(new Set(aIds));
   };
 
@@ -77,7 +79,9 @@ export function ProspectList({ prospects }: ProspectListProps) {
 
     startTransition(async () => {
       const created = await bulkCreateDeals(ids);
-      setMessage(`${created} deal${created > 1 ? "s" : ""} créé${created > 1 ? "s" : ""}`);
+      setMessage(
+        `${created} deal${created > 1 ? "s" : ""} créé${created > 1 ? "s" : ""}`,
+      );
       setSelected(new Set());
       setTimeout(() => setMessage(""), 4000);
     });
@@ -92,13 +96,13 @@ export function ProspectList({ prospects }: ProspectListProps) {
     <div className="min-w-0">
       {/* Stats bar */}
       <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
-        <span className="rounded-full bg-[#3EF2A0]/10 px-3 py-1 font-mono text-xs text-[#3EF2A0]">
+        <span className="rounded-full bg-[#FF6B3D]/10 px-3 py-1 font-mono text-xs text-[#FF6B3D]">
           {countA} A
         </span>
-        <span className="rounded-full bg-[#DDFBEA]/10 px-3 py-1 font-mono text-xs text-[#DDFBEA]">
+        <span className="rounded-full bg-[#C8CEFF]/10 px-3 py-1 font-mono text-xs text-[#C8CEFF]">
           {countB} B
         </span>
-        <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#8FA69E]">
+        <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#969BA8]">
           {countC} C
         </span>
         {withDeal > 0 && (
@@ -121,19 +125,18 @@ export function ProspectList({ prospects }: ProspectListProps) {
           onClick={selectAllBPlus}
           className="flex items-center justify-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-2 text-xs text-white/50 transition-colors hover:bg-white/[0.06] sm:py-1.5"
         >
-          <CheckSquare className="h-3 w-3" />
-          A + B
+          <CheckSquare className="h-3 w-3" />A + B
         </button>
         {selected.size > 0 && (
           <>
             <button
               onClick={clearSelection}
-              className="flex items-center justify-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-2 text-xs text-[#8FA69E] transition-colors hover:bg-white/[0.06] sm:py-1.5"
+              className="flex items-center justify-center gap-1.5 rounded-full border border-white/[0.10] px-3 py-2 text-xs text-[#969BA8] transition-colors hover:bg-white/[0.06] sm:py-1.5"
             >
               <Square className="h-3 w-3" />
               Désélectionner
             </button>
-            <span className="text-xs text-[#8FA69E]">
+            <span className="text-xs text-[#969BA8]">
               {selected.size} sélectionné{selected.size > 1 ? "s" : ""}
             </span>
             <BulkEmailGenerator
@@ -143,10 +146,12 @@ export function ProspectList({ prospects }: ProspectListProps) {
             <button
               onClick={handleBulkDeals}
               disabled={isPending}
-              className="col-span-2 flex items-center justify-center gap-1.5 rounded-full bg-[#F8FAF7] px-3 py-2 text-xs font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] disabled:opacity-50 sm:ml-auto sm:py-1.5"
+              className="col-span-2 flex items-center justify-center gap-1.5 rounded-full bg-[#FF6B3D] px-3 py-2 text-xs font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F] disabled:opacity-50 sm:ml-auto sm:py-1.5"
             >
               <Handshake className="h-3 w-3" />
-              {isPending ? "Création..." : `Créer ${selected.size} deal${selected.size > 1 ? "s" : ""}`}
+              {isPending
+                ? "Création..."
+                : `Créer ${selected.size} deal${selected.size > 1 ? "s" : ""}`}
             </button>
           </>
         )}
@@ -154,7 +159,7 @@ export function ProspectList({ prospects }: ProspectListProps) {
 
       {/* Message */}
       {message && (
-        <div className="mb-4 rounded-lg border border-[#3EF2A0]/20 bg-[#3EF2A0]/5 px-4 py-2.5 text-sm text-[#3EF2A0]">
+        <div className="mb-4 rounded-lg border border-[#FF6B3D]/20 bg-[#FF6B3D]/5 px-4 py-2.5 text-sm text-[#FF6B3D]">
           {message}
         </div>
       )}
@@ -164,7 +169,11 @@ export function ProspectList({ prospects }: ProspectListProps) {
         {prospects.map((prospect) => (
           <BrandResultCard
             key={prospect.id}
-            prospect={{ ...prospect, scoreDetails: prospect.scoreDetails as ScoreDetails | null, emails: prospect.emails }}
+            prospect={{
+              ...prospect,
+              scoreDetails: prospect.scoreDetails as ScoreDetails | null,
+              emails: prospect.emails,
+            }}
             selected={selected.has(prospect.id)}
             onToggle={toggle}
           />

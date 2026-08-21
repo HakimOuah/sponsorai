@@ -6,11 +6,11 @@ import type { DealData } from "./DealCard";
 
 const STAGES: { key: string; label: string; color: string }[] = [
   { key: "lead", label: "Lead", color: "#6b7280" },
-  { key: "contacted", label: "Contacté", color: "#DDFBEA" },
-  { key: "meeting", label: "Meeting", color: "#DDFBEA" },
+  { key: "contacted", label: "Contacté", color: "#C8CEFF" },
+  { key: "meeting", label: "Meeting", color: "#C8CEFF" },
   { key: "negotiation", label: "Négo", color: "#f59e0b" },
   { key: "offer", label: "Offre", color: "#f97316" },
-  { key: "signed", label: "Signé", color: "#3EF2A0" },
+  { key: "signed", label: "Signé", color: "#FF6B3D" },
   { key: "lost", label: "Perdu", color: "#ef4444" },
 ];
 
@@ -25,7 +25,7 @@ export function KanbanBoard({ initialDeals }: KanbanBoardProps) {
   const handleDrop = (dealId: string, newStage: string) => {
     // Optimistic update
     setDeals((prev) =>
-      prev.map((d) => (d.id === dealId ? { ...d, stage: newStage } : d))
+      prev.map((d) => (d.id === dealId ? { ...d, stage: newStage } : d)),
     );
 
     // Persist to server
@@ -41,9 +41,14 @@ export function KanbanBoard({ initialDeals }: KanbanBoardProps) {
           setDeals((prev) =>
             prev.map((d) =>
               d.id === dealId
-                ? { ...d, stage: initialDeals.find((o) => o.id === dealId)?.stage || d.stage }
-                : d
-            )
+                ? {
+                    ...d,
+                    stage:
+                      initialDeals.find((o) => o.id === dealId)?.stage ||
+                      d.stage,
+                  }
+                : d,
+            ),
           );
         }
       } catch {
@@ -51,9 +56,13 @@ export function KanbanBoard({ initialDeals }: KanbanBoardProps) {
         setDeals((prev) =>
           prev.map((d) =>
             d.id === dealId
-              ? { ...d, stage: initialDeals.find((o) => o.id === dealId)?.stage || d.stage }
-              : d
-          )
+              ? {
+                  ...d,
+                  stage:
+                    initialDeals.find((o) => o.id === dealId)?.stage || d.stage,
+                }
+              : d,
+          ),
         );
       }
     });
@@ -73,23 +82,25 @@ export function KanbanBoard({ initialDeals }: KanbanBoardProps) {
       {/* Stats bar */}
       <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3 lg:flex lg:items-center lg:gap-6">
         <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 lg:border-0 lg:bg-transparent lg:p-0">
-          <span className="text-xs text-[#8FA69E]">Deals actifs</span>
-          <span className="font-mono text-sm font-bold text-white">{totalDeals}</span>
+          <span className="text-xs text-[#969BA8]">Deals actifs</span>
+          <span className="font-mono text-sm font-bold text-white">
+            {totalDeals}
+          </span>
         </div>
         <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 lg:border-0 lg:bg-transparent lg:p-0">
-          <span className="text-xs text-[#8FA69E]">Pipeline</span>
-          <span className="font-mono text-sm font-bold text-[#DDFBEA]">
+          <span className="text-xs text-[#969BA8]">Pipeline</span>
+          <span className="font-mono text-sm font-bold text-[#C8CEFF]">
             {totalValue.toLocaleString("fr-FR")}€
           </span>
         </div>
         <div className="flex items-center justify-between gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 lg:border-0 lg:bg-transparent lg:p-0">
-          <span className="text-xs text-[#8FA69E]">Signé</span>
-          <span className="font-mono text-sm font-bold text-[#3EF2A0]">
+          <span className="text-xs text-[#969BA8]">Signé</span>
+          <span className="font-mono text-sm font-bold text-[#FF6B3D]">
             {signedValue.toLocaleString("fr-FR")}€
           </span>
         </div>
         {isPending && (
-          <span className="text-xs text-[#8FA69E] animate-pulse lg:ml-auto">
+          <span className="text-xs text-[#969BA8] animate-pulse lg:ml-auto">
             Mise à jour…
           </span>
         )}

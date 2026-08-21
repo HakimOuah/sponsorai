@@ -1,4 +1,11 @@
-import { Camera, AtSign, TrendingUp, Handshake, Search, ScanLine } from "lucide-react";
+import {
+  Camera,
+  AtSign,
+  TrendingUp,
+  Handshake,
+  Search,
+  ScanLine,
+} from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import type { Player } from "@prisma/client";
 
@@ -30,7 +37,7 @@ export function PlayerStats({ player }: PlayerStatsProps) {
       label: "Engagement",
       value: player.engagementRate ? `${player.engagementRate}%` : "—",
       icon: TrendingUp,
-      color: "#3EF2A0",
+      color: "#FF6B3D",
     },
     {
       label: "Deals",
@@ -42,13 +49,13 @@ export function PlayerStats({ player }: PlayerStatsProps) {
       label: "Prospects",
       value: player._count.prospects.toString(),
       icon: Search,
-      color: "#DDFBEA",
+      color: "#C8CEFF",
     },
     {
       label: "Scans",
       value: player._count.scans.toString(),
       icon: ScanLine,
-      color: "#DDFBEA",
+      color: "#C8CEFF",
     },
   ];
 
@@ -57,13 +64,10 @@ export function PlayerStats({ player }: PlayerStatsProps) {
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
-          <div
-            key={stat.label}
-            className="app-soft-panel p-3"
-          >
+          <div key={stat.label} className="app-soft-panel p-3">
             <div className="flex items-center gap-2 mb-1">
               <Icon className="h-3.5 w-3.5" style={{ color: stat.color }} />
-              <span className="text-[11px] text-[#8FA69E]">{stat.label}</span>
+              <span className="text-[11px] text-[#969BA8]">{stat.label}</span>
             </div>
             <p className="font-mono text-lg font-semibold text-white">
               {stat.value}

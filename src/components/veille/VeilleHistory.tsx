@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 interface VeilleAlert {
-  type: "new_deal" | "contract_end" | "brand_entering" | "brand_leaving" | "trend";
+  type:
+    "new_deal" | "contract_end" | "brand_entering" | "brand_leaving" | "trend";
   priority: "high" | "medium" | "low";
   title: string;
   description: string;
@@ -48,18 +49,37 @@ interface VeilleHistoryProps {
   initialRuns: VeilleRunData[];
 }
 
-const typeConfig: Record<string, { icon: typeof TrendingUp; label: string; color: string }> = {
-  new_deal: { icon: ArrowRightLeft, label: "Nouveau deal", color: "text-[#DDFBEA]" },
-  contract_end: { icon: Clock, label: "Fin de contrat", color: "text-[#f59e0b]" },
-  brand_entering: { icon: LogIn, label: "Marque entrante", color: "text-[#3EF2A0]" },
-  brand_leaving: { icon: LogOut, label: "Marque sortante", color: "text-red-400" },
-  trend: { icon: TrendingUp, label: "Tendance", color: "text-[#DDFBEA]" },
+const typeConfig: Record<
+  string,
+  { icon: typeof TrendingUp; label: string; color: string }
+> = {
+  new_deal: {
+    icon: ArrowRightLeft,
+    label: "Nouveau deal",
+    color: "text-[#C8CEFF]",
+  },
+  contract_end: {
+    icon: Clock,
+    label: "Fin de contrat",
+    color: "text-[#f59e0b]",
+  },
+  brand_entering: {
+    icon: LogIn,
+    label: "Marque entrante",
+    color: "text-[#FF6B3D]",
+  },
+  brand_leaving: {
+    icon: LogOut,
+    label: "Marque sortante",
+    color: "text-red-400",
+  },
+  trend: { icon: TrendingUp, label: "Tendance", color: "text-[#C8CEFF]" },
 };
 
 const priorityConfig: Record<string, { bg: string; text: string }> = {
   high: { bg: "bg-red-500/10", text: "text-red-400" },
   medium: { bg: "bg-[#f59e0b]/10", text: "text-[#f59e0b]" },
-  low: { bg: "bg-white/[0.06]", text: "text-[#8FA69E]" },
+  low: { bg: "bg-white/[0.06]", text: "text-[#969BA8]" },
 };
 
 export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
@@ -125,7 +145,11 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
               } else if (data.type === "error") {
                 setLogs((prev) => [
                   ...prev,
-                  { message: data.message, type: "error", timestamp: Date.now() - startTime },
+                  {
+                    message: data.message,
+                    type: "error",
+                    timestamp: Date.now() - startTime,
+                  },
                 ]);
               }
             } catch {
@@ -151,7 +175,8 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
   const getFilteredAlerts = (alerts: VeilleAlert[]) => {
     return alerts.filter((a) => {
       if (filterType !== "all" && a.type !== filterType) return false;
-      if (filterPriority !== "all" && a.priority !== filterPriority) return false;
+      if (filterPriority !== "all" && a.priority !== filterPriority)
+        return false;
       return true;
     });
   };
@@ -164,7 +189,7 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
           <button
             onClick={launch}
             disabled={isRunning}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#DDFBEA] px-5 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#DDFBEA]/80 disabled:opacity-50 sm:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#C8CEFF] px-5 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#C8CEFF]/80 disabled:opacity-50 sm:w-auto"
           >
             {isRunning ? (
               <>
@@ -179,36 +204,37 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
             )}
           </button>
           {!isRunning && runs.length === 0 && (
-            <span className="text-xs text-[#8FA69E]">
-              Scanne l&apos;actualit&eacute; sponsoring sportif et identifie les opportunit&eacute;s
+            <span className="text-xs text-[#969BA8]">
+              Scanne l&apos;actualit&eacute; sponsoring sportif et identifie les
+              opportunit&eacute;s
             </span>
           )}
         </div>
 
         {/* Console logs */}
         {logs.length > 0 && (
-          <div className="rounded-xl border border-[#3EF2A0]/10 bg-[#020403] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
+          <div className="rounded-xl border border-[#FF6B3D]/10 bg-[#0B0D12] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
             {logs.map((log, i) => (
               <div
                 key={i}
                 className={`flex items-start gap-2 ${
                   log.type === "success"
-                    ? "text-[#3EF2A0]"
+                    ? "text-[#FF6B3D]"
                     : log.type === "data"
-                      ? "text-[#DDFBEA]"
+                      ? "text-[#C8CEFF]"
                       : log.type === "error"
                         ? "text-red-400"
                         : "text-white/50"
                 }`}
               >
-                <span className="text-[#8FA69E]/55 shrink-0">
+                <span className="text-[#969BA8]/55 shrink-0">
                   {(log.timestamp / 1000).toFixed(1)}s
                 </span>
                 <span>{log.message}</span>
               </div>
             ))}
             {isRunning && (
-              <div className="flex items-center gap-2 text-[#8FA69E]">
+              <div className="flex items-center gap-2 text-[#969BA8]">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 <span>En cours...</span>
               </div>
@@ -220,7 +246,7 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
       {/* Filters */}
       {runs.length > 0 && (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[auto_1fr_1fr] sm:items-center sm:gap-3">
-          <Filter className="h-4 w-4 text-[#8FA69E]" />
+          <Filter className="h-4 w-4 text-[#969BA8]" />
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
@@ -250,23 +276,22 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
       {runs.length === 0 && !isRunning ? (
         <div className="app-panel p-6 text-center sm:p-12">
           <Radar className="mx-auto mb-3 h-10 w-10 text-white/10" />
-          <p className="text-[#8FA69E] mb-2">Aucune veille lanc&eacute;e</p>
-          <p className="text-sm text-[#8FA69E]/55">
-            Lancez votre premi&egrave;re veille pour scanner le march&eacute; du sponsoring
+          <p className="text-[#969BA8] mb-2">Aucune veille lanc&eacute;e</p>
+          <p className="text-sm text-[#969BA8]/55">
+            Lancez votre premi&egrave;re veille pour scanner le march&eacute; du
+            sponsoring
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {runs.map((run) => {
             const isExpanded = expandedRun === run.id;
-            const alerts = (run.alerts as VeilleAlert[] | undefined | null) || [];
+            const alerts =
+              (run.alerts as VeilleAlert[] | undefined | null) || [];
             const filtered = getFilteredAlerts(alerts);
 
             return (
-              <div
-                key={run.id}
-                className="app-panel overflow-hidden"
-              >
+              <div key={run.id} className="app-panel overflow-hidden">
                 {/* Run header */}
                 <button
                   onClick={() => setExpandedRun(isExpanded ? null : run.id)}
@@ -286,8 +311,9 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                   </div>
                   <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:gap-3">
                     {run.alertsCount != null && (
-                      <span className="font-mono text-xs text-[#8FA69E]">
-                        {run.alertsCount} alerte{run.alertsCount !== 1 ? "s" : ""}
+                      <span className="font-mono text-xs text-[#969BA8]">
+                        {run.alertsCount} alerte
+                        {run.alertsCount !== 1 ? "s" : ""}
                       </span>
                     )}
                     {run.highCount != null && run.highCount > 0 && (
@@ -296,25 +322,25 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                       </span>
                     )}
                     {run.duration != null && (
-                      <span className="font-mono text-xs text-[#8FA69E]">
+                      <span className="font-mono text-xs text-[#969BA8]">
                         {run.duration}s
                       </span>
                     )}
                     {isExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-[#8FA69E]" />
+                      <ChevronUp className="h-4 w-4 text-[#969BA8]" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-[#8FA69E]" />
+                      <ChevronDown className="h-4 w-4 text-[#969BA8]" />
                     )}
                   </div>
                 </button>
 
                 {/* Expanded content */}
                 {isExpanded && run.status === "completed" && (
-                  <div className="border-t border-[#3EF2A0]/10 px-4 pb-4 pt-3 space-y-4">
+                  <div className="border-t border-[#FF6B3D]/10 px-4 pb-4 pt-3 space-y-4">
                     {/* Market summary */}
                     {run.marketSummary && (
-                      <div className="rounded-lg border border-[#a855f7]/20 bg-[#DDFBEA]/5 p-4">
-                        <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
+                      <div className="rounded-lg border border-[#a855f7]/20 bg-[#C8CEFF]/5 p-4">
+                        <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
                           R&eacute;sum&eacute; du march&eacute;
                         </p>
                         <p className="text-sm text-white/70 leading-relaxed">
@@ -326,16 +352,19 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                     {/* Stats */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <span className="rounded-full bg-red-500/10 px-3 py-1 font-mono text-xs text-red-400">
-                        {alerts.filter((a) => a.priority === "high").length} haute
+                        {alerts.filter((a) => a.priority === "high").length}{" "}
+                        haute
                       </span>
                       <span className="rounded-full bg-[#f59e0b]/10 px-3 py-1 font-mono text-xs text-[#f59e0b]">
-                        {alerts.filter((a) => a.priority === "medium").length} moyenne
+                        {alerts.filter((a) => a.priority === "medium").length}{" "}
+                        moyenne
                       </span>
-                      <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#8FA69E]">
-                        {alerts.filter((a) => a.priority === "low").length} basse
+                      <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#969BA8]">
+                        {alerts.filter((a) => a.priority === "low").length}{" "}
+                        basse
                       </span>
                       {filtered.length !== alerts.length && (
-                        <span className="text-xs text-[#8FA69E]/55">
+                        <span className="text-xs text-[#969BA8]/55">
                           {filtered.length} sur {alerts.length} affich&eacute;es
                         </span>
                       )}
@@ -346,17 +375,21 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                       {filtered
                         .sort((a, b) => {
                           const order = { high: 0, medium: 1, low: 2 };
-                          return (order[a.priority] ?? 2) - (order[b.priority] ?? 2);
+                          return (
+                            (order[a.priority] ?? 2) - (order[b.priority] ?? 2)
+                          );
                         })
                         .map((alert, i) => {
                           const tc = typeConfig[alert.type] || typeConfig.trend;
                           const TypeIcon = tc.icon;
-                          const pc = priorityConfig[alert.priority] || priorityConfig.low;
+                          const pc =
+                            priorityConfig[alert.priority] ||
+                            priorityConfig.low;
 
                           return (
                             <div
                               key={i}
-                              className="rounded-xl border border-white/[0.10] bg-[#020403] p-4 space-y-2"
+                              className="rounded-xl border border-white/[0.10] bg-[#0B0D12] p-4 space-y-2"
                             >
                               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                 <div className="flex min-w-0 items-center gap-2">
@@ -366,10 +399,14 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                                   </h4>
                                 </div>
                                 <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-                                  <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${tc.color} bg-white/[0.06]`}>
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${tc.color} bg-white/[0.06]`}
+                                  >
                                     {tc.label}
                                   </span>
-                                  <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${pc.text} ${pc.bg}`}>
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${pc.text} ${pc.bg}`}
+                                  >
                                     {alert.priority}
                                   </span>
                                 </div>
@@ -377,10 +414,12 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                               <p className="text-sm text-white/60 leading-relaxed">
                                 {alert.description}
                               </p>
-                              <p className="text-xs text-white/25">Source : {alert.source}</p>
+                              <p className="text-xs text-white/25">
+                                Source : {alert.source}
+                              </p>
                               <div className="flex flex-wrap gap-2">
                                 {alert.opportunity && (
-                                  <div className="flex items-start gap-1.5 rounded-full bg-[#F8FAF7]/5 border border-[#3EF2A0]/10 px-2.5 py-1.5 text-xs text-[#3EF2A0]">
+                                  <div className="flex items-start gap-1.5 rounded-full bg-[#FF6B3D]/5 border border-[#FF6B3D]/10 px-2.5 py-1.5 text-xs text-[#FF6B3D]">
                                     <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
                                     <span>{alert.opportunity}</span>
                                   </div>
@@ -392,7 +431,8 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
                                   </div>
                                 )}
                               </div>
-                              {(alert.related_player || alert.related_brand) && (
+                              {(alert.related_player ||
+                                alert.related_brand) && (
                                 <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/25">
                                   {alert.related_player && (
                                     <span className="rounded bg-white/[0.06] px-1.5 py-0.5">
@@ -415,9 +455,10 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
 
                 {/* Failed state */}
                 {isExpanded && run.status === "failed" && (
-                  <div className="border-t border-[#3EF2A0]/10 px-4 py-4">
+                  <div className="border-t border-[#FF6B3D]/10 px-4 py-4">
                     <div className="rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
-                      Cette veille a &eacute;chou&eacute;. Relancez-en une nouvelle.
+                      Cette veille a &eacute;chou&eacute;. Relancez-en une
+                      nouvelle.
                     </div>
                   </div>
                 )}
@@ -432,13 +473,15 @@ export function VeilleHistory({ initialRuns }: VeilleHistoryProps) {
 
 function RunStatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string }> = {
-    running: { bg: "bg-[#DDFBEA]/10", text: "text-[#DDFBEA]" },
-    completed: { bg: "bg-[#3EF2A0]/10", text: "text-[#3EF2A0]" },
+    running: { bg: "bg-[#C8CEFF]/10", text: "text-[#C8CEFF]" },
+    completed: { bg: "bg-[#FF6B3D]/10", text: "text-[#FF6B3D]" },
     failed: { bg: "bg-red-500/10", text: "text-red-400" },
   };
   const c = config[status] || config.running;
   return (
-    <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] capitalize shrink-0 ${c.bg} ${c.text}`}>
+    <span
+      className={`rounded-full px-2 py-0.5 font-mono text-[11px] capitalize shrink-0 ${c.bg} ${c.text}`}
+    >
       {status}
     </span>
   );

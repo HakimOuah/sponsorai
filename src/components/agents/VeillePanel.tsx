@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 
 interface VeilleAlert {
-  type: "new_deal" | "contract_end" | "brand_entering" | "brand_leaving" | "trend";
+  type:
+    "new_deal" | "contract_end" | "brand_entering" | "brand_leaving" | "trend";
   priority: "high" | "medium" | "low";
   title: string;
   description: string;
@@ -104,18 +105,37 @@ export function VeillePanel() {
     }
   }, [isRunning]);
 
-  const typeConfig: Record<string, { icon: typeof TrendingUp; label: string; color: string }> = {
-    new_deal: { icon: ArrowRightLeft, label: "Nouveau deal", color: "text-[#DDFBEA]" },
-    contract_end: { icon: Clock, label: "Fin de contrat", color: "text-[#f59e0b]" },
-    brand_entering: { icon: LogIn, label: "Marque entrante", color: "text-[#3EF2A0]" },
-    brand_leaving: { icon: LogOut, label: "Marque sortante", color: "text-red-400" },
-    trend: { icon: TrendingUp, label: "Tendance", color: "text-[#DDFBEA]" },
+  const typeConfig: Record<
+    string,
+    { icon: typeof TrendingUp; label: string; color: string }
+  > = {
+    new_deal: {
+      icon: ArrowRightLeft,
+      label: "Nouveau deal",
+      color: "text-[#C8CEFF]",
+    },
+    contract_end: {
+      icon: Clock,
+      label: "Fin de contrat",
+      color: "text-[#f59e0b]",
+    },
+    brand_entering: {
+      icon: LogIn,
+      label: "Marque entrante",
+      color: "text-[#FF6B3D]",
+    },
+    brand_leaving: {
+      icon: LogOut,
+      label: "Marque sortante",
+      color: "text-red-400",
+    },
+    trend: { icon: TrendingUp, label: "Tendance", color: "text-[#C8CEFF]" },
   };
 
   const priorityConfig: Record<string, { bg: string; text: string }> = {
     high: { bg: "bg-red-500/10", text: "text-red-400" },
     medium: { bg: "bg-[#f59e0b]/10", text: "text-[#f59e0b]" },
-    low: { bg: "bg-white/[0.06]", text: "text-[#8FA69E]" },
+    low: { bg: "bg-white/[0.06]", text: "text-[#969BA8]" },
   };
 
   return (
@@ -125,7 +145,7 @@ export function VeillePanel() {
         <button
           onClick={launch}
           disabled={isRunning}
-          className="flex items-center gap-2 rounded-lg bg-[#DDFBEA] px-5 py-2.5 text-sm font-semibold text-[#020403] hover:bg-[#DDFBEA]/80 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg bg-[#C8CEFF] px-5 py-2.5 text-sm font-semibold text-[#0B0D12] hover:bg-[#C8CEFF]/80 transition-colors disabled:opacity-50"
         >
           {isRunning ? (
             <>
@@ -140,36 +160,37 @@ export function VeillePanel() {
           )}
         </button>
         {!isRunning && !result && (
-          <span className="text-xs text-[#8FA69E]">
-            Scanne l&apos;actualité sponsoring sportif et identifie les opportunités
+          <span className="text-xs text-[#969BA8]">
+            Scanne l&apos;actualité sponsoring sportif et identifie les
+            opportunités
           </span>
         )}
       </div>
 
       {/* Console logs */}
       {logs.length > 0 && (
-        <div className="rounded-xl border border-[#3EF2A0]/10 bg-[#020403] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
+        <div className="rounded-xl border border-[#FF6B3D]/10 bg-[#0B0D12] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
           {logs.map((log, i) => (
             <div
               key={i}
               className={`flex items-start gap-2 ${
                 log.type === "success"
-                  ? "text-[#3EF2A0]"
+                  ? "text-[#FF6B3D]"
                   : log.type === "data"
-                    ? "text-[#DDFBEA]"
+                    ? "text-[#C8CEFF]"
                     : log.type === "error"
                       ? "text-red-400"
                       : "text-white/50"
               }`}
             >
-              <span className="text-[#8FA69E]/55 shrink-0">
+              <span className="text-[#969BA8]/55 shrink-0">
                 {(log.timestamp / 1000).toFixed(1)}s
               </span>
               <span>{log.message}</span>
             </div>
           ))}
           {isRunning && (
-            <div className="flex items-center gap-2 text-[#8FA69E]">
+            <div className="flex items-center gap-2 text-[#969BA8]">
               <Loader2 className="h-3 w-3 animate-spin" />
               <span>En cours…</span>
             </div>
@@ -188,8 +209,8 @@ export function VeillePanel() {
       {result && (
         <div className="space-y-4">
           {/* Market summary */}
-          <div className="rounded-lg border border-[#a855f7]/20 bg-[#DDFBEA]/5 p-4">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
+          <div className="rounded-lg border border-[#a855f7]/20 bg-[#C8CEFF]/5 p-4">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
               Résumé du marché
             </p>
             <p className="text-sm text-white/70 leading-relaxed">
@@ -203,9 +224,10 @@ export function VeillePanel() {
               {result.alerts.filter((a) => a.priority === "high").length} haute
             </span>
             <span className="rounded-full bg-[#f59e0b]/10 px-3 py-1 font-mono text-xs text-[#f59e0b]">
-              {result.alerts.filter((a) => a.priority === "medium").length} moyenne
+              {result.alerts.filter((a) => a.priority === "medium").length}{" "}
+              moyenne
             </span>
-            <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#8FA69E]">
+            <span className="rounded-full bg-white/[0.06] px-3 py-1 font-mono text-xs text-[#969BA8]">
               {result.alerts.filter((a) => a.priority === "low").length} basse
             </span>
           </div>
@@ -223,10 +245,7 @@ export function VeillePanel() {
                 const pc = priorityConfig[alert.priority] || priorityConfig.low;
 
                 return (
-                  <div
-                    key={i}
-                    className="app-panel p-4 space-y-2"
-                  >
+                  <div key={i} className="app-panel p-4 space-y-2">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -236,10 +255,14 @@ export function VeillePanel() {
                         </h4>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${tc.color} bg-white/[0.06]`}>
+                        <span
+                          className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${tc.color} bg-white/[0.06]`}
+                        >
                           {tc.label}
                         </span>
-                        <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${pc.text} ${pc.bg}`}>
+                        <span
+                          className={`rounded-full px-2 py-0.5 font-mono text-[10px] ${pc.text} ${pc.bg}`}
+                        >
                           {alert.priority}
                         </span>
                       </div>
@@ -251,12 +274,14 @@ export function VeillePanel() {
                     </p>
 
                     {/* Source */}
-                    <p className="text-xs text-white/25">Source : {alert.source}</p>
+                    <p className="text-xs text-white/25">
+                      Source : {alert.source}
+                    </p>
 
                     {/* Opportunity / Threat */}
                     <div className="flex flex-wrap gap-2">
                       {alert.opportunity && (
-                        <div className="flex items-start gap-1.5 rounded-full bg-[#F8FAF7]/5 border border-[#3EF2A0]/10 px-2.5 py-1.5 text-xs text-[#3EF2A0]">
+                        <div className="flex items-start gap-1.5 rounded-full bg-[#FF6B3D]/5 border border-[#FF6B3D]/10 px-2.5 py-1.5 text-xs text-[#FF6B3D]">
                           <TrendingUp className="h-3 w-3 mt-0.5 shrink-0" />
                           <span>{alert.opportunity}</span>
                         </div>
@@ -290,8 +315,9 @@ export function VeillePanel() {
           </div>
 
           {/* Note */}
-          <p className="text-xs text-[#8FA69E]/55">
-            Les alertes de priorité haute sont automatiquement enregistrées dans le journal d&apos;activité.
+          <p className="text-xs text-[#969BA8]/55">
+            Les alertes de priorité haute sont automatiquement enregistrées dans
+            le journal d&apos;activité.
           </p>
         </div>
       )}

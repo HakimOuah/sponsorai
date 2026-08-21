@@ -1,12 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  Pencil,
-  ArrowLeft,
-  Globe,
-  MapPin,
-  ShieldCheck,
-} from "lucide-react";
+import { Pencil, ArrowLeft, Globe, MapPin, ShieldCheck } from "lucide-react";
 import { getCompany } from "@/lib/actions/companies";
 import { DeleteCompanyButton } from "@/components/companies/DeleteCompanyButton";
 import { EnrichButton } from "@/components/companies/EnrichButton";
@@ -27,7 +21,7 @@ export default async function CompanyDetailPage({
     <div className="min-w-0">
       <Link
         href="/companies"
-        className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
+        className="inline-flex items-center gap-1.5 text-sm text-[#969BA8] hover:text-white/70 transition-colors mb-4"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         Entreprises
@@ -36,12 +30,14 @@ export default async function CompanyDetailPage({
       {/* Header */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#DDFBEA]/10 text-[#DDFBEA] font-bold text-xl">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-[#C8CEFF]/10 text-[#C8CEFF] font-bold text-xl">
             {initial}
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">{company.name}</h1>
-            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#8FA69E]">
+            <h1 className="truncate text-2xl font-semibold tracking-[-0.03em] text-[#F6F4EF] sm:text-3xl">
+              {company.name}
+            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[#969BA8]">
               {company.sector && <span>{company.sector}</span>}
               {company.country && (
                 <>
@@ -71,42 +67,58 @@ export default async function CompanyDetailPage({
 
       {/* KPI row */}
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Stat label="Prospects" value={company._count.prospects} color="#DDFBEA" />
-        <Stat label="Deals" value={company._count.deals} color="#3EF2A0" />
-        <Stat label="Emails" value={company._count.emails} color="#DDFBEA" />
+        <Stat
+          label="Prospects"
+          value={company._count.prospects}
+          color="#C8CEFF"
+        />
+        <Stat label="Deals" value={company._count.deals} color="#FF6B3D" />
+        <Stat label="Emails" value={company._count.emails} color="#C8CEFF" />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Info */}
         <div className="app-panel p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
             Informations
           </h2>
           <div className="space-y-3">
             {company.website && (
-              <InfoRow icon={Globe} label="Site web" value={company.website} isLink />
+              <InfoRow
+                icon={Globe}
+                label="Site web"
+                value={company.website}
+                isLink
+              />
             )}
             {company.description && (
               <div>
-                <p className="text-xs text-[#8FA69E] mb-1">Description</p>
+                <p className="text-xs text-[#969BA8] mb-1">Description</p>
                 <p className="text-sm text-white/70">{company.description}</p>
               </div>
             )}
             {company.existingSportsSponsoring && (
               <div>
-                <p className="text-xs text-[#8FA69E] mb-1">Sponsoring sportif</p>
-                <p className="text-sm text-white/70">{company.existingSportsSponsoring}</p>
+                <p className="text-xs text-[#969BA8] mb-1">
+                  Sponsoring sportif
+                </p>
+                <p className="text-sm text-white/70">
+                  {company.existingSportsSponsoring}
+                </p>
               </div>
             )}
             {company.estimatedBudget && (
               <div>
-                <p className="text-xs text-[#8FA69E] mb-1">Budget estimé</p>
-                <p className="text-sm text-white/70">{company.estimatedBudget}</p>
+                <p className="text-xs text-[#969BA8] mb-1">Budget estimé</p>
+                <p className="text-sm text-white/70">
+                  {company.estimatedBudget}
+                </p>
               </div>
             )}
-            {(company.employeeCount !== null || company.companySizeBucket !== "unknown") && (
+            {(company.employeeCount !== null ||
+              company.companySizeBucket !== "unknown") && (
               <div>
-                <p className="text-xs text-[#8FA69E] mb-1">Taille entreprise</p>
+                <p className="text-xs text-[#969BA8] mb-1">Taille entreprise</p>
                 <p className="text-sm text-white/70">
                   {company.employeeCount !== null
                     ? `${company.employeeCount.toLocaleString("fr-FR")} employés`
@@ -116,7 +128,7 @@ export default async function CompanyDetailPage({
             )}
             {company.notes && (
               <div>
-                <p className="text-xs text-[#8FA69E] mb-1">Notes</p>
+                <p className="text-xs text-[#969BA8] mb-1">Notes</p>
                 <p className="text-sm text-white/70">{company.notes}</p>
               </div>
             )}
@@ -125,68 +137,112 @@ export default async function CompanyDetailPage({
 
         {/* Contact */}
         <div className="app-panel p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
             Contact
           </h2>
           {company.contacts.length > 0 ? (
             <div className="space-y-2">
               {company.contacts.map((contact) => (
-                <div key={contact.id} className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
+                <div
+                  key={contact.id}
+                  className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3"
+                >
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-sm text-white/80">
-                      <ShieldCheck className="h-3.5 w-3.5 text-[#3EF2A0]" /> {contact.roleRaw}
+                      <ShieldCheck className="h-3.5 w-3.5 text-[#FF6B3D]" />{" "}
+                      {contact.roleRaw}
                     </span>
-                    <span className="font-mono text-xs text-[#3EF2A0]">{contact.contactScore ?? "—"}/100</span>
+                    <span className="font-mono text-xs text-[#FF6B3D]">
+                      {contact.contactScore ?? "—"}/100
+                    </span>
                   </div>
-                  <p className="mt-1 text-xs text-[#8FA69E]">
-                    {contact.employmentStatus === "verified_current" ? "Poste actuel vérifié" : "Poste à vérifier"} · contactabilité {contact.contactability}
+                  <p className="mt-1 text-xs text-[#969BA8]">
+                    {contact.employmentStatus === "verified_current"
+                      ? "Poste actuel vérifié"
+                      : "Poste à vérifier"}{" "}
+                    · contactabilité {contact.contactability}
                   </p>
-                  <p className="mt-1 text-[11px] text-[#8FA69E]/60">Coordonnées conservées côté serveur</p>
+                  <p className="mt-1 text-[11px] text-[#969BA8]/60">
+                    Coordonnées conservées côté serveur
+                  </p>
                 </div>
               ))}
             </div>
           ) : company.contactRole || company.outreachReady ? (
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
-              <p className="text-sm text-white/80">{company.contactRole || "Décideur qualifié"}</p>
-              <p className="mt-1 text-xs text-[#8FA69E]">Contactabilité {company.contactEmailStatus} · coordonnées privées</p>
+              <p className="text-sm text-white/80">
+                {company.contactRole || "Décideur qualifié"}
+              </p>
+              <p className="mt-1 text-xs text-[#969BA8]">
+                Contactabilité {company.contactEmailStatus} · coordonnées
+                privées
+              </p>
             </div>
           ) : (
-            <p className="text-sm text-[#8FA69E]/55 mb-3">Aucun contact renseigné</p>
+            <p className="text-sm text-[#969BA8]/55 mb-3">
+              Aucun contact renseigné
+            </p>
           )}
-          <div className="mt-4 pt-4 border-t border-[#3EF2A0]/10">
+          <div className="mt-4 pt-4 border-t border-[#FF6B3D]/10">
             <EnrichButton companyId={company.id} companyName={company.name} />
           </div>
         </div>
       </div>
 
-      {(company.opportunitySignals.length > 0 || company.sponsorships.length > 0) && (
+      {(company.opportunitySignals.length > 0 ||
+        company.sponsorships.length > 0) && (
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">Opportunity signals</h2>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#969BA8]">
+              Opportunity signals
+            </h2>
             <div className="app-panel divide-y divide-white/[0.04]">
               {company.opportunitySignals.map((signal) => (
                 <div key={signal.id} className="p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium text-white/80">{signal.title}</p>
-                    <span className="font-mono text-xs text-[#3EF2A0]">{Math.round(signal.strength * 100)}</span>
+                    <p className="text-sm font-medium text-white/80">
+                      {signal.title}
+                    </p>
+                    <span className="font-mono text-xs text-[#FF6B3D]">
+                      {Math.round(signal.strength * 100)}
+                    </span>
                   </div>
-                  <p className="mt-1 text-xs leading-relaxed text-[#8FA69E]">{signal.description}</p>
-                  <p className="mt-1 text-[10px] uppercase tracking-wider text-[#8FA69E]/55">{signal.type} · {signal.status}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-[#969BA8]">
+                    {signal.description}
+                  </p>
+                  <p className="mt-1 text-[10px] uppercase tracking-wider text-[#969BA8]/55">
+                    {signal.type} · {signal.status}
+                  </p>
                 </div>
               ))}
-              {company.opportunitySignals.length === 0 && <p className="p-4 text-xs text-[#8FA69E]">Aucun signal structuré.</p>}
+              {company.opportunitySignals.length === 0 && (
+                <p className="p-4 text-xs text-[#969BA8]">
+                  Aucun signal structuré.
+                </p>
+              )}
             </div>
           </div>
           <div>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">Sponsorship graph</h2>
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#969BA8]">
+              Sponsorship graph
+            </h2>
             <div className="app-panel divide-y divide-white/[0.04]">
               {company.sponsorships.map((item) => (
                 <div key={item.id} className="p-4">
-                  <p className="text-sm font-medium text-white/80">{item.rightsHolder}</p>
-                  <p className="mt-1 text-xs text-[#8FA69E]">{item.sport || "Sport non précisé"}{item.category ? ` · ${item.category}` : ""} · {item.status}</p>
+                  <p className="text-sm font-medium text-white/80">
+                    {item.rightsHolder}
+                  </p>
+                  <p className="mt-1 text-xs text-[#969BA8]">
+                    {item.sport || "Sport non précisé"}
+                    {item.category ? ` · ${item.category}` : ""} · {item.status}
+                  </p>
                 </div>
               ))}
-              {company.sponsorships.length === 0 && <p className="p-4 text-xs text-[#8FA69E]">Aucun sponsoring observé.</p>}
+              {company.sponsorships.length === 0 && (
+                <p className="p-4 text-xs text-[#969BA8]">
+                  Aucun sponsoring observé.
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -195,13 +251,13 @@ export default async function CompanyDetailPage({
       {/* Prospects */}
       {company.prospects.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
             Prospects ({company.prospects.length})
           </h2>
           <div className="app-panel overflow-x-auto">
             <table className="min-w-[660px] w-full text-sm">
               <thead>
-                <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
+                <tr className="border-b border-[#FF6B3D]/10 text-left text-xs text-[#969BA8]">
                   <th className="px-4 py-2.5 font-medium">Profil</th>
                   <th className="px-4 py-2.5 font-medium">Score</th>
                   <th className="px-4 py-2.5 font-medium">Priorité</th>
@@ -211,21 +267,33 @@ export default async function CompanyDetailPage({
               </thead>
               <tbody>
                 {company.prospects.map((p) => (
-                  <tr key={p.id} className="border-b border-white/[0.04] last:border-0">
+                  <tr
+                    key={p.id}
+                    className="border-b border-white/[0.04] last:border-0"
+                  >
                     <td className="px-4 py-2.5 text-white/80">
-                      <Link href={`/players/${p.playerId}`} className="hover:text-[#3EF2A0] transition-colors">
+                      <Link
+                        href={`/players/${p.playerId}`}
+                        className="hover:text-[#FF6B3D] transition-colors"
+                      >
                         {p.player.firstName} {p.player.lastName}
                       </Link>
-                      <span className="ml-2 text-xs text-[#8FA69E]">{p.player.club}</span>
+                      <span className="ml-2 text-xs text-[#969BA8]">
+                        {p.player.club}
+                      </span>
                     </td>
-                    <td className="px-4 py-2.5 font-mono text-white/60">{p.score ?? "—"}/10</td>
+                    <td className="px-4 py-2.5 font-mono text-white/60">
+                      {p.score ?? "—"}/10
+                    </td>
                     <td className="px-4 py-2.5">
                       <PriorityBadge priority={p.priority} />
                     </td>
                     <td className="px-4 py-2.5">
                       <StatusBadge status={p.status} />
                     </td>
-                    <td className="px-4 py-2.5 text-[#8FA69E]">{p.partnershipType || "—"}</td>
+                    <td className="px-4 py-2.5 text-[#969BA8]">
+                      {p.partnershipType || "—"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -237,13 +305,13 @@ export default async function CompanyDetailPage({
       {/* Deals */}
       {company.deals.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
             Deals ({company.deals.length})
           </h2>
           <div className="app-panel overflow-x-auto">
             <table className="min-w-[600px] w-full text-sm">
               <thead>
-                <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
+                <tr className="border-b border-[#FF6B3D]/10 text-left text-xs text-[#969BA8]">
                   <th className="px-4 py-2.5 font-medium">Profil</th>
                   <th className="px-4 py-2.5 font-medium">Stage</th>
                   <th className="px-4 py-2.5 font-medium">Type</th>
@@ -252,16 +320,28 @@ export default async function CompanyDetailPage({
               </thead>
               <tbody>
                 {company.deals.map((d) => (
-                  <tr key={d.id} className="border-b border-white/[0.04] last:border-0">
+                  <tr
+                    key={d.id}
+                    className="border-b border-white/[0.04] last:border-0"
+                  >
                     <td className="px-4 py-2.5 text-white/80">
-                      <Link href={`/players/${d.playerId}`} className="hover:text-[#3EF2A0] transition-colors">
+                      <Link
+                        href={`/players/${d.playerId}`}
+                        className="hover:text-[#FF6B3D] transition-colors"
+                      >
                         {d.player.firstName} {d.player.lastName}
                       </Link>
                     </td>
-                    <td className="px-4 py-2.5"><StatusBadge status={d.stage} /></td>
-                    <td className="px-4 py-2.5 text-[#8FA69E]">{d.dealType || "—"}</td>
+                    <td className="px-4 py-2.5">
+                      <StatusBadge status={d.stage} />
+                    </td>
+                    <td className="px-4 py-2.5 text-[#969BA8]">
+                      {d.dealType || "—"}
+                    </td>
                     <td className="px-4 py-2.5 font-mono text-white/60">
-                      {d.value ? `${d.value.toLocaleString("fr-FR")} ${d.currency}` : "—"}
+                      {d.value
+                        ? `${d.value.toLocaleString("fr-FR")} ${d.currency}`
+                        : "—"}
                     </td>
                   </tr>
                 ))}
@@ -274,13 +354,13 @@ export default async function CompanyDetailPage({
       {/* Recent emails */}
       {company.emails.length > 0 && (
         <div className="mt-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
             Emails récents ({company.emails.length})
           </h2>
           <div className="app-panel overflow-x-auto">
             <table className="min-w-[620px] w-full text-sm">
               <thead>
-                <tr className="border-b border-[#3EF2A0]/10 text-left text-xs text-[#8FA69E]">
+                <tr className="border-b border-[#FF6B3D]/10 text-left text-xs text-[#969BA8]">
                   <th className="px-4 py-2.5 font-medium">Sujet</th>
                   <th className="px-4 py-2.5 font-medium">Type</th>
                   <th className="px-4 py-2.5 font-medium">Statut</th>
@@ -289,16 +369,26 @@ export default async function CompanyDetailPage({
               </thead>
               <tbody>
                 {company.emails.map((e) => (
-                  <tr key={e.id} className="border-b border-white/[0.04] last:border-0">
-                    <td className="px-4 py-2.5 text-white/80 truncate max-w-xs">{e.subject}</td>
+                  <tr
+                    key={e.id}
+                    className="border-b border-white/[0.04] last:border-0"
+                  >
+                    <td className="px-4 py-2.5 text-white/80 truncate max-w-xs">
+                      {e.subject}
+                    </td>
                     <td className="px-4 py-2.5">
-                      <span className="rounded-full bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] text-[#8FA69E]">
+                      <span className="rounded-full bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] text-[#969BA8]">
                         {e.type}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5"><StatusBadge status={e.status} /></td>
-                    <td className="px-4 py-2.5 text-[#8FA69E]">
-                      {e.createdAt.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                    <td className="px-4 py-2.5">
+                      <StatusBadge status={e.status} />
+                    </td>
+                    <td className="px-4 py-2.5 text-[#969BA8]">
+                      {e.createdAt.toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short",
+                      })}
                     </td>
                   </tr>
                 ))}
@@ -311,23 +401,48 @@ export default async function CompanyDetailPage({
   );
 }
 
-function Stat({ label, value, color }: { label: string; value: number; color: string }) {
+function Stat({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: string;
+}) {
   return (
     <div className="app-soft-panel p-3">
-      <p className="text-[11px] text-[#8FA69E] mb-1">{label}</p>
-      <p className="font-mono text-xl font-semibold" style={{ color }}>{value}</p>
+      <p className="text-[11px] text-[#969BA8] mb-1">{label}</p>
+      <p className="font-mono text-xl font-semibold" style={{ color }}>
+        {value}
+      </p>
     </div>
   );
 }
 
-function InfoRow({ icon: Icon, label, value, isLink }: { icon: typeof Globe; label: string; value: string; isLink?: boolean }) {
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+  isLink,
+}: {
+  icon: typeof Globe;
+  label: string;
+  value: string;
+  isLink?: boolean;
+}) {
   return (
     <div className="flex items-start gap-2">
-      <Icon className="h-3.5 w-3.5 text-[#8FA69E] mt-0.5 shrink-0" />
+      <Icon className="h-3.5 w-3.5 text-[#969BA8] mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <p className="text-xs text-[#8FA69E]">{label}</p>
+        <p className="text-xs text-[#969BA8]">{label}</p>
         {isLink ? (
-          <a href={value.startsWith("http") ? value : `https://${value}`} target="_blank" rel="noopener noreferrer" className="break-all text-sm text-[#DDFBEA] hover:underline">
+          <a
+            href={value.startsWith("http") ? value : `https://${value}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="break-all text-sm text-[#C8CEFF] hover:underline"
+          >
             {value}
           </a>
         ) : (
@@ -339,14 +454,16 @@ function InfoRow({ icon: Icon, label, value, isLink }: { icon: typeof Globe; lab
 }
 
 function PriorityBadge({ priority }: { priority: string | null }) {
-  if (!priority) return <span className="text-[#8FA69E]/55">—</span>;
+  if (!priority) return <span className="text-[#969BA8]/55">—</span>;
   const colors: Record<string, string> = {
-    A: "bg-[#3EF2A0]/10 text-[#3EF2A0]",
-    B: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
-    C: "bg-white/[0.06] text-[#8FA69E]",
+    A: "bg-[#FF6B3D]/10 text-[#FF6B3D]",
+    B: "bg-[#C8CEFF]/10 text-[#C8CEFF]",
+    C: "bg-white/[0.06] text-[#969BA8]",
   };
   return (
-    <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ${colors[priority] || colors.C}`}>
+    <span
+      className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ${colors[priority] || colors.C}`}
+    >
       {priority}
     </span>
   );
@@ -357,19 +474,21 @@ function StatusBadge({ status }: { status: string }) {
     new: "bg-white/[0.06] text-white/50",
     lead: "bg-white/[0.06] text-white/50",
     draft: "bg-white/[0.06] text-white/50",
-    contacted: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
-    sent: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
-    replied: "bg-[#3EF2A0]/10 text-[#3EF2A0]",
+    contacted: "bg-[#C8CEFF]/10 text-[#C8CEFF]",
+    sent: "bg-[#C8CEFF]/10 text-[#C8CEFF]",
+    replied: "bg-[#FF6B3D]/10 text-[#FF6B3D]",
     opened: "bg-[#f59e0b]/10 text-[#f59e0b]",
-    meeting: "bg-[#DDFBEA]/10 text-[#DDFBEA]",
+    meeting: "bg-[#C8CEFF]/10 text-[#C8CEFF]",
     negotiation: "bg-[#f59e0b]/10 text-[#f59e0b]",
     offer: "bg-[#f59e0b]/10 text-[#f59e0b]",
-    signed: "bg-[#3EF2A0]/15 text-[#3EF2A0]",
+    signed: "bg-[#FF6B3D]/15 text-[#FF6B3D]",
     lost: "bg-red-500/10 text-red-400",
     bounced: "bg-red-500/10 text-red-400",
   };
   return (
-    <span className={`rounded-full px-2 py-0.5 font-mono text-[11px] capitalize ${colors[status] || colors.new}`}>
+    <span
+      className={`rounded-full px-2 py-0.5 font-mono text-[11px] capitalize ${colors[status] || colors.new}`}
+    >
       {status}
     </span>
   );

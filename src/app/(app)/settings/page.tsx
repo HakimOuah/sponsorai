@@ -1,12 +1,4 @@
-import {
-  Settings,
-  User,
-  Lock,
-  Mail,
-  Key,
-  Bot,
-  Download,
-} from "lucide-react";
+import { Settings, User, Lock, Mail, Key, Bot, Download } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -48,8 +40,10 @@ export default async function SettingsPage() {
   return (
     <div className="min-w-0">
       <div className="mb-6 flex items-center gap-3">
-        <Settings className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Paramètres</h1>
+        <Settings className="h-6 w-6 text-[#FF6B3D]" />
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F6F4EF] sm:text-3xl">
+          Paramètres
+        </h1>
       </div>
 
       <div className="space-y-6">
@@ -72,10 +66,14 @@ export default async function SettingsPage() {
             <EnvField label="User" value={process.env.SMTP_USER} />
             <EnvField label="From" value={process.env.SMTP_FROM} />
             <EnvField label="Reply-To" value={process.env.SMTP_REPLY_TO} />
-            <EnvField label="Password" value={process.env.SMTP_PASS ? "••••••••" : undefined} />
+            <EnvField
+              label="Password"
+              value={process.env.SMTP_PASS ? "••••••••" : undefined}
+            />
           </div>
-          <p className="mt-3 text-xs text-[#8FA69E]/55">
-            Modifiable dans le fichier .env ou les variables d&apos;environnement du serveur.
+          <p className="mt-3 text-xs text-[#969BA8]/55">
+            Modifiable dans le fichier .env ou les variables
+            d&apos;environnement du serveur.
           </p>
         </Section>
 
@@ -98,29 +96,48 @@ export default async function SettingsPage() {
               label="Apollo.io API Key"
               value={process.env.APOLLO_API_KEY ? "Configurée" : undefined}
             />
-            <EnvField label="Hunter.io API Key" value={undefined} placeholder="Phase 2" />
+            <EnvField
+              label="Hunter.io API Key"
+              value={undefined}
+              placeholder="Phase 2"
+            />
           </div>
-          <p className="mt-3 text-xs text-[#8FA69E]/55">
-            Modifiable dans le fichier .env. Ne jamais exposer les clés en front-end.
+          <p className="mt-3 text-xs text-[#969BA8]/55">
+            Modifiable dans le fichier .env. Ne jamais exposer les clés en
+            front-end.
           </p>
         </Section>
 
         {/* Agent config */}
         <Section icon={Bot} title="Configuration Agents">
           <div className="grid grid-cols-1 gap-4 max-w-lg sm:grid-cols-3">
-            <ConfigCard label="Score minimum" value="5/10" description="Seuil de scoring pour les prospects B+" />
-            <ConfigCard label="Volume par scan" value="25-30" description="Marques recherchées par scan Scout" />
-            <ConfigCard label="Délais relance" value="J+4 / J+10" description="Intervalles entre les relances email" />
+            <ConfigCard
+              label="Score minimum"
+              value="5/10"
+              description="Seuil de scoring pour les prospects B+"
+            />
+            <ConfigCard
+              label="Volume par scan"
+              value="25-30"
+              description="Marques recherchées par scan Scout"
+            />
+            <ConfigCard
+              label="Délais relance"
+              value="J+4 / J+10"
+              description="Intervalles entre les relances email"
+            />
           </div>
-          <p className="mt-3 text-xs text-[#8FA69E]/55">
-            Configuration avancée des agents disponible dans une prochaine version.
+          <p className="mt-3 text-xs text-[#969BA8]/55">
+            Configuration avancée des agents disponible dans une prochaine
+            version.
           </p>
         </Section>
 
         {/* Export */}
         <Section icon={Download} title="Export CSV">
-          <p className="text-sm text-[#8FA69E] mb-3">
-            Téléchargez vos données au format CSV (séparateur point-virgule, UTF-8 BOM).
+          <p className="text-sm text-[#969BA8] mb-3">
+            Téléchargez vos données au format CSV (séparateur point-virgule,
+            UTF-8 BOM).
           </p>
           <ExportButtons />
         </Section>
@@ -141,7 +158,7 @@ function Section({
   return (
     <div className="app-panel p-4 sm:p-6">
       <div className="flex items-center gap-2 mb-4">
-        <Icon className="h-4 w-4 text-[#3EF2A0]" />
+        <Icon className="h-4 w-4 text-[#FF6B3D]" />
         <h2 className="text-sm font-semibold uppercase tracking-wider text-white/50">
           {title}
         </h2>
@@ -162,14 +179,16 @@ function EnvField({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
         {label}
       </p>
-      <div className="overflow-hidden rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] px-3 py-2 font-mono text-sm">
+      <div className="overflow-hidden rounded-lg border border-[#FF6B3D]/10 bg-white/[0.02] px-3 py-2 font-mono text-sm">
         {value ? (
           <span className="break-all text-white/60">{value}</span>
         ) : (
-          <span className="text-white/15">{placeholder || "Non configuré"}</span>
+          <span className="text-white/15">
+            {placeholder || "Non configuré"}
+          </span>
         )}
       </div>
     </div>
@@ -186,10 +205,10 @@ function ConfigCard({
   description: string;
 }) {
   return (
-    <div className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] p-3">
-      <p className="text-xs text-[#8FA69E] mb-1">{label}</p>
+    <div className="rounded-lg border border-[#FF6B3D]/10 bg-white/[0.02] p-3">
+      <p className="text-xs text-[#969BA8] mb-1">{label}</p>
       <p className="font-mono text-sm font-bold text-white mb-1">{value}</p>
-      <p className="text-[10px] text-[#8FA69E]/55">{description}</p>
+      <p className="text-[10px] text-[#969BA8]/55">{description}</p>
     </div>
   );
 }

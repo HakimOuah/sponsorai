@@ -15,11 +15,19 @@ const EMAIL_TYPES = [
   { value: "followup_2", label: "Relance J+10" },
 ];
 
-export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGeneratorProps) {
+export function EmailGenerator({
+  prospectId,
+  companyName,
+  onGenerated,
+}: EmailGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [emailType, setEmailType] = useState("first_contact");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ id: string; subject: string; body: string } | null>(null);
+  const [result, setResult] = useState<{
+    id: string;
+    subject: string;
+    body: string;
+  } | null>(null);
   const [error, setError] = useState("");
 
   const generate = async () => {
@@ -46,7 +54,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
       setError(
         error instanceof Error
           ? error.message
-          : "Impossible de générer l'email. Réessayez."
+          : "Impossible de générer l'email. Réessayez.",
       );
     } finally {
       setLoading(false);
@@ -57,7 +65,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#DDFBEA]/20 bg-[#DDFBEA]/5 px-3 py-2 text-xs text-[#DDFBEA] transition-colors hover:bg-[#DDFBEA]/10 sm:w-auto sm:py-1.5"
+        className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#C8CEFF]/20 bg-[#C8CEFF]/5 px-3 py-2 text-xs text-[#C8CEFF] transition-colors hover:bg-[#C8CEFF]/10 sm:w-auto sm:py-1.5"
       >
         <PenTool className="h-3 w-3" />
         Générer email
@@ -69,7 +77,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
     <div className="app-panel p-4">
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <PenTool className="h-4 w-4 text-[#DDFBEA]" />
+          <PenTool className="h-4 w-4 text-[#C8CEFF]" />
           <h3 className="truncate text-sm font-semibold text-white">
             Agent Rédacteur — {companyName}
           </h3>
@@ -80,7 +88,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
             setResult(null);
             setError("");
           }}
-          className="text-xs text-[#8FA69E] hover:text-white/60 transition-colors"
+          className="text-xs text-[#969BA8] hover:text-white/60 transition-colors"
         >
           Fermer
         </button>
@@ -96,8 +104,8 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
                 onClick={() => setEmailType(t.value)}
                 className={`shrink-0 rounded-full px-3 py-2 text-xs font-medium transition-colors sm:py-1.5 ${
                   emailType === t.value
-                    ? "bg-[#DDFBEA]/15 text-[#DDFBEA] border border-[#DDFBEA]/30"
-                    : "bg-white/[0.06] text-[#8FA69E] border border-[#3EF2A0]/10 hover:bg-white/[0.06]"
+                    ? "bg-[#C8CEFF]/15 text-[#C8CEFF] border border-[#C8CEFF]/30"
+                    : "bg-white/[0.06] text-[#969BA8] border border-[#FF6B3D]/10 hover:bg-white/[0.06]"
                 }`}
               >
                 {t.label}
@@ -108,7 +116,7 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
           <button
             onClick={generate}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#DDFBEA] px-4 py-2 text-sm font-semibold text-[#020403] hover:bg-[#F8FAF7] transition-colors disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#C8CEFF] px-4 py-2 text-sm font-semibold text-[#0B0D12] hover:bg-[#FF6B3D] transition-colors disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -126,27 +134,25 @@ export function EmailGenerator({ prospectId, companyName, onGenerated }: EmailGe
       )}
 
       {/* Error */}
-      {error && (
-        <p className="mt-2 text-xs text-red-400">{error}</p>
-      )}
+      {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
 
       {/* Result */}
       {result && (
         <div className="space-y-3">
-          <div className="rounded-lg border border-[#3EF2A0]/20 bg-[#3EF2A0]/5 px-3 py-2 text-xs text-[#3EF2A0] flex items-center gap-2">
+          <div className="rounded-lg border border-[#FF6B3D]/20 bg-[#FF6B3D]/5 px-3 py-2 text-xs text-[#FF6B3D] flex items-center gap-2">
             <Check className="h-3.5 w-3.5" />
             Email généré et sauvegardé en brouillon
           </div>
 
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
               Objet
             </p>
             <p className="text-sm text-white/80">{result.subject}</p>
           </div>
 
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1">
               Corps
             </p>
             <div className="rounded-lg bg-white/[0.045] p-3 text-sm text-white/70 whitespace-pre-wrap leading-relaxed">

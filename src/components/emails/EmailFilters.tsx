@@ -34,8 +34,8 @@ export function EmailFilters() {
           onClick={() => setFilter(s.value)}
           className={`shrink-0 rounded-full px-3 py-2 text-xs font-medium transition-colors sm:py-1.5 ${
             currentStatus === s.value
-              ? "bg-[#3EF2A0]/10 text-[#3EF2A0] border border-[#3EF2A0]/20"
-              : "bg-white/[0.06] text-[#8FA69E] border border-[#3EF2A0]/10 hover:bg-white/[0.06]"
+              ? "bg-[#FF6B3D]/10 text-[#FF6B3D] border border-[#FF6B3D]/20"
+              : "bg-white/[0.06] text-[#969BA8] border border-[#FF6B3D]/10 hover:bg-white/[0.06]"
           }`}
         >
           {s.label}

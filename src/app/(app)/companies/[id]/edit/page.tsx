@@ -34,15 +34,17 @@ export default async function EditCompanyPage({
     <div className="min-w-0">
       <Link
         href={`/companies/${company.id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-[#8FA69E] hover:text-white/70 transition-colors mb-4"
+        className="inline-flex items-center gap-1.5 text-sm text-[#969BA8] hover:text-white/70 transition-colors mb-4"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
         {company.name}
       </Link>
 
       <div className="mb-6 flex items-center gap-3">
-        <Building2 className="h-6 w-6 text-[#3EF2A0]" />
-        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Modifier l&apos;entreprise</h1>
+        <Building2 className="h-6 w-6 text-[#FF6B3D]" />
+        <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F6F4EF] sm:text-3xl">
+          Modifier l&apos;entreprise
+        </h1>
       </div>
 
       <div className="app-panel p-4 sm:p-6">

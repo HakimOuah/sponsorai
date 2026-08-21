@@ -12,7 +12,9 @@ interface Props {
 }
 
 export default async function EmailsPage({ searchParams }: Props) {
-  const filters = searchParams.status ? { status: searchParams.status } : undefined;
+  const filters = searchParams.status
+    ? { status: searchParams.status }
+    : undefined;
   const emails = await getEmails(filters);
 
   const allEmails = await getEmails();
@@ -44,23 +46,45 @@ export default async function EmailsPage({ searchParams }: Props) {
     <div className="min-w-0">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Mail className="h-6 w-6 text-[#3EF2A0]" />
-          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F8FAF7] sm:text-3xl">Emails</h1>
+          <Mail className="h-6 w-6 text-[#FF6B3D]" />
+          <h1 className="text-2xl font-semibold tracking-[-0.03em] text-[#F6F4EF] sm:text-3xl">
+            Emails
+          </h1>
         </div>
       </div>
 
       {/* Stats */}
       <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard icon={Mail} label="Total" value={stats.total} color="text-white/60" />
-        <StatCard icon={FileText} label="Brouillons" value={stats.drafts} color="text-[#8FA69E]" />
-        <StatCard icon={Send} label="Envoyés" value={stats.sent} color="text-[#DDFBEA]" />
-        <StatCard icon={MessageSquare} label="Répondu" value={stats.replied} color="text-[#3EF2A0]" />
+        <StatCard
+          icon={Mail}
+          label="Total"
+          value={stats.total}
+          color="text-white/60"
+        />
+        <StatCard
+          icon={FileText}
+          label="Brouillons"
+          value={stats.drafts}
+          color="text-[#969BA8]"
+        />
+        <StatCard
+          icon={Send}
+          label="Envoyés"
+          value={stats.sent}
+          color="text-[#C8CEFF]"
+        />
+        <StatCard
+          icon={MessageSquare}
+          label="Répondu"
+          value={stats.replied}
+          color="text-[#FF6B3D]"
+        />
       </div>
 
       {/* Dispatcher */}
       {draftEmails.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8FA69E] mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
             Dispatcher — Envois approuvés
           </h2>
           <DispatcherPanel draftEmails={draftEmails} />
@@ -75,7 +99,7 @@ export default async function EmailsPage({ searchParams }: Props) {
       {/* Email list */}
       <div className="app-panel overflow-hidden">
         {emails.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-[#8FA69E]/55">
+          <div className="flex flex-col items-center justify-center py-12 text-[#969BA8]/55">
             <Mail className="h-8 w-8 mb-2" />
             <p className="text-sm">Aucun email</p>
             <p className="text-xs mt-1">
@@ -105,7 +129,7 @@ function StatCard({
     <div className="app-panel p-3 sm:p-4">
       <div className="flex items-center gap-2 mb-1">
         <Icon className={`h-3.5 w-3.5 ${color}`} />
-        <span className="text-xs text-[#8FA69E]">{label}</span>
+        <span className="text-xs text-[#969BA8]">{label}</span>
       </div>
       <span className="font-mono text-lg font-bold text-white">{value}</span>
     </div>

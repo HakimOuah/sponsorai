@@ -11,7 +11,7 @@ function SubmitButton({ isEdit }: { isEdit: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="w-full rounded-full bg-[#F8FAF7] px-6 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#2CFF93] disabled:opacity-50 sm:w-auto"
+      className="w-full rounded-full bg-[#FF6B3D] px-6 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F] disabled:opacity-50 sm:w-auto"
     >
       {pending
         ? "Enregistrement..."
@@ -51,7 +51,9 @@ type PlayerFormValues = {
   notes: string;
 };
 
-type PlayerEnrichment = Partial<Record<keyof PlayerFormValues, string | number | null>> & {
+type PlayerEnrichment = Partial<
+  Record<keyof PlayerFormValues, string | number | null>
+> & {
   sources?: string[];
   confidence?: string;
 };
@@ -137,7 +139,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
       setEnrichSuccess(
         enrichment.confidence
           ? `Profil complété par IA — confiance ${enrichment.confidence}`
-          : "Profil complété par IA"
+          : "Profil complété par IA",
       );
     } catch {
       setEnrichError("Impossible d'enrichir ce profil pour le moment.");
@@ -149,22 +151,25 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
   return (
     <form action={action} className="min-w-0 space-y-6 sm:space-y-8">
       {!isEdit && (
-        <section className="relative overflow-hidden rounded-[22px] border border-[#3EF2A0]/15 bg-[#003F32]/45 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.18)] sm:rounded-[24px] sm:p-5">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(62,242,160,0.18),transparent_28%)]" />
+        <section className="relative overflow-hidden rounded-[22px] border border-[#FF6B3D]/15 bg-[#2A1B18]/45 p-4 shadow-[0_20px_80px_rgba(0,0,0,0.18)] sm:rounded-[24px] sm:p-5">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(255,107,61,0.18),transparent_28%)]" />
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative">
-              <h2 className="text-base font-semibold text-[#F8FAF7]">
+              <h2 className="text-base font-semibold text-[#F6F4EF]">
                 Complétion automatique
               </h2>
-              <p className="mt-1 max-w-2xl text-sm text-[#8FA69E]">
-                Saisis un nom de sportif ou de club, puis laisse l&apos;agent rechercher les informations publiques.
+              <p className="mt-1 max-w-2xl text-sm text-[#969BA8]">
+                Saisis un nom de sportif ou de club, puis laisse l&apos;agent
+                rechercher les informations publiques.
               </p>
             </div>
             <button
               type="button"
               onClick={enrichPlayer}
-              disabled={isEnriching || !`${values.firstName} ${values.lastName}`.trim()}
-              className="relative inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#F8FAF7] px-4 py-2.5 text-sm font-semibold text-[#020403] shadow-[0_14px_38px_rgba(62,242,160,0.16)] transition-all hover:-translate-y-0.5 hover:bg-white disabled:opacity-50 sm:w-auto sm:py-2"
+              disabled={
+                isEnriching || !`${values.firstName} ${values.lastName}`.trim()
+              }
+              className="relative inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#FF6B3D] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] shadow-[0_14px_38px_rgba(255,107,61,0.16)] transition-all hover:-translate-y-0.5 hover:bg-white disabled:opacity-50 sm:w-auto sm:py-2"
             >
               {isEnriching ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -178,14 +183,16 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
             <p className="mt-3 text-xs text-red-400">{enrichError}</p>
           )}
           {enrichSuccess && (
-            <p className="relative mt-3 text-xs text-[#3EF2A0]">{enrichSuccess}</p>
+            <p className="relative mt-3 text-xs text-[#FF6B3D]">
+              {enrichSuccess}
+            </p>
           )}
         </section>
       )}
 
       {/* Identité */}
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#969BA8]">
           Identité
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -199,50 +206,154 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
               { value: "club", label: "Club amateur" },
             ]}
           />
-          <Field label="Sport" name="sport" value={values.sport} onChange={updateField} placeholder="Football, basket, tennis..." />
           <Field
-            label={values.profileType === "club" ? "Nom du club" : "Prénom / nom public"}
+            label="Sport"
+            name="sport"
+            value={values.sport}
+            onChange={updateField}
+            placeholder="Football, basket, tennis..."
+          />
+          <Field
+            label={
+              values.profileType === "club"
+                ? "Nom du club"
+                : "Prénom / nom public"
+            }
             name="firstName"
             value={values.firstName}
             onChange={updateField}
             required
           />
           <Field
-            label={values.profileType === "club" ? "Ville / complément" : "Nom de famille"}
+            label={
+              values.profileType === "club"
+                ? "Ville / complément"
+                : "Nom de famille"
+            }
             name="lastName"
             value={values.lastName}
             onChange={updateField}
             required={values.profileType === "athlete"}
           />
-          <Field label="Âge" name="age" type="number" value={values.age} onChange={updateField} />
-          <Field label="Nationalité" name="nationality" value={values.nationality} onChange={updateField} />
-          <Field label={values.profileType === "club" ? "Structure / association" : "Club / structure"} name="club" value={values.club} onChange={updateField} required />
-          <Field label="Championnat / niveau" name="league" value={values.league} onChange={updateField} required />
-          <Field label={values.profileType === "club" ? "Catégorie / discipline" : "Poste / discipline"} name="position" value={values.position} onChange={updateField} />
-          <Field label="Ville" name="city" value={values.city} onChange={updateField} />
-          <Field label="Langues" name="languages" value={values.languages} onChange={updateField} placeholder="FR, EN, AR" />
+          <Field
+            label="Âge"
+            name="age"
+            type="number"
+            value={values.age}
+            onChange={updateField}
+          />
+          <Field
+            label="Nationalité"
+            name="nationality"
+            value={values.nationality}
+            onChange={updateField}
+          />
+          <Field
+            label={
+              values.profileType === "club"
+                ? "Structure / association"
+                : "Club / structure"
+            }
+            name="club"
+            value={values.club}
+            onChange={updateField}
+            required
+          />
+          <Field
+            label="Championnat / niveau"
+            name="league"
+            value={values.league}
+            onChange={updateField}
+            required
+          />
+          <Field
+            label={
+              values.profileType === "club"
+                ? "Catégorie / discipline"
+                : "Poste / discipline"
+            }
+            name="position"
+            value={values.position}
+            onChange={updateField}
+          />
+          <Field
+            label="Ville"
+            name="city"
+            value={values.city}
+            onChange={updateField}
+          />
+          <Field
+            label="Langues"
+            name="languages"
+            value={values.languages}
+            onChange={updateField}
+            placeholder="FR, EN, AR"
+          />
         </div>
       </section>
 
       {/* Réseaux sociaux */}
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#969BA8]">
           Réseaux sociaux
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="Instagram" name="instagram" value={values.instagram} onChange={updateField} placeholder="@username" />
-          <Field label="Followers IG" name="followersIG" type="number" value={values.followersIG} onChange={updateField} />
-          <Field label="TikTok" name="tiktok" value={values.tiktok} onChange={updateField} placeholder="@username" />
-          <Field label="Followers TK" name="followersTK" type="number" value={values.followersTK} onChange={updateField} />
-          <Field label="Twitter / X" name="twitter" value={values.twitter} onChange={updateField} placeholder="@username" />
-          <Field label="Followers X" name="followersX" type="number" value={values.followersX} onChange={updateField} />
-          <Field label="Taux d'engagement (%)" name="engagementRate" type="number" value={values.engagementRate} onChange={updateField} step="0.1" />
+          <Field
+            label="Instagram"
+            name="instagram"
+            value={values.instagram}
+            onChange={updateField}
+            placeholder="@username"
+          />
+          <Field
+            label="Followers IG"
+            name="followersIG"
+            type="number"
+            value={values.followersIG}
+            onChange={updateField}
+          />
+          <Field
+            label="TikTok"
+            name="tiktok"
+            value={values.tiktok}
+            onChange={updateField}
+            placeholder="@username"
+          />
+          <Field
+            label="Followers TK"
+            name="followersTK"
+            type="number"
+            value={values.followersTK}
+            onChange={updateField}
+          />
+          <Field
+            label="Twitter / X"
+            name="twitter"
+            value={values.twitter}
+            onChange={updateField}
+            placeholder="@username"
+          />
+          <Field
+            label="Followers X"
+            name="followersX"
+            type="number"
+            value={values.followersX}
+            onChange={updateField}
+          />
+          <Field
+            label="Taux d'engagement (%)"
+            name="engagementRate"
+            type="number"
+            value={values.engagementRate}
+            onChange={updateField}
+            step="0.1"
+          />
         </div>
       </section>
 
       {/* Positionnement */}
       <section>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#8FA69E]">
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-[#969BA8]">
           Positionnement
         </h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -272,7 +383,7 @@ export function PlayerForm({ action, player }: PlayerFormProps) {
       </section>
 
       {/* Actions */}
-      <div className="flex flex-col gap-3 border-t border-[#3EF2A0]/10 pt-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 border-t border-[#FF6B3D]/10 pt-6 sm:flex-row sm:items-center">
         <SubmitButton isEdit={isEdit} />
       </div>
     </form>
@@ -302,7 +413,7 @@ function Field({
     <div>
       <label className="block text-sm font-medium text-white/60 mb-1">
         {label}
-        {required && <span className="text-[#3EF2A0] ml-0.5">*</span>}
+        {required && <span className="text-[#FF6B3D] ml-0.5">*</span>}
       </label>
       <input
         type={type}
@@ -312,7 +423,7 @@ function Field({
         required={required}
         placeholder={placeholder}
         step={step}
-        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors"
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#FF6B3D]/50 focus:outline-none transition-colors"
       />
     </div>
   );
@@ -340,10 +451,14 @@ function SelectField({
         name={name}
         value={value}
         onChange={(event) => onChange(name, event.target.value)}
-        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white transition-colors focus:border-[#3EF2A0]/50 focus:outline-none"
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white transition-colors focus:border-[#FF6B3D]/50 focus:outline-none"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value} className="bg-[#020403]">
+          <option
+            key={option.value}
+            value={option.value}
+            className="bg-[#0B0D12]"
+          >
             {option.label}
           </option>
         ))}
@@ -378,7 +493,7 @@ function TextArea({
         onChange={(event) => onChange(name, event.target.value)}
         placeholder={placeholder}
         rows={3}
-        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/50 focus:outline-none transition-colors resize-none"
+        className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-3 py-2 text-sm text-white placeholder-white/20 focus:border-[#FF6B3D]/50 focus:outline-none transition-colors resize-none"
       />
     </div>
   );

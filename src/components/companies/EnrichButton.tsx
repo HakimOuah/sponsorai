@@ -122,7 +122,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
         </div>
         <button
           onClick={() => setExpanded(false)}
-          className="text-xs text-[#8FA69E] hover:text-white/60"
+          className="text-xs text-[#969BA8] hover:text-white/60"
         >
           Réduire
         </button>
@@ -130,71 +130,75 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
 
       {/* Console logs */}
       {logs.length > 0 && (
-        <div className="rounded-lg bg-[#020403] p-3 font-mono text-xs max-h-32 overflow-y-auto space-y-1">
+        <div className="rounded-lg bg-[#0B0D12] p-3 font-mono text-xs max-h-32 overflow-y-auto space-y-1">
           {logs.map((l, i) => (
             <div
               key={i}
               className={
                 l.type === "success"
-                  ? "text-[#3EF2A0]"
+                  ? "text-[#FF6B3D]"
                   : l.type === "error"
                     ? "text-red-400"
                     : l.type === "data"
-                      ? "text-[#DDFBEA]"
-                      : "text-[#8FA69E]"
+                      ? "text-[#C8CEFF]"
+                      : "text-[#969BA8]"
               }
             >
               {l.message}
             </div>
           ))}
           {loading && (
-            <div className="text-[#8FA69E]/55 animate-pulse">En cours...</div>
+            <div className="text-[#969BA8]/55 animate-pulse">En cours...</div>
           )}
         </div>
       )}
 
       {/* Error */}
-      {error && (
-        <p className="text-xs text-red-400">{error}</p>
-      )}
+      {error && <p className="text-xs text-red-400">{error}</p>}
 
       {/* Results */}
       {done && contacts.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Check className="h-4 w-4 text-[#3EF2A0]" />
-            <span className="text-sm text-[#3EF2A0]">
-              {contacts.length} contact{contacts.length > 1 ? "s" : ""} vérifié{contacts.length > 1 ? "s" : ""}
+            <Check className="h-4 w-4 text-[#FF6B3D]" />
+            <span className="text-sm text-[#FF6B3D]">
+              {contacts.length} contact{contacts.length > 1 ? "s" : ""} vérifié
+              {contacts.length > 1 ? "s" : ""}
             </span>
           </div>
 
           {contacts.map((c, i) => (
             <div
               key={i}
-              className="rounded-lg border border-[#3EF2A0]/10 bg-white/[0.02] p-3"
+              className="rounded-lg border border-[#FF6B3D]/10 bg-white/[0.02] p-3"
             >
               <div className="mb-1 flex flex-wrap items-center gap-2">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#3EF2A0]" />
+                <ShieldCheck className="h-3.5 w-3.5 text-[#FF6B3D]" />
                 <span className="text-sm font-medium text-white">{c.role}</span>
-                <span className="font-mono text-[10px] text-[#3EF2A0] sm:ml-auto">
+                <span className="font-mono text-[10px] text-[#FF6B3D] sm:ml-auto">
                   score {c.score ?? "—"}/100
                 </span>
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs text-[#8FA69E]">
+              <div className="flex flex-wrap items-center gap-2 text-xs text-[#969BA8]">
                 <span>{c.roleNormalized}</span>
                 <span>·</span>
-                <span>{c.currentRoleVerified ? "poste actuel vérifié" : "poste à vérifier"}</span>
+                <span>
+                  {c.currentRoleVerified
+                    ? "poste actuel vérifié"
+                    : "poste à vérifier"}
+                </span>
                 <span>·</span>
                 <span>contactabilité {c.contactability}</span>
               </div>
-              <p className="mt-2 text-[11px] text-[#8FA69E]/70">
-                Coordonnées conservées côté serveur · {c.source || "source structurée"}
+              <p className="mt-2 text-[11px] text-[#969BA8]/70">
+                Coordonnées conservées côté serveur ·{" "}
+                {c.source || "source structurée"}
               </p>
             </div>
           ))}
 
           {insights && (
-            <p className="text-xs text-[#8FA69E] italic">{insights}</p>
+            <p className="text-xs text-[#969BA8] italic">{insights}</p>
           )}
         </div>
       )}
@@ -210,7 +214,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
       {!loading && !done && (
         <button
           onClick={run}
-          className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#f59e0b] px-4 py-2.5 text-sm font-semibold text-[#020403] transition-colors hover:bg-[#f59e0b]/80 sm:w-auto sm:py-2"
+          className="flex w-full items-center justify-center gap-1.5 rounded-full bg-[#f59e0b] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#f59e0b]/80 sm:w-auto sm:py-2"
         >
           <Database className="h-4 w-4" />
           Lancer l&apos;enrichissement
@@ -220,7 +224,7 @@ export function EnrichButton({ companyId, companyName }: EnrichButtonProps) {
       {done && (
         <button
           onClick={run}
-          className="text-xs text-[#8FA69E] hover:text-white/60"
+          className="text-xs text-[#969BA8] hover:text-white/60"
         >
           Relancer
         </button>

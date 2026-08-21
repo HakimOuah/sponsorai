@@ -40,7 +40,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
   const hasChanges = subject !== email.subject || body !== email.body;
   const sendable = Boolean(
     email.company.outreachReady &&
-      (email.type !== "first_contact" || email.prospect?.outreachApprovedAt)
+    (email.type !== "first_contact" || email.prospect?.outreachApprovedAt),
   );
 
   const handleSave = () => {
@@ -65,7 +65,9 @@ export function EmailEditor({ email }: EmailEditorProps) {
         setMessage("Email envoyé !");
         setSendConfirm(false);
       } catch {
-        setMessage("Envoi bloqué : vérifiez le contact, l'email et la config SMTP.");
+        setMessage(
+          "Envoi bloqué : vérifiez le contact, l'email et la config SMTP.",
+        );
       }
       setTimeout(() => setMessage(""), 5000);
     });
@@ -85,15 +87,20 @@ export function EmailEditor({ email }: EmailEditorProps) {
   return (
     <div className="space-y-4">
       {/* Meta info */}
-      <div className="flex flex-wrap items-center gap-3 text-xs text-[#8FA69E]">
+      <div className="flex flex-wrap items-center gap-3 text-xs text-[#969BA8]">
         <span>
-          À : <span className="text-white/60">{email.company.contactRole || "Décideur qualifié"}</span>
+          À :{" "}
+          <span className="text-white/60">
+            {email.company.contactRole || "Décideur qualifié"}
+          </span>
         </span>
         {email.company.outreachReady && (
           <>
             <span>·</span>
-            <span className={sendable ? "text-[#3EF2A0]" : "text-[#f59e0b]"}>
-              {sendable ? "Contact vérifié et outreach approuvé" : "Validation humaine requise"}
+            <span className={sendable ? "text-[#FF6B3D]" : "text-[#f59e0b]"}>
+              {sendable
+                ? "Contact vérifié et outreach approuvé"
+                : "Validation humaine requise"}
             </span>
           </>
         )}
@@ -127,7 +134,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
 
       {/* Subject */}
       <div>
-        <label className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1 block">
+        <label className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1 block">
           Objet
         </label>
         {isDraft ? (
@@ -135,7 +142,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#3EF2A0]/30 focus:outline-none"
+            className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-2.5 text-sm text-white placeholder-white/20 focus:border-[#FF6B3D]/30 focus:outline-none"
           />
         ) : (
           <p className="text-sm font-medium text-white">{subject}</p>
@@ -144,7 +151,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
 
       {/* Body */}
       <div>
-        <label className="text-[11px] font-medium uppercase tracking-wider text-[#8FA69E] mb-1 block">
+        <label className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1 block">
           Corps
         </label>
         {isDraft ? (
@@ -152,7 +159,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={12}
-            className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-3 text-sm text-white/80 placeholder-white/20 focus:border-[#3EF2A0]/30 focus:outline-none leading-relaxed resize-y"
+            className="w-full rounded-2xl border border-white/[0.10] bg-white/[0.045] px-4 py-3 text-sm text-white/80 placeholder-white/20 focus:border-[#FF6B3D]/30 focus:outline-none leading-relaxed resize-y"
           />
         ) : (
           <div className="rounded-lg bg-white/[0.045] p-4 text-sm text-white/70 whitespace-pre-wrap leading-relaxed">
@@ -163,7 +170,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
 
       {/* Message */}
       {message && (
-        <div className="rounded-lg border border-[#3EF2A0]/20 bg-[#3EF2A0]/5 px-4 py-2 text-sm text-[#3EF2A0]">
+        <div className="rounded-lg border border-[#FF6B3D]/20 bg-[#FF6B3D]/5 px-4 py-2 text-sm text-[#FF6B3D]">
           {message}
         </div>
       )}
@@ -190,8 +197,8 @@ export function EmailEditor({ email }: EmailEditorProps) {
               disabled={isPending || !sendable}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 ${
                 sendConfirm
-                  ? "bg-[#f59e0b] text-[#020403] hover:bg-[#f59e0b]/80"
-                  : "bg-[#3EF2A0] text-[#020403] hover:bg-[#2CFF93]"
+                  ? "bg-[#f59e0b] text-[#0B0D12] hover:bg-[#f59e0b]/80"
+                  : "bg-[#FF6B3D] text-[#0B0D12] hover:bg-[#FF865F]"
               }`}
             >
               {isPending ? (
@@ -204,7 +211,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
             {sendConfirm && (
               <button
                 onClick={() => setSendConfirm(false)}
-                className="text-xs text-[#8FA69E] hover:text-white/60"
+                className="text-xs text-[#969BA8] hover:text-white/60"
               >
                 Annuler
               </button>
@@ -218,7 +225,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
           className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm transition-colors ml-auto ${
             deleteConfirm
               ? "bg-red-500/20 text-red-400"
-              : "text-[#8FA69E] hover:text-red-400"
+              : "text-[#969BA8] hover:text-red-400"
           }`}
         >
           <Trash2 className="h-4 w-4" />
@@ -227,7 +234,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
         {deleteConfirm && (
           <button
             onClick={() => setDeleteConfirm(false)}
-            className="text-xs text-[#8FA69E] hover:text-white/60"
+            className="text-xs text-[#969BA8] hover:text-white/60"
           >
             Annuler
           </button>

@@ -73,75 +73,148 @@ export function DealWorkspaceForms({
   return (
     <div className="space-y-4">
       {message && (
-        <div className="rounded-xl border border-[#3EF2A0]/20 bg-[#3EF2A0]/5 px-3 py-2 text-xs text-[#3EF2A0]">
+        <div className="rounded-xl border border-[#FF6B3D]/20 bg-[#FF6B3D]/5 px-3 py-2 text-xs text-[#FF6B3D]">
           {message}
         </div>
       )}
-      <WorkflowForm title="Meeting externe" icon={CalendarPlus} onSubmit={submitMeeting}>
-        <input name="scheduledAt" type="datetime-local" required className={inputClass} />
-        <input name="externalUrl" type="url" placeholder="Lien Meet/Teams (optionnel)" className={inputClass} />
-        <input name="notes" placeholder="Objectif ou notes" className={inputClass} />
+      <WorkflowForm
+        title="Meeting externe"
+        icon={CalendarPlus}
+        onSubmit={submitMeeting}
+      >
+        <input
+          name="scheduledAt"
+          type="datetime-local"
+          required
+          className={inputClass}
+        />
+        <input
+          name="externalUrl"
+          type="url"
+          placeholder="Lien Meet/Teams (optionnel)"
+          className={inputClass}
+        />
+        <input
+          name="notes"
+          placeholder="Objectif ou notes"
+          className={inputClass}
+        />
       </WorkflowForm>
 
-      {meetings.filter((meeting) => meeting.status !== "completed").map((meeting) => (
-        <form
-          key={meeting.id}
-          onSubmit={(event) => {
-            event.preventDefault();
-            const form = new FormData(event.currentTarget);
-            startTransition(async () => {
-              await completeMeeting({
-                meetingId: meeting.id,
-                outcome: String(form.get("outcome") || "completed"),
+      {meetings
+        .filter((meeting) => meeting.status !== "completed")
+        .map((meeting) => (
+          <form
+            key={meeting.id}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const form = new FormData(event.currentTarget);
+              startTransition(async () => {
+                await completeMeeting({
+                  meetingId: meeting.id,
+                  outcome: String(form.get("outcome") || "completed"),
+                });
+                setMessage("Outcome du meeting enregistré");
               });
-              setMessage("Outcome du meeting enregistré");
-            });
-          }}
-          className="flex flex-col gap-2 rounded-xl border border-white/[0.08] p-3 sm:flex-row sm:items-center"
-        >
-          <span className="text-xs text-white/70">Meeting du {new Date(meeting.scheduledAt).toLocaleString("fr-FR")}</span>
-          <select name="outcome" className={`${inputClass} sm:ml-auto sm:w-auto`}>
-            <option value="positive">Positif</option>
-            <option value="follow_up">À relancer</option>
-            <option value="negative">Négatif</option>
-          </select>
-          <button className="rounded-full border border-[#3EF2A0]/20 px-3 py-1.5 text-xs text-[#3EF2A0]">Clôturer le meeting</button>
-        </form>
-      ))}
-
-      <WorkflowForm title="Proposition" icon={FileText} onSubmit={submitProposal}>
-        <input name="amount" type="number" min="0" step="100" placeholder="Montant estimé" className={inputClass} />
-        <input name="externalUrl" type="url" placeholder="Lien vers la proposition" className={inputClass} />
-        <input name="summary" placeholder="Résumé de l’offre" className={inputClass} />
-      </WorkflowForm>
-
-      <WorkflowForm title="Contrat externe" icon={FileSignature} onSubmit={submitContract}>
-        <input name="title" required placeholder="Titre du contrat" className={inputClass} />
-        <input name="externalUrl" type="url" placeholder="Lien Drive/DocuSign/Adobe Sign" className={inputClass} />
-      </WorkflowForm>
-
-      {contracts.filter((contract) => contract.status !== "signed").map((contract) => (
-        <div key={contract.id} className="flex items-center justify-between rounded-xl border border-white/[0.08] px-3 py-2">
-          <span className="text-xs text-white/70">{contract.title} · {contract.status}</span>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() => startTransition(async () => {
-              await markContractSigned(contract.id);
-              setMessage("Contrat marqué signé, deal clôturé WON");
-            })}
-            className="rounded-full bg-[#3EF2A0] px-3 py-1.5 text-xs font-semibold text-[#020403]"
+            }}
+            className="flex flex-col gap-2 rounded-xl border border-white/[0.08] p-3 sm:flex-row sm:items-center"
           >
-            Marquer signé
-          </button>
-        </div>
-      ))}
-      {pending && <p className="text-xs text-[#8FA69E]">Mise à jour du workflow…</p>}
+            <span className="text-xs text-white/70">
+              Meeting du {new Date(meeting.scheduledAt).toLocaleString("fr-FR")}
+            </span>
+            <select
+              name="outcome"
+              className={`${inputClass} sm:ml-auto sm:w-auto`}
+            >
+              <option value="positive">Positif</option>
+              <option value="follow_up">À relancer</option>
+              <option value="negative">Négatif</option>
+            </select>
+            <button className="rounded-full border border-[#FF6B3D]/20 px-3 py-1.5 text-xs text-[#FF6B3D]">
+              Clôturer le meeting
+            </button>
+          </form>
+        ))}
+
+      <WorkflowForm
+        title="Proposition"
+        icon={FileText}
+        onSubmit={submitProposal}
+      >
+        <input
+          name="amount"
+          type="number"
+          min="0"
+          step="100"
+          placeholder="Montant estimé"
+          className={inputClass}
+        />
+        <input
+          name="externalUrl"
+          type="url"
+          placeholder="Lien vers la proposition"
+          className={inputClass}
+        />
+        <input
+          name="summary"
+          placeholder="Résumé de l’offre"
+          className={inputClass}
+        />
+      </WorkflowForm>
+
+      <WorkflowForm
+        title="Contrat externe"
+        icon={FileSignature}
+        onSubmit={submitContract}
+      >
+        <input
+          name="title"
+          required
+          placeholder="Titre du contrat"
+          className={inputClass}
+        />
+        <input
+          name="externalUrl"
+          type="url"
+          placeholder="Lien Drive/DocuSign/Adobe Sign"
+          className={inputClass}
+        />
+      </WorkflowForm>
+
+      {contracts
+        .filter((contract) => contract.status !== "signed")
+        .map((contract) => (
+          <div
+            key={contract.id}
+            className="flex items-center justify-between rounded-xl border border-white/[0.08] px-3 py-2"
+          >
+            <span className="text-xs text-white/70">
+              {contract.title} · {contract.status}
+            </span>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  await markContractSigned(contract.id);
+                  setMessage("Contrat marqué signé, deal clôturé WON");
+                })
+              }
+              className="rounded-full bg-[#FF6B3D] px-3 py-1.5 text-xs font-semibold text-[#0B0D12]"
+            >
+              Marquer signé
+            </button>
+          </div>
+        ))}
+      {pending && (
+        <p className="text-xs text-[#969BA8]">Mise à jour du workflow…</p>
+      )}
     </div>
   );
 }
 
-const inputClass = "w-full rounded-xl border border-white/[0.08] bg-[#020403] px-3 py-2 text-sm text-white placeholder:text-[#8FA69E]/60";
+const inputClass =
+  "w-full rounded-xl border border-white/[0.08] bg-[#0B0D12] px-3 py-2 text-sm text-white placeholder:text-[#969BA8]/60";
 
 function WorkflowForm({
   title,
@@ -157,10 +230,10 @@ function WorkflowForm({
   return (
     <form onSubmit={onSubmit} className="app-panel space-y-2 p-4">
       <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-        <Icon className="h-4 w-4 text-[#3EF2A0]" /> {title}
+        <Icon className="h-4 w-4 text-[#FF6B3D]" /> {title}
       </h3>
       {children}
-      <button className="rounded-full border border-[#3EF2A0]/25 px-3 py-1.5 text-xs text-[#3EF2A0]">
+      <button className="rounded-full border border-[#FF6B3D]/25 px-3 py-1.5 text-xs text-[#FF6B3D]">
         Enregistrer
       </button>
     </form>

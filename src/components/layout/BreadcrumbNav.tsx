@@ -33,14 +33,16 @@ export function BreadcrumbNav() {
         return (
           <span key={href} className="flex min-w-0 items-center gap-1">
             {index > 0 && (
-              <ChevronRight className="h-3 w-3 text-[#8FA69E]/45" />
+              <ChevronRight className="h-3 w-3 text-[#969BA8]/45" />
             )}
             {isLast ? (
-              <span className="truncate font-semibold text-[#F8FAF7]">{label}</span>
+              <span className="truncate font-semibold text-[#F6F4EF]">
+                {label}
+              </span>
             ) : (
               <Link
                 href={href}
-                className="hidden text-[#8FA69E] transition-colors hover:text-[#DDFBEA] sm:inline"
+                className="hidden text-[#969BA8] transition-colors hover:text-[#FF6B3D] sm:inline"
               >
                 {label}
               </Link>
