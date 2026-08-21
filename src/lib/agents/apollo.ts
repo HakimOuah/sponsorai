@@ -82,7 +82,7 @@ export async function searchApolloContacts(company: Company): Promise<ApolloCont
       headers: {
         accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
       },
       cache: "no-store",
     }
@@ -130,7 +130,7 @@ async function enrichApolloPeople(
       headers: {
         accept: "application/json",
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
       },
       body: JSON.stringify({ details }),
       cache: "no-store",

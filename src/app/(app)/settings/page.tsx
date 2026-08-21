@@ -85,10 +85,10 @@ export default async function SettingsPage() {
         <Section icon={Key} title="Clés API">
           <div className="space-y-3 max-w-lg">
             <EnvField
-              label="Anthropic API Key"
+              label="Grok API Key"
               value={
-                process.env.ANTHROPIC_API_KEY
-                  ? `sk-ant-...${process.env.ANTHROPIC_API_KEY.slice(-8)}`
+                process.env.GROK_API_KEY
+                  ? "Configurée"
                   : undefined
               }
             />

@@ -1,4 +1,4 @@
-import { anthropic } from "@/lib/claude";
+import { generateAIText } from "@/lib/ai";
 import { extractJSON } from "@/lib/utils";
 import { MATCHMAKER_PROMPT, buildPlayerProfile } from "./prompts";
 import type { ScoutBrand, ScoredBrand, PlayerIntelligence } from "@/types";
@@ -32,25 +32,13 @@ export async function runMatchmaker(
     );
   }
 
-  log("Appel Claude pour le scoring enrichi...", "info");
+  log("Appel Grok pour le scoring enrichi...", "info");
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 16384,
-    tools: [
-      {
-        type: "web_search_20250305",
-        name: "web_search",
-        max_uses: 6,
-      },
-    ],
-    messages: [{ role: "user", content: prompt }],
+  const responseText = await generateAIText({
+    prompt,
+    maxOutputTokens: 16384,
+    webSearch: true,
   });
-
-  const responseText = response.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
 
   const scoredBrands = extractJSON<ScoredBrand>(responseText);
 

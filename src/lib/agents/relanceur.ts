@@ -1,4 +1,4 @@
-import { anthropic } from "@/lib/claude";
+import { generateAIText } from "@/lib/ai";
 import { RELANCEUR_PROMPT, buildPlayerProfile } from "./prompts";
 import type { Player } from "@prisma/client";
 import type { LogCallback } from "./scout";
@@ -44,25 +44,13 @@ export async function runRelanceur(
     .replace("{firstEmailSubject}", context.firstEmailSubject)
     .replace("{daysSince}", context.daysSince.toString());
 
-  log("Appel Claude avec web search...", "info");
+  log("Appel Grok avec web search...", "info");
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
-    tools: [
-      {
-        type: "web_search_20250305",
-        name: "web_search",
-        max_uses: 8,
-      },
-    ],
-    messages: [{ role: "user", content: prompt }],
+  const text = await generateAIText({
+    prompt,
+    maxOutputTokens: 4096,
+    webSearch: true,
   });
-
-  const text = response.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
 
   const cleaned = text
     .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')

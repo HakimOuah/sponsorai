@@ -1,4 +1,4 @@
-import { anthropic } from "@/lib/claude";
+import { generateAIText } from "@/lib/ai";
 import { VEILLE_CONCURRENCE_PROMPT } from "./prompts";
 import type { LogCallback } from "./scout";
 import { buildVeilleRequest } from "./veille-request";
@@ -32,14 +32,9 @@ export async function runVeille(
     .replace("{playersList}", playersList)
     .replace("{brandsInPipeline}", brandsInPipeline);
 
-  log("Appel Claude avec web search...", "info");
+  log("Appel Grok avec web search...", "info");
 
-  const response = await anthropic.messages.create(buildVeilleRequest(prompt));
-
-  const text = response.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
+  const text = await generateAIText(buildVeilleRequest(prompt));
 
   const cleaned = text
     .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')

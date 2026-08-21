@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { anthropic } from "@/lib/claude";
+import { generateAIText } from "@/lib/ai";
 import { extractJSONObject } from "@/lib/utils";
 
 export const runtime = "nodejs";
@@ -88,23 +88,11 @@ RÈGLES :
 - Tous les champs inconnus doivent être null, pas "Non trouvé".`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 4096,
-      tools: [
-        {
-          type: "web_search_20250305",
-          name: "web_search",
-          max_uses: 8,
-        },
-      ],
-      messages: [{ role: "user", content: prompt }],
+    const text = await generateAIText({
+      prompt,
+      maxOutputTokens: 4096,
+      webSearch: true,
     });
-
-    const text = response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("\n");
 
     const enrichment = extractJSONObject<PlayerEnrichment>(text);
 

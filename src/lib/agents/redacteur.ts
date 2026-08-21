@@ -1,4 +1,4 @@
-import { anthropic } from "@/lib/claude";
+import { generateAIText } from "@/lib/ai";
 import {
   REDACTEUR_PROMPT,
   EMAIL_TYPE_INSTRUCTIONS,
@@ -37,14 +37,10 @@ export async function runRedacteur(
       EMAIL_TYPE_INSTRUCTIONS[emailType] || ""
     );
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
+  const text = await generateAIText({
+    prompt,
+    maxOutputTokens: 2048,
   });
-
-  const text =
-    response.content[0].type === "text" ? response.content[0].text : "";
 
   // Parse JSON response
   const cleaned = text

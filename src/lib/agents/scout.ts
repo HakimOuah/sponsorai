@@ -1,4 +1,4 @@
-import { anthropic } from "@/lib/claude";
+import { generateAIText } from "@/lib/ai";
 import { extractJSON, extractJSONObject } from "@/lib/utils";
 import {
   SCOUT_RESEARCH_PROMPT,
@@ -23,23 +23,11 @@ export async function runPlayerResearch(
 
   const prompt = SCOUT_RESEARCH_PROMPT.replace("{playerProfile}", playerProfile);
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
-    tools: [
-      {
-        type: "web_search_20250305",
-        name: "web_search",
-        max_uses: 8,
-      },
-    ],
-    messages: [{ role: "user", content: prompt }],
+  const responseText = await generateAIText({
+    prompt,
+    maxOutputTokens: 4096,
+    webSearch: true,
   });
-
-  const responseText = response.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
 
   const intelligence = extractJSONObject<PlayerIntelligence>(responseText);
 
@@ -125,25 +113,13 @@ export async function runScout(
     );
   }
 
-  log("Appel Claude avec web search activé...", "info");
+  log("Appel Grok avec web search activé...", "info");
 
-  const searchResponse = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4096,
-    tools: [
-      {
-        type: "web_search_20250305",
-        name: "web_search",
-        max_uses: 12,
-      },
-    ],
-    messages: [{ role: "user", content: searchPrompt }],
+  const searchText = await generateAIText({
+    prompt: searchPrompt,
+    maxOutputTokens: 4096,
+    webSearch: true,
   });
-
-  const searchText = searchResponse.content
-    .filter((block) => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
 
   const brandMentions = searchText.split("\n").filter((l) => l.trim()).length;
   log(`Recherche terminée — ~${brandMentions} lignes de résultats`, "success");
@@ -156,16 +132,10 @@ export async function runScout(
     searchText
   );
 
-  const structureResponse = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8192,
-    messages: [{ role: "user", content: structurePrompt }],
+  const structureText = await generateAIText({
+    prompt: structurePrompt,
+    maxOutputTokens: 8192,
   });
-
-  const structureText =
-    structureResponse.content[0].type === "text"
-      ? structureResponse.content[0].text
-      : "";
 
   const brands = extractJSON<ScoutBrand>(structureText);
 

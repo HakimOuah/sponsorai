@@ -1,16 +1,9 @@
-export const VEILLE_WEB_SEARCH_MAX_USES = 8;
+import type { GenerateAITextOptions } from "@/lib/ai";
 
-export function buildVeilleRequest(prompt: string) {
+export function buildVeilleRequest(prompt: string): GenerateAITextOptions {
   return {
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 8192,
-    tools: [
-      {
-        type: "web_search_20250305" as const,
-        name: "web_search" as const,
-        max_uses: VEILLE_WEB_SEARCH_MAX_USES,
-      },
-    ],
-    messages: [{ role: "user" as const, content: prompt }],
+    prompt,
+    maxOutputTokens: 8192,
+    webSearch: true,
   };
 }

@@ -1,4 +1,4 @@
-import { anthropic } from "@/lib/claude";
+import { generateAIText } from "@/lib/ai";
 import { VEILLEUR_PROMPT } from "./prompts";
 import type { LogCallback } from "./scout";
 
@@ -31,16 +31,12 @@ export async function runVeilleur(
     .replace("{emailSubject}", context.emailSubject)
     .replace("{replyContent}", context.replyContent);
 
-  log("Appel Claude pour classification...", "info");
+  log("Appel Grok pour classification...", "info");
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 2048,
-    messages: [{ role: "user", content: prompt }],
+  const text = await generateAIText({
+    prompt,
+    maxOutputTokens: 2048,
   });
-
-  const text =
-    response.content[0].type === "text" ? response.content[0].text : "";
 
   const cleaned = text
     .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
