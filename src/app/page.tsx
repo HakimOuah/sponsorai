@@ -5,7 +5,6 @@ import { LandingMotionController } from "@/components/landing/LandingMotion";
 import {
   Activity,
   ArrowRight,
-  ArrowUpRight,
   BrainCircuit,
   CalendarCheck,
   Bot,
@@ -84,42 +83,95 @@ const agents: Array<{
   role: string;
   icon: LucideIcon;
   text: string;
+  command: string;
+  result: string;
+  capabilities: [string, string, string];
 }> = [
   {
     name: "Scout",
     role: "Discovery",
     icon: Search,
     text: "Découvre des marques pertinentes et réutilise la connaissance déjà acquise au lieu d'exclure toute entreprise connue.",
+    command:
+      "Trouve 25 marques cohérentes avec ce profil, hors évidences du marché.",
+    result: "25 marques sourcées, 18 nouvelles pistes prêtes à être scorées.",
+    capabilities: [
+      "Recherche web contextualisée",
+      "Déduplication par athlète",
+      "Sources conservées",
+    ],
   },
   {
     name: "Matchmaker",
     role: "Brand score",
     icon: Target,
     text: "Versionne le scoring et combine cohérence de marque, audience, timing et signaux historiques contextualisés.",
+    command:
+      "Priorise les marques qui ont le meilleur potentiel de conversion réel.",
+    result: "7 opportunités A détectées avec un rationnel exploitable.",
+    capabilities: [
+      "Scoring multi-critères",
+      "Historique des outcomes",
+      "Priorités A, B et C",
+    ],
   },
   {
     name: "Enrichisseur",
     role: "Contact score",
     icon: Building2,
     text: "Identifie le bon rôle, vérifie l'emploi et la contactabilité, sans exposer les coordonnées brutes côté client.",
+    command:
+      "Identifie le décideur sponsoring actuel pour chaque marque prioritaire.",
+    result:
+      "5 décideurs actuels qualifiés, dont 3 contacts prêts pour validation.",
+    capabilities: [
+      "Rôles normalisés",
+      "Emploi actuel vérifié",
+      "Coordonnées protégées",
+    ],
   },
   {
     name: "Rédacteur",
     role: "Message versionné",
     icon: Mail,
     text: "Génère un message contextualisé dont la version et l'angle restent associés aux résultats de la campagne.",
+    command:
+      "Rédige un premier contact crédible à partir du match et du profil.",
+    result: "Un email personnalisé, relu et rattaché à son angle de campagne.",
+    capabilities: [
+      "Angles personnalisés",
+      "Templates versionnés",
+      "Validation humaine",
+    ],
   },
   {
     name: "Dispatcher",
     role: "Sending identity",
     icon: Send,
     text: "Envoie depuis l'identité professionnelle connectée, orchestre les relances et conserve le fil de conversation.",
+    command:
+      "Envoie les messages approuvés et prépare les relances au bon moment.",
+    result: "Séquence programmée, identité contrôlée et chronologie conservée.",
+    capabilities: [
+      "Identité professionnelle",
+      "Relances orchestrées",
+      "Traçabilité complète",
+    ],
   },
   {
     name: "Veilleur",
     role: "Signals & replies",
     icon: Bot,
     text: "Détecte les réponses et nouveaux signaux utiles afin d'alimenter les opportunités, preuves et prochaines actions.",
+    command:
+      "Surveille les réponses et transforme chaque signal en action concrète.",
+    result:
+      "Réponse positive détectée, meeting proposé et pipeline mis à jour.",
+    capabilities: [
+      "Réponses catégorisées",
+      "Signaux marché suivis",
+      "Outcomes structurés",
+    ],
   },
 ];
 
@@ -155,7 +207,7 @@ const proofPoints = [
 
 export default function LandingPage() {
   return (
-    <main className="landing-theme min-h-screen overflow-x-hidden bg-[#FF6B3D] text-[#171A23]">
+    <main className="landing-theme min-h-screen overflow-x-hidden bg-[#080705] text-[#F6F4EF]">
       <LandingMotionController />
       <SiteNav />
       <HeroSection />
@@ -205,7 +257,7 @@ function SiteNav() {
           </Link>
           <Link
             href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
-            className="group inline-flex items-center gap-2 rounded-full bg-[#FF6B3D] px-5 py-3 text-sm font-semibold text-[#0B0D12] shadow-[0_10px_34px_rgba(255,107,61,0.08)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,107,61,0.28)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
+            className="landing-primary-cta group inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
           >
             Démarrer
             <ArrowRight
@@ -240,7 +292,7 @@ function SiteNav() {
               </Link>
               <Link
                 href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
-                className="rounded-full bg-[#FF6B3D] px-4 py-3 text-center text-sm font-semibold text-[#0B0D12]"
+                className="landing-primary-cta rounded-full px-4 py-3 text-center text-sm font-semibold text-[#0B0D12]"
               >
                 Démarrer
               </Link>
@@ -254,56 +306,32 @@ function SiteNav() {
 
 function HeroSection() {
   return (
-    <section id="overview" className="bg-[#FF6B3D] p-3 sm:p-5">
-      <div className="hero-shell relative mx-auto min-h-[880px] max-w-[1560px] overflow-hidden rounded-[32px] bg-[#0B0D12] px-5 pb-8 pt-28 text-[#F6F4EF] sm:rounded-[44px] sm:px-10 sm:pt-32 lg:min-h-[920px] lg:px-16">
+    <section id="overview" className="bg-[#080705] p-3 sm:p-5">
+      <div className="hero-shell relative mx-auto max-w-[1560px] overflow-hidden rounded-[32px] bg-[#0B0D12] px-5 pb-8 pt-28 text-[#F6F4EF] sm:rounded-[44px] sm:px-10 sm:pt-32 lg:px-16">
         <div className="hero-grid" aria-hidden="true" />
-        <div className="hero-orbit hero-orbit-one" aria-hidden="true" />
-        <div className="hero-orbit hero-orbit-two" aria-hidden="true" />
-        <div className="hero-circuit" aria-hidden="true">
-          <span className="circuit-line circuit-line-top" />
-          <span className="circuit-line circuit-line-mid" />
-          <span className="circuit-line circuit-line-bottom" />
-          <span className="circuit-dot circuit-dot-one" />
-          <span className="circuit-dot circuit-dot-two" />
-          <span className="circuit-dot circuit-dot-three" />
-        </div>
+        <div className="hero-signal-field" aria-hidden="true" />
+        <div className="hero-glow hero-glow-one" aria-hidden="true" />
+        <div className="hero-glow hero-glow-two" aria-hidden="true" />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-[1320px] items-center gap-12 lg:grid-cols-[0.88fr_1.12fr] lg:gap-16">
-          <div className="landing-reveal max-w-2xl text-center lg:text-left">
-            <div className="mx-auto mb-7 flex w-fit items-center gap-2 rounded-full border border-[#FF6B3D]/25 bg-[#FF6B3D]/10 px-4 py-2 text-sm font-semibold text-[#FFE4D8] backdrop-blur-xl lg:mx-0">
+        <div className="relative z-10 mx-auto w-full max-w-[1320px]">
+          <div className="landing-reveal mx-auto max-w-5xl text-center">
+            <div className="mx-auto mb-7 flex w-fit items-center gap-2 rounded-full border border-[#FF6B3D]/25 bg-[#FF6B3D]/10 px-4 py-2 text-sm font-semibold text-[#FFE4D8] backdrop-blur-xl">
               <Sparkles className="h-4 w-4 text-[#FF6B3D]" aria-hidden="true" />
               SponsorAI V2 · Sponsorship intelligence
             </div>
-            <h1 className="text-[43px] font-semibold leading-[0.98] tracking-[-0.055em] text-[#F6F4EF] sm:text-[68px] lg:text-[78px]">
+            <h1 className="text-balance text-[44px] font-semibold leading-[0.96] tracking-[-0.06em] text-[#F6F4EF] sm:text-[72px] lg:text-[92px]">
               Chaque campagne rend la suivante{" "}
               <span className="text-[#FF6B3D]">plus intelligente.</span>
             </h1>
-            <p className="mx-auto mt-7 max-w-xl text-[16px] leading-8 text-[#D5D7DF]/72 sm:text-lg lg:mx-0">
+            <p className="mx-auto mt-7 max-w-2xl text-[16px] leading-8 text-[#D5D7DF]/72 sm:text-lg">
               Découvrez les bonnes marques, qualifiez le décideur, pilotez
               l&apos;outreach jusqu&apos;au deal et transformez chaque résultat
               en donnée propriétaire réutilisable.
             </p>
 
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start">
-              <Link
-                href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
-                className="group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-[#FF6B3D] px-6 py-4 text-base font-semibold text-[#0B0D12] shadow-[0_20px_70px_rgba(255,107,61,0.2)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#FF865F] hover:shadow-[0_0_34px_rgba(255,107,61,0.32)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-[0.98] sm:w-auto"
-              >
-                Réserver une démo
-                <ArrowUpRight
-                  className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  aria-hidden="true"
-                />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex min-h-14 w-full items-center justify-center rounded-full border border-white/[0.14] bg-white/[0.05] px-6 py-4 text-base font-semibold text-white/[0.82] backdrop-blur-xl transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.09] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98] sm:w-auto"
-              >
-                Accéder à la plateforme
-              </Link>
-            </div>
+            <HeroCommandBar />
 
-            <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-sm text-[#D5D7DF]/62 lg:justify-start">
+            <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-sm text-[#D5D7DF]/62">
               {["Sponsorship Graph", "Boucle fermée", "Learning Engine"].map(
                 (item) => (
                   <span key={item} className="inline-flex items-center gap-2">
@@ -318,7 +346,7 @@ function HeroSection() {
             </div>
           </div>
 
-          <ScrollParallax className="self-center">
+          <ScrollParallax className="mx-auto mt-14 max-w-[980px]">
             <ProductPreview />
           </ScrollParallax>
         </div>
@@ -348,6 +376,45 @@ function HeroSection() {
   );
 }
 
+function HeroCommandBar() {
+  return (
+    <div className="hero-command-bar mx-auto mt-10 max-w-3xl rounded-[28px] border border-white/[0.12] bg-white/[0.065] p-3 text-left shadow-[0_28px_100px_rgba(0,0,0,0.34)] backdrop-blur-2xl sm:p-4">
+      <div className="flex min-h-16 items-center gap-3 px-2 sm:px-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#FF6B3D]/20 bg-[#FF6B3D]/10">
+          <Sparkles className="h-4 w-4 text-[#FF6B3D]" aria-hidden="true" />
+        </span>
+        <p className="text-sm font-medium text-white/[0.76] sm:text-base">
+          Trouver les sponsors les plus pertinents pour mon portefeuille
+        </p>
+      </div>
+      <div className="mt-2 flex flex-col gap-2 border-t border-white/[0.09] pt-3 sm:flex-row sm:items-center sm:justify-between">
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/[0.10] bg-black/20 px-3 py-2 text-xs font-medium text-[#D5D7DF]/72">
+          <Bot className="h-3.5 w-3.5 text-[#FF6B3D]" aria-hidden="true" />6
+          agents coordonnés
+        </span>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Link
+            href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
+            className="landing-primary-cta group inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-[0.98]"
+          >
+            Réserver une démo
+            <ArrowRight
+              className="h-4 w-4 transition group-hover:translate-x-0.5"
+              aria-hidden="true"
+            />
+          </Link>
+          <Link
+            href="/login"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.07] px-5 py-3 text-sm font-semibold text-white/[0.82] transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.11] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
+          >
+            Voir la plateforme
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProductPreview() {
   const opportunities = [
     {
@@ -371,7 +438,7 @@ function ProductPreview() {
   ];
 
   return (
-    <div className="landing-reveal relative mx-auto w-full max-w-[680px]">
+    <div className="landing-reveal relative mx-auto w-full max-w-[980px]">
       <div
         className="absolute -inset-8 rounded-full bg-[#FF6B3D]/10 blur-3xl"
         aria-hidden="true"
@@ -454,7 +521,7 @@ function ProductPreview() {
                   <p className="font-mono text-lg font-semibold sm:text-xl">
                     {stat.value}
                   </p>
-                  <p className="mt-1 text-[9px] leading-4 text-[#727782] sm:text-[10px]">
+                  <p className="mt-1 text-[9px] leading-4 text-[#5F6570] sm:text-[10px]">
                     {stat.label}
                   </p>
                 </div>
@@ -466,7 +533,7 @@ function ProductPreview() {
                 <span className="text-xs font-semibold">
                   Recommandations V2
                 </span>
-                <span className="text-[10px] text-[#727782]">
+                <span className="text-[10px] text-[#5F6570]">
                   Mis à jour maintenant
                 </span>
               </div>
@@ -517,8 +584,8 @@ function ProductPreview() {
 
 function ProblemSection() {
   return (
-    <section className="relative overflow-hidden bg-[#FF6B3D] px-5 py-24 sm:px-8 lg:py-36">
-      <AmbientBackdrop />
+    <section className="relative overflow-hidden bg-[#080705] px-5 py-24 text-white sm:px-8 lg:py-36">
+      <AmbientBackdrop dark />
       <div className="relative z-10 mx-auto max-w-[1480px]">
         <SectionIntro
           badge="La rupture V2"
@@ -556,7 +623,7 @@ function ProblemSection() {
               </div>
               <Link
                 href="#technology"
-                className="mt-10 inline-flex items-center gap-3 rounded-full bg-[#B23A20] px-5 py-3 text-sm font-semibold text-white transition duration-200 hover:-translate-y-0.5 hover:bg-[#303543] hover:shadow-[0_20px_45px_rgba(178,58,32,0.2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
+                className="landing-primary-cta mt-10 inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
               >
                 Découvrir le moteur V2
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -602,7 +669,7 @@ function ContactIntelligencePreview() {
                   <p className="text-lg font-semibold text-[#171A21]">
                     Head of Sports Partnerships
                   </p>
-                  <p className="mt-1 text-sm text-[#727782]">
+                  <p className="mt-1 text-sm text-[#5F6570]">
                     Rôle normalisé · entreprise cible
                   </p>
                 </div>
@@ -618,7 +685,7 @@ function ContactIntelligencePreview() {
                   ["Pertinence", "Très forte"],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-2xl bg-[#F1F0ED] p-3">
-                    <p className="text-[10px] text-[#777C88]">{label}</p>
+                    <p className="text-[10px] text-[#5F6570]">{label}</p>
                     <p className="mt-1 text-xs font-semibold text-[#B64022]">
                       {value}
                     </p>
@@ -645,14 +712,14 @@ function ContactIntelligencePreview() {
                 "rounded-2xl border px-3 py-3 text-center text-[11px] font-semibold " +
                 (index === 0
                   ? "border-[#E85832]/25 bg-[#FFF0EA] text-[#B23A20]"
-                  : "border-black/[0.07] bg-white text-[#787D88]")
+                  : "border-black/[0.07] bg-white text-[#5F6570]")
               }
             >
               {feedback}
             </div>
           ))}
         </div>
-        <p className="mt-3 text-center text-[10px] text-[#727782]">
+        <p className="mt-3 text-center text-[10px] text-[#5F6570]">
           Aperçu illustratif — le feedback humain devient une donnée SponsorAI.
         </p>
       </div>
@@ -664,7 +731,7 @@ function SolutionSection() {
   return (
     <section
       id="technology"
-      className="relative overflow-hidden bg-[#FF6B3D] px-5 py-24 sm:px-8 lg:py-36"
+      className="relative overflow-hidden bg-[#0D0A08] px-5 py-24 text-white sm:px-8 lg:py-36"
     >
       <DotField />
       <div className="relative z-10 mx-auto max-w-[1480px]">
@@ -773,7 +840,7 @@ function LearningEnginePreview() {
                   {value}
                 </p>
               </div>
-              <p className="mt-3 text-[10px] text-[#797E8A]">{label}</p>
+              <p className="mt-3 text-[10px] text-[#5F6570]">{label}</p>
             </div>
           ))}
         </div>
@@ -805,7 +872,7 @@ function LearningEnginePreview() {
           </div>
         </div>
 
-        <p className="mt-3 text-center text-[10px] text-[#727782]">
+        <p className="mt-3 text-center text-[10px] text-[#5F6570]">
           Données illustratives — aucun résultat réel affiché.
         </p>
       </div>
@@ -817,53 +884,163 @@ function AgentsSection() {
   return (
     <section
       id="agents"
-      className="relative overflow-hidden bg-[#11141D] px-5 py-24 text-white sm:px-8 lg:py-32"
+      className="relative overflow-hidden bg-[#080705] py-24 text-white lg:py-32"
     >
       <AmbientBackdrop dark />
-      <div className="relative z-10 mx-auto max-w-[1480px]">
+      <div className="agent-signal-field" aria-hidden="true" />
+      <div className="relative z-10 mx-auto max-w-[1480px] px-5 sm:px-8">
         <ScrollReveal>
-          <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-            <div>
-              <p className="mb-5 w-fit rounded-full border border-[#FF6B3D]/20 bg-[#FF6B3D]/10 px-4 py-2 text-sm font-semibold text-[#FFE4D8]">
-                Équipe d&apos;agents
-              </p>
-              <h2 className="text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-[#F6F4EF] md:text-7xl">
-                Six agents. Une intelligence partagée.
-              </h2>
-            </div>
-            <p className="max-w-2xl text-lg leading-8 text-[#969BA8]">
-              Chaque agent garde un rôle clair, mais leurs décisions alimentent
-              le même graphe, la même chronologie et le même historique
-              d&apos;outcomes.
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="mx-auto mb-5 w-fit rounded-full border border-[#FF6B3D]/20 bg-[#FF6B3D]/10 px-4 py-2 text-sm font-semibold text-[#FFE4D8]">
+              Disponibles en continu · sous votre contrôle
             </p>
+            <h2 className="text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-[#F6F4EF] md:text-7xl">
+              Six agents spécialisés. Une seule intelligence.
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#969BA8]">
+              Chacun exécute une mission précise. Ensemble, ils conservent le
+              contexte, les décisions et les outcomes de chaque campagne.
+            </p>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link
+                href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
+                className="landing-primary-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+              >
+                Voir les agents en action
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white/[0.80] transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.10] hover:text-white active:scale-[0.98]"
+              >
+                Accéder à la plateforme
+              </Link>
+            </div>
           </div>
         </ScrollReveal>
 
-        <div className="mt-16 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {agents.map((agent, index) => (
-            <ScrollReveal key={agent.name} delay={(index % 3) * 90}>
-              <article className="group landing-card-lift h-full rounded-[28px] border border-white/[0.08] bg-white/[0.045] p-6 transition duration-300 hover:-translate-y-1 hover:border-[#FF6B3D]/35 hover:bg-white/[0.065] hover:shadow-[0_28px_80px_rgba(0,0,0,0.25)]">
-                <div className="relative z-10 mb-8 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-[#0B0D12]">
-                    <agent.icon
-                      className="h-5 w-5 text-[#FF6B3D]"
-                      aria-hidden="true"
-                    />
+        <ScrollReveal className="mt-14">
+          <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-2">
+            {agents.map((agent) => (
+              <a
+                key={agent.name}
+                href={`#agent-${agent.name.toLowerCase()}`}
+                className="group inline-flex items-center gap-2 rounded-full border border-white/[0.10] bg-white/[0.035] py-1.5 pl-1.5 pr-4 text-sm font-medium text-[#969BA8] transition duration-200 hover:border-[#FF6B3D]/30 hover:bg-white/[0.07] hover:text-white"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.09] bg-[#15110E] transition group-hover:bg-[#FF6B3D]/12">
+                  <agent.icon
+                    className="h-3.5 w-3.5 text-[#FF6B3D]"
+                    aria-hidden="true"
+                  />
+                </span>
+                {agent.name}
+              </a>
+            ))}
+          </div>
+        </ScrollReveal>
+      </div>
+
+      <ScrollReveal direction="scale" className="mt-12">
+        <div
+          role="region"
+          aria-label="Présentation des agents SponsorAI"
+          tabIndex={0}
+          className="agent-showcase-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-[max(1.25rem,calc((100vw-1180px)/2))] pb-7 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] sm:gap-6 sm:px-[max(2rem,calc((100vw-1180px)/2))]"
+        >
+          {agents.map((agent) => (
+            <article
+              id={`agent-${agent.name.toLowerCase()}`}
+              key={agent.name}
+              className="agent-showcase-card group w-[88vw] max-w-[980px] shrink-0 snap-center scroll-ml-5 scroll-mt-28 overflow-hidden rounded-[32px] border border-white/[0.10] bg-[#15120F]/95 shadow-[0_34px_110px_rgba(0,0,0,0.34)] backdrop-blur-2xl transition duration-300 hover:border-[#FF6B3D]/24 sm:w-[82vw] sm:scroll-ml-8 lg:w-[76vw]"
+            >
+              <div className="grid min-h-[520px] lg:grid-cols-[0.88fr_1.12fr]">
+                <div className="agent-conversation relative flex flex-col justify-between overflow-hidden border-b border-white/[0.08] p-5 sm:p-8 lg:border-b-0 lg:border-r">
+                  <div className="relative z-10">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#FF6B3D]">
+                      Mission confiée
+                    </p>
+                    <div className="mt-5 rounded-[22px] border border-white/[0.10] bg-black/20 p-4 text-sm leading-6 text-white/[0.72]">
+                      {agent.command}
+                    </div>
                   </div>
-                  <span className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-[#969BA8]">
-                    {agent.role}
-                  </span>
+
+                  <div className="relative z-10 mt-16">
+                    <div className="ml-auto max-w-[92%] rounded-[22px] rounded-br-md border border-[#FF6B3D]/20 bg-[#FF6B3D]/10 p-4 text-sm leading-6 text-[#FFE4D8]">
+                      {agent.result}
+                    </div>
+                    <div className="mt-4 flex items-center gap-3">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[#FF6B3D]/22 bg-[#FF6B3D]/10">
+                        <agent.icon
+                          className="h-4 w-4 text-[#FF6B3D]"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-white">
+                          {agent.name} a terminé la mission
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-[#969BA8]">
+                          Contexte enregistré dans SponsorAI
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="relative z-10 text-2xl font-semibold tracking-[-0.04em] text-[#F6F4EF]">
-                  {agent.name}
-                </h3>
-                <p className="relative z-10 mt-4 text-base leading-7 text-[#969BA8]">
-                  {agent.text}
-                </p>
-              </article>
-            </ScrollReveal>
+
+                <div className="flex flex-col p-5 sm:p-8 lg:p-10">
+                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[22px] border border-[#FF6B3D]/22 bg-[#FF6B3D]/10 shadow-[0_0_36px_rgba(255,107,61,0.10)]">
+                        <agent.icon
+                          className="h-7 w-7 text-[#FF6B3D]"
+                          aria-hidden="true"
+                        />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-[#FF6B3D]">
+                          {agent.role}
+                        </p>
+                        <h3 className="mt-1 text-3xl font-semibold tracking-[-0.045em] text-[#F6F4EF]">
+                          Agent {agent.name}
+                        </h3>
+                      </div>
+                    </div>
+                    <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#FF6B3D]/18 bg-[#FF6B3D]/10 px-3 py-2 text-[10px] font-semibold text-[#FFE4D8]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#FF6B3D] shadow-[0_0_10px_rgba(255,107,61,0.75)]" />
+                      Actif
+                    </span>
+                  </div>
+
+                  <p className="mt-7 max-w-xl text-base leading-7 text-[#969BA8]">
+                    {agent.text}
+                  </p>
+
+                  <div className="mt-auto space-y-3 pt-9">
+                    {agent.capabilities.map((capability) => (
+                      <div
+                        key={capability}
+                        className="flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.045] px-4 py-3 text-sm font-semibold text-[#D5D7DF]"
+                      >
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FF6B3D]/12">
+                          <Check
+                            className="h-3.5 w-3.5 text-[#FF6B3D]"
+                            aria-hidden="true"
+                          />
+                        </span>
+                        {capability}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
+      </ScrollReveal>
+
+      <div className="relative z-10 mx-auto mt-2 flex max-w-[1480px] items-center justify-center gap-2 px-5 text-xs text-[#969BA8] sm:px-8">
+        <ArrowRight className="h-4 w-4 text-[#FF6B3D]" aria-hidden="true" />
+        Faites défiler pour découvrir chaque agent
       </div>
     </section>
   );
@@ -873,9 +1050,9 @@ function WorkflowSection() {
   return (
     <section
       id="resources"
-      className="relative overflow-hidden bg-[#FF6B3D] px-5 py-24 sm:px-8 lg:py-32"
+      className="relative overflow-hidden bg-[#080705] px-5 py-24 text-white sm:px-8 lg:py-32"
     >
-      <AmbientBackdrop />
+      <AmbientBackdrop dark />
       <div className="relative z-10 mx-auto max-w-[1480px]">
         <ScrollReveal>
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
@@ -883,18 +1060,18 @@ function WorkflowSection() {
               <p className="mb-5 w-fit rounded-full border border-[#969BA8]/35 bg-white px-4 py-2 text-sm font-semibold text-[#303543] shadow-sm">
                 Closed-loop V2
               </p>
-              <h2 className="text-5xl font-semibold leading-[1.03] tracking-[-0.055em] text-[#171A23] md:text-7xl">
+              <h2 className="text-5xl font-semibold leading-[1.03] tracking-[-0.055em] text-[#F6F4EF] md:text-7xl">
                 Du premier signal au deal attribué.
               </h2>
             </div>
-            <div className="rounded-[28px] bg-[#FFE4D8] p-6">
+            <div className="rounded-[28px] border border-[#FF6B3D]/18 bg-[#FF6B3D]/[0.075] p-6 backdrop-blur-xl">
               <div className="grid gap-3 sm:grid-cols-2">
                 {proofPoints.map((point) => (
                   <div
                     key={point}
-                    className="flex items-center gap-3 text-sm font-semibold text-[#303543]"
+                    className="flex items-center gap-3 text-sm font-semibold text-[#F6F4EF]"
                   >
-                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#171A23]">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FF6B3D]/15">
                       <Check
                         className="h-4 w-4 text-[#FF6B3D]"
                         aria-hidden="true"
@@ -915,14 +1092,14 @@ function WorkflowSection() {
         <div className="mt-10 grid gap-4 lg:grid-cols-4">
           {workflow.map((step, index) => (
             <ScrollReveal key={step.number} delay={index * 80}>
-              <article className="landing-card-lift h-full rounded-[28px] border border-[#171A23]/10 bg-white p-6 shadow-[0_22px_70px_rgba(23,26,35,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_26px_90px_rgba(23,26,35,0.12)]">
-                <p className="relative z-10 font-mono text-sm text-[#B23A20]">
+              <article className="landing-card-lift h-full rounded-[28px] border border-white/[0.09] bg-white/[0.045] p-6 shadow-[0_22px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#FF6B3D]/30 hover:bg-white/[0.065] hover:shadow-[0_26px_90px_rgba(0,0,0,0.28)]">
+                <p className="relative z-10 font-mono text-sm text-[#FF6B3D]">
                   {step.number}
                 </p>
-                <h3 className="relative z-10 mt-8 text-2xl font-semibold tracking-[-0.04em] text-[#171A23]">
+                <h3 className="relative z-10 mt-8 text-2xl font-semibold tracking-[-0.04em] text-[#F6F4EF]">
                   {step.title}
                 </h3>
-                <p className="relative z-10 mt-4 text-base leading-7 text-[#626774]">
+                <p className="relative z-10 mt-4 text-base leading-7 text-[#969BA8]">
                   {step.text}
                 </p>
               </article>
@@ -986,7 +1163,7 @@ function ClosedLoopPreview() {
                   <p className="mt-3 text-[10px] font-semibold">
                     {stage.label}
                   </p>
-                  <p className="mt-1 font-mono text-[8px] text-white/[0.38]">
+                  <p className="mt-1 font-mono text-[8px] text-white/[0.68]">
                     {String(index + 1).padStart(2, "0")}
                   </p>
                 </div>
@@ -1038,7 +1215,7 @@ function ClosedLoopPreview() {
         </div>
       </div>
 
-      <p className="mt-4 text-center text-[10px] text-white/[0.38]">
+      <p className="mt-4 text-center text-[10px] text-white/[0.68]">
         Aperçu illustratif de l&apos;architecture cible V2.
       </p>
     </div>
@@ -1047,8 +1224,8 @@ function ClosedLoopPreview() {
 
 function FinalCTA() {
   return (
-    <section className="bg-[#FF6B3D] p-3 sm:p-5">
-      <div className="relative mx-auto overflow-hidden rounded-[32px] bg-[#0B0D12] px-6 py-24 text-center text-white sm:rounded-[44px] lg:py-32">
+    <section className="bg-[#080705] p-3 sm:p-5">
+      <div className="cta-signal-block relative mx-auto overflow-hidden rounded-[32px] border border-white/[0.08] bg-[#0B0D12] px-6 py-24 text-center text-white sm:rounded-[44px] lg:py-32">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,107,61,0.18),transparent_35%),linear-gradient(180deg,#0B0D12,#11141D)]" />
         <AmbientBackdrop dark />
         <ScrollReveal
@@ -1069,7 +1246,7 @@ function FinalCTA() {
           <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
-              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[#FF6B3D] px-6 py-4 text-base font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_30px_rgba(255,107,61,0.28)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
+              className="landing-primary-cta inline-flex min-h-14 items-center justify-center gap-3 rounded-full px-6 py-4 text-base font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
             >
               Réserver une démo
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -1133,13 +1310,13 @@ function SectionIntro({
   return (
     <ScrollReveal>
       <div className="mx-auto max-w-4xl text-center">
-        <p className="mx-auto mb-6 w-fit rounded-full border border-[#969BA8]/45 bg-white px-4 py-2 text-sm font-semibold text-[#303543] shadow-sm">
+        <p className="mx-auto mb-6 w-fit rounded-full border border-[#FF6B3D]/22 bg-[#FF6B3D]/10 px-4 py-2 text-sm font-semibold text-[#FFE4D8] shadow-[0_0_32px_rgba(255,107,61,0.08)]">
           {badge}
         </p>
-        <h2 className="text-5xl font-semibold leading-[1.04] tracking-[-0.055em] text-[#171A23] md:text-7xl">
+        <h2 className="text-balance text-5xl font-semibold leading-[1.04] tracking-[-0.055em] text-[#F6F4EF] md:text-7xl">
           {title}
         </h2>
-        <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-[#676C79]">
+        <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-[#969BA8]">
           {text}
         </p>
       </div>

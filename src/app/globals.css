@@ -46,6 +46,10 @@
     font-family: "Outfit", system-ui, sans-serif;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   ::selection {
     background: rgba(255, 107, 61, 0.28);
     color: #f6f4ef;
@@ -166,16 +170,16 @@
   .hero-shell {
     background:
       radial-gradient(
-        circle at 50% 35%,
-        rgba(255, 107, 61, 0.14),
-        transparent 28%
+        circle at 50% 28%,
+        rgba(255, 107, 61, 0.12),
+        transparent 32%
       ),
       radial-gradient(
-        circle at 50% 75%,
-        rgba(178, 58, 32, 0.2),
-        transparent 38%
+        circle at 50% 72%,
+        rgba(178, 58, 32, 0.12),
+        transparent 42%
       ),
-      linear-gradient(180deg, #0b0d12 0%, #11141d 100%);
+      linear-gradient(180deg, #090806 0%, #0e0b09 54%, #0b0d12 100%);
   }
 
   .hero-grid {
@@ -187,6 +191,104 @@
       linear-gradient(to bottom, rgba(246, 244, 239, 0.18) 1px, transparent 1px);
     background-size: 92px 92px;
     mask-image: radial-gradient(circle at 50% 42%, black 0%, transparent 68%);
+  }
+
+  .hero-signal-field,
+  .agent-signal-field {
+    position: absolute;
+    left: 50%;
+    width: min(1200px, 118vw);
+    height: 620px;
+    transform: translateX(-50%) rotate(-5deg);
+    background-image: radial-gradient(
+      circle,
+      rgba(255, 107, 61, 0.62) 1px,
+      transparent 1.45px
+    );
+    background-size: 8px 8px;
+    mask-image: radial-gradient(
+      ellipse at center,
+      black 0%,
+      rgba(0, 0, 0, 0.72) 34%,
+      transparent 72%
+    );
+    opacity: 0.24;
+    pointer-events: none;
+    animation: signal-field-drift 16s ease-in-out infinite alternate;
+    will-change: transform, opacity;
+  }
+
+  .hero-signal-field {
+    top: 80px;
+  }
+
+  .agent-signal-field {
+    top: -80px;
+    height: 720px;
+    opacity: 0.15;
+    transform: translateX(-50%) rotate(4deg);
+    animation-delay: -6s;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: min(560px, 72vw);
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: radial-gradient(
+      circle,
+      rgba(255, 107, 61, 0.16),
+      transparent 68%
+    );
+    filter: blur(22px);
+    opacity: 0.62;
+    pointer-events: none;
+    animation: glow-orbit 13s ease-in-out infinite alternate;
+  }
+
+  .hero-glow-one {
+    top: -18%;
+    left: -12%;
+  }
+
+  .hero-glow-two {
+    right: -10%;
+    bottom: 8%;
+    animation-delay: -6s;
+  }
+
+  .hero-command-bar {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-command-bar::before {
+    position: absolute;
+    inset: 0 15% auto;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 178, 86, 0.78),
+      transparent
+    );
+    content: "";
+    opacity: 0.72;
+  }
+
+  .landing-primary-cta {
+    background: linear-gradient(110deg, #ff6b3d 0%, #ff8a3d 54%, #f4a63b 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.36),
+      0 10px 30px rgba(255, 107, 61, 0.22),
+      0 0 24px rgba(244, 166, 59, 0.12);
+  }
+
+  .landing-primary-cta:hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      0 14px 34px rgba(255, 107, 61, 0.3),
+      0 0 30px rgba(244, 166, 59, 0.2);
   }
 
   .hero-orbit {
@@ -481,8 +583,59 @@
     --landing-panel: #141720;
     --landing-accent: #ff6b3d;
     --landing-accent-soft: #ffe4d8;
-    background: var(--landing-paper);
-    color: var(--landing-ink);
+    background: #080705;
+    color: var(--landing-paper);
+  }
+
+  .agent-showcase-track {
+    scrollbar-width: none;
+  }
+
+  .agent-showcase-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .agent-showcase-card {
+    scroll-snap-stop: always;
+  }
+
+  .agent-conversation {
+    background:
+      radial-gradient(
+        circle at 20% 18%,
+        rgba(255, 107, 61, 0.13),
+        transparent 28%
+      ),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.045), transparent 62%);
+  }
+
+  .agent-conversation::before {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 46px 46px;
+    content: "";
+    mask-image: radial-gradient(circle at 28% 36%, black, transparent 68%);
+    opacity: 0.64;
+    pointer-events: none;
+  }
+
+  .cta-signal-block::before {
+    position: absolute;
+    inset: -20%;
+    background-image: radial-gradient(
+      circle,
+      rgba(255, 107, 61, 0.58) 1px,
+      transparent 1.4px
+    );
+    background-size: 9px 9px;
+    content: "";
+    mask-image: radial-gradient(ellipse at 50% 18%, black, transparent 58%);
+    opacity: 0.18;
+    pointer-events: none;
+    animation: cta-signal-pan 18s linear infinite;
   }
 
   .landing-ambient {
@@ -624,6 +777,37 @@
   to {
     opacity: 0.42;
     transform: translate3d(5vw, 4vh, 0) scale(1.08);
+  }
+}
+
+@keyframes signal-field-drift {
+  from {
+    opacity: 0.14;
+    transform: translate3d(-51%, -14px, 0) rotate(-5deg) scale(0.96);
+  }
+  to {
+    opacity: 0.3;
+    transform: translate3d(-49%, 20px, 0) rotate(-2deg) scale(1.04);
+  }
+}
+
+@keyframes glow-orbit {
+  from {
+    opacity: 0.42;
+    transform: translate3d(-2vw, -1vh, 0) scale(0.92);
+  }
+  to {
+    opacity: 0.78;
+    transform: translate3d(5vw, 4vh, 0) scale(1.08);
+  }
+}
+
+@keyframes cta-signal-pan {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 72px 45px;
   }
 }
 
