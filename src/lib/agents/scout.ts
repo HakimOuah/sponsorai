@@ -3,7 +3,6 @@ import { extractJSON, extractJSONObject } from "@/lib/utils";
 import {
   SCOUT_RESEARCH_PROMPT,
   SCOUT_SEARCH_PROMPT,
-  SCOUT_STRUCTURE_PROMPT,
   buildPlayerProfile,
 } from "./prompts";
 import type { ScoutBrand, PlayerIntelligence } from "@/types";
@@ -79,7 +78,8 @@ export async function runScout(
   const intelligence = options?.playerIntelligence;
   const excludedBrands = options?.excludedBrands || [];
 
-  // Step 1: Web search with enriched context
+  // Search and structure in one call. The former second formatting call was
+  // slow enough to make otherwise successful scans time out.
   log("Phase 1 — Recherche de marques avec contexte enrichi...", "info");
   log(`Profil : ${player.firstName} ${player.lastName} (${player.club})`, "info");
 
@@ -119,29 +119,13 @@ export async function runScout(
 
   const searchText = await generateAIText({
     prompt: searchPrompt,
-    maxOutputTokens: 4096,
+    maxOutputTokens: 8192,
     webSearch: true,
     timeoutMs: SCAN_STAGE_TIMEOUT_MS.scoutSearch,
   });
 
-  const brandMentions = searchText.split("\n").filter((l) => l.trim()).length;
-  log(`Recherche terminée — ~${brandMentions} lignes de résultats`, "success");
-
-  // Step 2: Structure JSON
-  log("Structuration des résultats en JSON...", "info");
-
-  const structurePrompt = SCOUT_STRUCTURE_PROMPT.replace(
-    "{searchResults}",
-    searchText
-  );
-
-  const structureText = await generateAIText({
-    prompt: structurePrompt,
-    maxOutputTokens: 8192,
-    timeoutMs: SCAN_STAGE_TIMEOUT_MS.scoutStructure,
-  });
-
-  const brands = extractJSON<ScoutBrand>(structureText);
+  const brands = extractJSON<ScoutBrand>(searchText);
+  log(`Recherche et structuration terminées — ${brands.length} marques`, "success");
 
   // Post-filter: remove any excluded brands that slipped through
   const filteredBrands = filterAlreadyEvaluatedBrands(brands, excludedBrands);

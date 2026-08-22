@@ -2,9 +2,10 @@ export const SCAN_FUNCTION_BUDGET_MS = 300_000;
 
 export const SCAN_STAGE_TIMEOUT_MS = {
   playerResearch: 55_000,
-  scoutSearch: 75_000,
-  scoutStructure: 45_000,
-  matchmaker: 55_000,
+  // Scout now searches and returns structured JSON in a single call. The old
+  // 45-second formatting call was both redundant and the source of retries.
+  scoutSearch: 105_000,
+  matchmaker: 80_000,
 } as const;
 
 export const SCAN_STAGE_TIMEOUT_TOTAL_MS = Object.values(

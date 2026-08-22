@@ -110,15 +110,7 @@ STRATÉGIE DE RECHERCHE INTELLIGENTE :
 
 Fais une recherche web APPROFONDIE pour chaque piste. Ne te contente pas de nommer des marques — vérifie qu'elles sont pertinentes et actives.
 
-Donne tes résultats sous forme de texte détaillé avec le nom de chaque marque, son angle commercial, son secteur, son pays, son signal d'opportunité, et pourquoi elle serait un bon match SPÉCIFIQUEMENT pour CE profil.`;
-
-export const SCOUT_STRUCTURE_PROMPT = `Tu es un assistant de structuration de données spécialisé en sponsoring sportif.
-
-Voici les résultats d'une recherche de marques potentielles pour un partenariat sportif :
-
-{searchResults}
-
-Transforme ces résultats en un tableau JSON STRICT avec ce format exact pour chaque marque :
+Retourne DIRECTEMENT un tableau JSON STRICT avec ce format exact pour chaque marque :
 
 [
   {
@@ -138,7 +130,7 @@ Transforme ces résultats en un tableau JSON STRICT avec ce format exact pour ch
 
 RÈGLES :
 - Retourne UNIQUEMENT le tableau JSON, rien d'autre
-- Inclus TOUTES les marques mentionnées dans les résultats
+- Inclus 25 à 30 marques qualifiées quand suffisamment de résultats fiables existent
 - Si une info manque, mets "Non renseigné"
 - Le champ website peut être null si inconnu
 - commercial_angle doit reprendre un angle du dossier profil ou un angle très proche

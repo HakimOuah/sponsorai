@@ -9,6 +9,10 @@ import { runMatchmaker } from "@/lib/agents/matchmaker";
 import type { ScoredBrand, PlayerIntelligence } from "@/types";
 import { applyMatchmakerLearning } from "@/lib/agents/matchmaker-learning";
 import { recordLearningEvent } from "@/lib/learning/events";
+import {
+  isPlayerIntelligence,
+  PLAYER_INTELLIGENCE_FRESHNESS_MS,
+} from "@/lib/agents/player-intelligence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,12 +70,21 @@ export async function POST(request: NextRequest) {
         status: "running",
       },
     });
+    let activePhase: "init" | "research" | "scout" | "matchmaker" | "save" = "init";
+
+    console.info("[scan] started", {
+      scanId: scan.id,
+      playerId: player.id,
+    });
 
     const runWithHeartbeat = async <T>(
       phase: "research" | "scout" | "matchmaker",
       messages: string[],
       task: () => Promise<T>
     ): Promise<T> => {
+      const stageStartedAt = Date.now();
+      activePhase = phase;
+      console.info("[scan] stage started", { scanId: scan.id, phase });
       let messageIndex = 0;
       const heartbeat = setInterval(() => {
         const message = messages[messageIndex % messages.length];
@@ -84,7 +97,22 @@ export async function POST(request: NextRequest) {
       }, 10_000);
 
       try {
-        return await task();
+        const result = await task();
+        console.info("[scan] stage completed", {
+          scanId: scan.id,
+          phase,
+          durationMs: Date.now() - stageStartedAt,
+        });
+        return result;
+      } catch (error) {
+        console.error("[scan] stage failed", {
+          scanId: scan.id,
+          phase,
+          durationMs: Date.now() - stageStartedAt,
+          errorName: error instanceof Error ? error.name : "UnknownError",
+          errorMessage: error instanceof Error ? error.message : String(error),
+        });
+        throw error;
       } finally {
         clearInterval(heartbeat);
       }
@@ -122,28 +150,47 @@ export async function POST(request: NextRequest) {
 
       let playerIntelligence: PlayerIntelligence | undefined;
       try {
-        playerIntelligence = await runWithHeartbeat(
-          "research",
-          [
-            "Scout rassemble les signaux publics du profil...",
-            "Scout vérifie l'image, l'audience et l'actualité du profil...",
-          ],
-          () => runPlayerResearch(player, researchLog)
-        );
+        const recentSnapshot = await prisma.athleteIntelligenceSnapshot.findFirst({
+          where: {
+            playerId: player.id,
+            capturedAt: {
+              gte: new Date(Date.now() - PLAYER_INTELLIGENCE_FRESHNESS_MS),
+            },
+          },
+          orderBy: { capturedAt: "desc" },
+          select: { snapshot: true, capturedAt: true },
+        });
+
+        if (recentSnapshot && isPlayerIntelligence(recentSnapshot.snapshot)) {
+          playerIntelligence = recentSnapshot.snapshot;
+          researchLog(
+            `Dossier d'intelligence récent réutilisé (mis à jour le ${recentSnapshot.capturedAt.toLocaleDateString("fr-FR")})`,
+            "success"
+          );
+        } else {
+          playerIntelligence = await runWithHeartbeat(
+            "research",
+            [
+              "Scout rassemble les signaux publics du profil...",
+              "Scout vérifie l'image, l'audience et l'actualité du profil...",
+            ],
+            () => runPlayerResearch(player, researchLog)
+          );
+
+          await prisma.athleteIntelligenceSnapshot.create({
+            data: {
+              playerId: player.id,
+              sourceScanId: scan.id,
+              snapshot: playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
+            },
+          });
+        }
 
         // Persist intelligence in scan
         await prisma.scan.update({
           where: { id: scan.id },
           data: {
             playerIntelligence: playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
-          },
-        });
-
-        await prisma.athleteIntelligenceSnapshot.create({
-          data: {
-            playerId: player.id,
-            sourceScanId: scan.id,
-            snapshot: playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
           },
         });
 
@@ -302,6 +349,7 @@ export async function POST(request: NextRequest) {
         type: "info",
         phase: "save",
       });
+      activePhase = "save";
       for (const brand of scoredBrands) {
         try {
           const prospect = await createProspectFromBrand(player.id, scan.id, brand);
@@ -337,7 +385,16 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (error) {
-      const errorMessage = getScanErrorMessage(error);
+      const errorMessage = getScanErrorMessage(error, activePhase);
+
+      console.error("[scan] failed", {
+        scanId: scan.id,
+        playerId: player.id,
+        phase: activePhase,
+        durationMs: Date.now() - startTime,
+        errorName: error instanceof Error ? error.name : "UnknownError",
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
 
       await prisma.scan.update({
         where: { id: scan.id },
@@ -368,14 +425,18 @@ export async function POST(request: NextRequest) {
   });
 }
 
-function getScanErrorMessage(error: unknown): string {
+function getScanErrorMessage(
+  error: unknown,
+  phase: "init" | "research" | "scout" | "matchmaker" | "save"
+): string {
   if (error instanceof Error) {
     if (
       error.name === "TimeoutError" ||
       error.name === "AbortError" ||
       error.message.toLowerCase().includes("timeout")
     ) {
-      return "Un agent n'a pas répondu dans le délai prévu. Le scan peut être relancé sans risque.";
+      const agent = phase === "matchmaker" ? "Matchmaker" : phase === "scout" ? "Scout" : "Un agent";
+      return `${agent} n'a pas répondu dans le délai prévu. Le scan peut être relancé sans risque.`;
     }
     return error.message;
   }
