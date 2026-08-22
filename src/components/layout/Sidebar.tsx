@@ -17,10 +17,24 @@ import {
   ChevronRight,
   X,
   Zap,
+  UserCog,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const navSections = [
+interface NavigationItem {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  adminOnly?: boolean;
+}
+
+interface NavigationSection {
+  label: string;
+  items: NavigationItem[];
+}
+
+const navSections: NavigationSection[] = [
   {
     label: "Ventes",
     items: [
@@ -49,6 +63,12 @@ const navSections = [
     items: [
       { label: "Analytics", href: "/analytics", icon: BarChart3 },
       { label: "Paramètres", href: "/settings", icon: Settings },
+      {
+        label: "Utilisateurs",
+        href: "/admin/users",
+        icon: UserCog,
+        adminOnly: true,
+      },
     ],
   },
 ];
@@ -56,6 +76,7 @@ const navSections = [
 interface SidebarProps {
   collapsed: boolean;
   mobileOpen: boolean;
+  isAdmin: boolean;
   onCollapseToggle: () => void;
   onMobileClose: () => void;
 }
@@ -63,6 +84,7 @@ interface SidebarProps {
 export function Sidebar({
   collapsed,
   mobileOpen,
+  isAdmin,
   onCollapseToggle,
   onMobileClose,
 }: SidebarProps) {
@@ -112,46 +134,54 @@ export function Sidebar({
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-5">
-          {navSections.map((section) => (
-            <div key={section.label} className="mb-5">
-              {showExpanded && (
-                <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#969BA8]/70">
-                  {section.label}
-                </p>
-              )}
-              <ul className="space-y-1">
-                {section.items.map((item) => {
-                  const isActive =
-                    pathname === item.href ||
-                    (item.href !== "/dashboard" &&
-                      pathname.startsWith(item.href));
-                  const Icon = item.icon;
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={onMobileClose}
-                        className={cn(
-                          "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                          isActive
-                            ? "border-[#FF6B3D]/25 bg-[#FF6B3D]/10 text-[#F6F4EF] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_28px_rgba(255,107,61,0.06)]"
-                            : "border-transparent text-[#969BA8] hover:border-white/[0.10] hover:bg-white/[0.045] hover:text-[#F6F4EF]",
-                        )}
-                      >
-                        <Icon
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter(
+              (item) => !item.adminOnly || isAdmin,
+            );
+
+            return (
+              <div key={section.label} className="mb-5">
+                {showExpanded ? (
+                  <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#969BA8]/70">
+                    {section.label}
+                  </p>
+                ) : null}
+                <ul className="space-y-1">
+                  {visibleItems.map((item) => {
+                    const isActive =
+                      pathname === item.href ||
+                      (item.href !== "/dashboard" &&
+                        pathname.startsWith(item.href));
+                    const Icon = item.icon;
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          onClick={onMobileClose}
                           className={cn(
-                            "h-4 w-4 shrink-0",
-                            isActive ? "text-[#FF6B3D]" : "text-[#969BA8]/70",
+                            "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                            isActive
+                              ? "border-[#FF6B3D]/25 bg-[#FF6B3D]/10 text-[#F6F4EF] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_28px_rgba(255,107,61,0.06)]"
+                              : "border-transparent text-[#969BA8] hover:border-white/[0.10] hover:bg-white/[0.045] hover:text-[#F6F4EF]",
                           )}
-                        />
-                        {showExpanded && <span>{item.label}</span>}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+                        >
+                          <Icon
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              isActive
+                                ? "text-[#FF6B3D]"
+                                : "text-[#969BA8]/70",
+                            )}
+                          />
+                          {showExpanded ? <span>{item.label}</span> : null}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
         </nav>
 
         {/* Collapse toggle */}

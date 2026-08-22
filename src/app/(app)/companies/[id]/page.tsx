@@ -12,6 +12,7 @@ import {
 import { getCompany } from "@/lib/actions/companies";
 import { DeleteCompanyButton } from "@/components/companies/DeleteCompanyButton";
 import { EnrichButton } from "@/components/companies/EnrichButton";
+import { CompanyWriterButton } from "@/components/companies/CompanyWriterButton";
 
 export const dynamic = "force-dynamic";
 
@@ -265,7 +266,40 @@ export default async function CompanyDetailPage({
               Aucun contact renseigné
             </p>
           )}
-          <div className="mt-4 pt-4 border-t border-[#FF6B3D]/10">
+          <div className="mt-4 flex flex-col gap-3 border-t border-[#FF6B3D]/10 pt-4 sm:flex-row sm:items-start">
+            <CompanyWriterButton
+              companyName={company.name}
+              companyCountry={company.country}
+              contacts={company.contacts.map((contact) => {
+                const email = contact.contactEmails[0];
+
+                return {
+                  id: contact.id,
+                  name: contact.fullName,
+                  role: contact.roleRaw,
+                  currentRoleVerified:
+                    contact.employmentStatus === "verified_current",
+                  contactability: contact.contactability as
+                    | "verified"
+                    | "public_source"
+                    | "guessed"
+                    | "missing",
+                  score: contact.contactScore,
+                  email: email?.email || null,
+                  emailSource: email?.source || null,
+                  emailKind: email
+                    ? isFunctionalEmail(email)
+                      ? "functional_generic"
+                      : "personal_professional"
+                    : "unknown",
+                };
+              })}
+              prospects={company.prospects.map((prospect) => ({
+                id: prospect.id,
+                athleteName: `${prospect.player.firstName} ${prospect.player.lastName}`,
+                club: prospect.player.club,
+              }))}
+            />
             <EnrichButton
               companyId={company.id}
               companyName={company.name}

@@ -7,7 +7,13 @@ import { cn } from "@/lib/utils";
 import { AgentDock } from "@/components/agents/experience/AgentDock";
 import { AgentExperienceProvider } from "@/components/agents/experience/AgentExperienceProvider";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  isAdmin,
+}: {
+  children: React.ReactNode;
+  isAdmin: boolean;
+}) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -22,6 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar
         collapsed={sidebarCollapsed}
         mobileOpen={mobileSidebarOpen}
+        isAdmin={isAdmin}
         onCollapseToggle={() => setSidebarCollapsed((value) => !value)}
         onMobileClose={() => setMobileSidebarOpen(false)}
       />

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import {
   ArrowRight,
+  Building2,
   Check,
   Languages,
   LoaderCircle,
@@ -21,7 +22,7 @@ import { AgentAvatar } from "./AgentAvatar";
 import { AgentExecutionCard } from "./AgentExecutionCard";
 import { useAgentExperience } from "./AgentExperienceProvider";
 
-interface HandoffContact {
+export interface HandoffContact {
   id: string;
   name?: string | null;
   role: string;
@@ -33,7 +34,7 @@ interface HandoffContact {
   emailKind?: "personal_professional" | "functional_generic" | "unknown";
 }
 
-interface HandoffProspect {
+export interface HandoffProspect {
   id: string;
   athleteName: string;
   club: string;
@@ -47,6 +48,7 @@ export function WriterHandoffModal({
   contacts,
   prospects,
   initialContactId,
+  origin = "enrichisseur",
 }: {
   open: boolean;
   onClose: () => void;
@@ -55,6 +57,7 @@ export function WriterHandoffModal({
   contacts: HandoffContact[];
   prospects: HandoffProspect[];
   initialContactId?: string;
+  origin?: "enrichisseur" | "company";
 }) {
   const draftableContacts = useMemo(
     () => contacts.filter((contact) => contact.currentRoleVerified),
@@ -161,13 +164,15 @@ export function WriterHandoffModal({
         <div className="flex items-start justify-between gap-4 px-1 pb-4">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#969BA8]">
-              Passage de relais
+              {origin === "company" ? "Rédaction assistée" : "Passage de relais"}
             </p>
             <h2
               id="writer-handoff-title"
               className="mt-1 text-xl font-semibold tracking-[-0.03em] text-white"
             >
-              Enrichisseur transmet le dossier à Rédacteur
+              {origin === "company"
+                ? "Choisir le contact et lancer Rédacteur"
+                : "Enrichisseur transmet le dossier à Rédacteur"}
             </h2>
           </div>
           <button
@@ -181,11 +186,17 @@ export function WriterHandoffModal({
         </div>
 
         <div className="mb-4 flex items-center justify-center gap-3 rounded-3xl border border-white/[0.07] bg-white/[0.025] px-4 py-3">
-          <AgentAvatar agentId="enrichisseur" size="md" status="done" />
+          {origin === "company" ? (
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-[#FF6B3D]/20 bg-[#FF6B3D]/10">
+              <Building2 className="h-5 w-5 text-[#FF6B3D]" />
+            </div>
+          ) : (
+            <AgentAvatar agentId="enrichisseur" size="md" status="done" />
+          )}
           <div className="min-w-0 flex-1">
             <div className="h-px bg-gradient-to-r from-[#F59E0B] via-[#FF6B3D] to-[#C8CEFF]" />
             <p className="mt-1 text-center font-mono text-[9px] uppercase tracking-[0.16em] text-white/35">
-              Contexte transmis
+              {origin === "company" ? "Fiche marque prête" : "Contexte transmis"}
             </p>
           </div>
           <AgentAvatar
