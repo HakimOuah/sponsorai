@@ -220,20 +220,21 @@ export function BrandResultCard({
               </div>
 
               {canWriteEmail ? (
-                <>
-                  <OutreachApproval
-                    prospectId={prospect.id}
-                    approved={Boolean(prospect.outreachApprovedAt)}
-                    selectedContactId={prospect.selectedContactId}
-                    contacts={prospect.company.contacts}
-                    legacyContactReady={prospect.company.outreachReady}
-                  />
-                  <EmailGenerator
-                    prospectId={prospect.id}
-                    companyName={prospect.company.name}
-                    companyCountry={prospect.company.country}
-                  />
-                </>
+                <OutreachApproval
+                  prospectId={prospect.id}
+                  approved={Boolean(prospect.outreachApprovedAt)}
+                  selectedContactId={prospect.selectedContactId}
+                  contacts={prospect.company.contacts}
+                  legacyContactReady={prospect.company.outreachReady}
+                />
+              ) : null}
+              <ProspectFeedback prospectId={prospect.id} />
+              {canWriteEmail ? (
+                <EmailGenerator
+                  prospectId={prospect.id}
+                  companyName={prospect.company.name}
+                  companyCountry={prospect.company.country}
+                />
               ) : (
                 <EnrichButton
                   companyId={prospect.company.id}
@@ -246,7 +247,6 @@ export function BrandResultCard({
                   }]}
                 />
               )}
-              <ProspectFeedback prospectId={prospect.id} />
             </div>
 
             {/* Right: score breakdown */}
