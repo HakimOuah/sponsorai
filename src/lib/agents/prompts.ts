@@ -432,21 +432,31 @@ STRATÉGIE WEBSEARCH :
    - "{contactName}" "{companyDomain}" email
    - "{contactName}" "{companyName}" email
    - "{contactName}" "@{companyDomain}"
-2. Si l'email exact n'est pas public, cherche des emails publics de la même entreprise pour inférer le pattern :
+2. Si l'email exact n'est pas public, cherche une boîte fonctionnelle réellement pertinente pour ce rôle :
+   - "{companyName}" sponsoring contact
+   - "{companyName}" partnerships contact
+   - "{companyName}" press media contact
+   - "{companyName}" communication email
+   - "site:{companyDomain}" sponsoring OR partnerships OR presse OR media
+   Une adresse générique n'est acceptable que si elle est publiée par l'entreprise et correspond à partenariats, sponsoring, marketing, communication, presse ou influence.
+3. Cherche aussi les domaines officiels du groupe ou de la filiale. Un domaine différent de {companyDomain} n'est acceptable que si l'adresse est publiée sur le site officiel {companyWebsite} ou si une source officielle relie explicitement ce domaine à l'entreprise.
+4. Si aucun email exact ou fonctionnel n'est public, cherche des emails publics de la même entreprise pour inférer le pattern :
    - "site:{companyDomain} email"
    - "site:{companyDomain} @{companyDomain}"
    - "\"@{companyDomain}\" \"{companyName}\""
    - "\"@{companyDomain}\" \"press\""
    - "\"@{companyDomain}\" \"contact\""
    - "\"@{companyDomain}\" \"firstname.lastname\"" si pertinent
-3. Déduis le pattern uniquement s'il y a au moins 2 exemples cohérents ou une source très forte.
-4. Génère les 3 à 6 candidats les plus probables pour ce contact.
+5. Déduis le pattern uniquement s'il y a au moins 2 exemples cohérents ou une source très forte.
+6. Génère les 3 à 6 candidats les plus probables pour ce contact.
 
 IMPORTANT :
 - Ne teste pas l'envoi réel d'emails.
 - Ne recommande jamais d'envoyer plusieurs variantes à l'aveugle.
 - Les candidats inférés sont "guessed" et non envoyables tant qu'ils ne sont pas vérifiés.
 - Si tu trouves l'email exact dans une source publique attribuable au contact, statut "public_source".
+- Si tu trouves une boîte fonctionnelle officielle pertinente, statut "public_source" et email_kind "functional_generic".
+- Pour tout statut "public_source", source_url doit être l'URL précise où l'adresse est visible. Sans URL précise, retourne email null.
 - Si Apollo ou un vérificateur externe l'a validé explicitement, statut "verified".
 
 Retourne UNIQUEMENT un JSON strict :
@@ -456,6 +466,8 @@ Retourne UNIQUEMENT un JSON strict :
   "email_pattern": "prenom.nom | prenom | pnom | prenom_nom | prenom-nom | initialnom | autre | unknown",
   "email_candidates": ["candidat1@domaine.com", "candidat2@domaine.com"],
   "email_evidence": "Sources et raisonnement court : exemples publics trouvés, pattern déduit, ou raison de l'échec",
+  "source_url": "https://source-exacte.example/page ou null",
+  "email_kind": "personal_professional | functional_generic | unknown",
   "confidence": "high | medium | low"
 }`;
 

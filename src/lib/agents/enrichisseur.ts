@@ -3,11 +3,14 @@ import { EMAIL_PATTERN_PROMPT, ENRICHISSEUR_PROMPT } from "./prompts";
 import type { Company } from "@prisma/client";
 import type { LogCallback } from "./scout";
 import { searchStructuredContactProviders } from "@/lib/contacts/providers";
-import type { ContactCandidate } from "@/lib/contacts/types";
+import type {
+  ContactCandidate,
+  ContactDiscoveryDiagnostic,
+  ContactProviderSearchResult,
+} from "@/lib/contacts/types";
 import {
   getCompanyDomain,
   getContactRelevance,
-  isBusinessEmailForCompany,
   isUsableEmailStatus,
 } from "./contact-quality";
 
@@ -16,6 +19,7 @@ export type EnrichContact = ContactCandidate;
 export interface EnrichResult {
   contacts: EnrichContact[];
   company_insights: string;
+  diagnostics: ContactDiscoveryDiagnostic[];
 }
 
 export async function runEnrichisseur(
@@ -25,18 +29,23 @@ export async function runEnrichisseur(
   log(`Recherche de contacts pour ${company.name}...`, "info");
   const companyDomain = getCompanyDomain(company.website);
 
-  const apolloContacts = await tryApolloSearch(company, log);
-  if (apolloContacts.length > 0) {
-    log(`${apolloContacts.length} contact(s) qualifié(s) via Apollo`, "success");
-    const contactsWithEmailDiscovery = await enrichEmailDiscovery(
-      company,
-      apolloContacts,
-      log
+  const apolloResult = await tryApolloSearch(company, log);
+  if (apolloResult.contacts.length > 0) {
+    log(
+      `${apolloResult.contacts.length} décideur(s) identifié(s) via Apollo`,
+      "success",
     );
+    const emailDiscovery = await enrichEmailDiscovery(
+      company,
+      apolloResult.contacts,
+      log,
+    );
+    const usableEmails = countUsableEmails(emailDiscovery.contacts);
     return {
-      contacts: contactsWithEmailDiscovery,
+      contacts: emailDiscovery.contacts,
       company_insights:
-        "Contacts issus d'Apollo, filtrés sur rôles marketing/partenariats et statut email exploitable quand disponible.",
+        `${apolloResult.contacts.length} décideur(s) actuel(s) issu(s) d’Apollo · ${usableEmails} email(s) exploitable(s) après vérification et recherche publique.`,
+      diagnostics: [...apolloResult.diagnostics, emailDiscovery.diagnostic],
     };
   }
 
@@ -69,14 +78,18 @@ export async function runEnrichisseur(
     throw new Error("No JSON found in Enrichisseur response");
   }
 
-  const result: EnrichResult = JSON.parse(cleaned.substring(start, end + 1));
-  const contacts = Array.isArray(result.contacts) ? result.contacts : [];
+  const parsed = JSON.parse(cleaned.substring(start, end + 1)) as {
+    contacts?: EnrichContact[];
+    company_insights?: string;
+  };
+  const result: EnrichResult = {
+    contacts: Array.isArray(parsed.contacts) ? parsed.contacts : [],
+    company_insights: parsed.company_insights || "",
+    diagnostics: [],
+  };
+  const contacts = result.contacts;
   const verifiedContacts = contacts.filter((contact) => {
     const relevance = getContactRelevance(contact.role);
-    const hasUsableEmail =
-      contact.email &&
-      isUsableEmailStatus(contact.email_status) &&
-      isBusinessEmailForCompany(contact.email, companyDomain);
 
     return (
       contact.current_at_company === true &&
@@ -85,17 +98,49 @@ export async function runEnrichisseur(
       relevance >= 2 &&
       Boolean(contact.name) &&
       Boolean(contact.role) &&
-      Boolean(contact.evidence) &&
-      (!contact.email || hasUsableEmail)
+      Boolean(contact.evidence)
     );
-  }).map((contact) => ({
-    ...contact,
-    email: isUsableEmailStatus(contact.email_status) ? contact.email : null,
-    email_status: contact.email ? contact.email_status : "missing",
-  }));
+  }).map((contact) => {
+    const hasPublicEmail = isPublicSourceEmailUsable(contact, companyDomain);
+
+    return {
+      ...contact,
+      email: hasPublicEmail ? contact.email : null,
+      email_status: hasPublicEmail
+        ? "public_source" as const
+        : "missing" as const,
+      email_source: hasPublicEmail ? contact.source : null,
+    };
+  });
   const rejectedCount = contacts.length - verifiedContacts.length;
 
-  result.contacts = await enrichEmailDiscovery(company, verifiedContacts, log);
+  const emailDiscovery = await enrichEmailDiscovery(
+    company,
+    verifiedContacts,
+    log,
+  );
+  result.contacts = emailDiscovery.contacts;
+  const usableEmails = countUsableEmails(result.contacts);
+  result.company_insights = [
+    result.company_insights,
+    `${result.contacts.length} décideur(s) actuel(s) identifié(s) · ${usableEmails} email(s) exploitable(s).`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+  result.diagnostics = [
+    ...apolloResult.diagnostics,
+    {
+      provider: "web_search",
+      stage: "people_search",
+      status: verifiedContacts.length > 0 ? "success" : "no_result",
+      message:
+        verifiedContacts.length > 0
+          ? `${verifiedContacts.length} décideur(s) actuel(s) identifié(s) par recherche publique.`
+          : "La recherche publique n’a identifié aucun décideur actuel suffisamment fiable.",
+      matched: verifiedContacts.length,
+    },
+    emailDiscovery.diagnostic,
+  ];
 
   if (rejectedCount > 0) {
     log(
@@ -104,7 +149,10 @@ export async function runEnrichisseur(
     );
   }
 
-  log(`${result.contacts.length} contact(s) vérifié(s)`, "success");
+  log(
+    `${result.contacts.length} décideur(s) actuel(s) · ${usableEmails} email(s) exploitable(s)`,
+    usableEmails > 0 ? "success" : "info",
+  );
   result.contacts.forEach((c, i) => {
     log(
       `  ${i + 1}. ${c.role} [${c.confidence}] · contactabilité: ${c.email_status}`,
@@ -123,11 +171,30 @@ async function enrichEmailDiscovery(
   company: Company,
   contacts: EnrichContact[],
   log: LogCallback
-): Promise<EnrichContact[]> {
+): Promise<{
+  contacts: EnrichContact[];
+  diagnostic: ContactDiscoveryDiagnostic;
+}> {
   const companyDomain = getCompanyDomain(company.website);
-  if (!companyDomain || contacts.length === 0) return contacts;
+  if (!companyDomain || contacts.length === 0) {
+    return {
+      contacts,
+      diagnostic: {
+        provider: "web_search",
+        stage: "public_web_search",
+        status: "no_result",
+        message: !companyDomain
+          ? "Recherche d’emails publics impossible sans domaine entreprise."
+          : "Aucun décideur à enrichir par recherche publique.",
+        requested: 0,
+        usableEmails: countUsableEmails(contacts),
+      },
+    };
+  }
 
   const enrichedContacts: EnrichContact[] = [];
+  let attempted = 0;
+  let publicEmailsFound = 0;
 
   for (const contact of contacts.slice(0, 3)) {
     if (contact.email && isUsableEmailStatus(contact.email_status)) {
@@ -135,6 +202,7 @@ async function enrichEmailDiscovery(
       continue;
     }
 
+    attempted += 1;
     log(`Recherche du pattern email pour ${contact.name}...`, "info");
 
     try {
@@ -146,8 +214,13 @@ async function enrichEmailDiscovery(
       ]).slice(0, 6);
       const hasUsableExactEmail =
         discovery.email &&
-        isUsableEmailStatus(discovery.email_status) &&
-        isBusinessEmailForCompany(discovery.email, companyDomain);
+        discovery.email_status === "public_source" &&
+        Boolean(discovery.email_evidence) &&
+        isHttpUrl(discovery.source_url) &&
+        (isOfficialCompanySource(discovery.source_url, companyDomain) ||
+          isEmailDomainSource(discovery.source_url, discovery.email));
+
+      if (hasUsableExactEmail) publicEmailsFound += 1;
 
       enrichedContacts.push({
         ...contact,
@@ -159,11 +232,13 @@ async function enrichEmailDiscovery(
             : "missing",
         email_pattern: discovery.email_pattern || inferPatternFromCandidates(candidates),
         email_candidates: candidates,
+        email_source: hasUsableExactEmail ? discovery.source_url : null,
         email_evidence:
-          discovery.email_evidence ||
-          (candidates.length > 0
-            ? "Candidats générés depuis les patterns email B2B courants, non vérifiés."
-            : null),
+          hasUsableExactEmail
+            ? `${discovery.email_evidence} — Source: ${discovery.source_url}`
+            : candidates.length > 0
+              ? "Candidats générés depuis les patterns email B2B courants, non vérifiés."
+              : discovery.email_evidence || null,
       });
     } catch (error) {
       log(
@@ -182,7 +257,31 @@ async function enrichEmailDiscovery(
     }
   }
 
-  return enrichedContacts;
+  const totalUsableEmails = countUsableEmails(enrichedContacts);
+  const message = publicEmailsFound > 0
+    ? `La recherche publique a trouvé ${publicEmailsFound} email${publicEmailsFound > 1 ? "s" : ""} attribuable${publicEmailsFound > 1 ? "s" : ""} avec source.`
+    : attempted > 0
+      ? "La recherche publique n’a trouvé aucun email exact et attribuable ; les variantes supposées restent bloquées."
+      : "Tous les décideurs disposaient déjà d’un email exploitable ; aucune recherche publique supplémentaire nécessaire.";
+
+  log(message, publicEmailsFound > 0 ? "success" : "info");
+
+  return {
+    contacts: enrichedContacts,
+    diagnostic: {
+      provider: "web_search",
+      stage: "public_web_search",
+      status: publicEmailsFound > 0
+        ? "success"
+        : attempted > 0
+          ? "no_result"
+          : "success",
+      message,
+      requested: attempted,
+      matched: publicEmailsFound,
+      usableEmails: totalUsableEmails,
+    },
+  };
 }
 
 async function discoverEmailPattern(
@@ -195,6 +294,8 @@ async function discoverEmailPattern(
   email_pattern: string | null;
   email_candidates: string[];
   email_evidence: string | null;
+  source_url: string | null;
+  email_kind: "personal_professional" | "functional_generic" | "unknown";
   confidence: "high" | "medium" | "low";
 }> {
   const prompt = EMAIL_PATTERN_PROMPT
@@ -274,14 +375,74 @@ function inferPatternFromCandidates(candidates: string[]): string {
   return candidates.length > 0 ? "unknown_candidates" : "unknown";
 }
 
-async function tryApolloSearch(company: Company, log: LogCallback): Promise<EnrichContact[]> {
-  const contacts = await searchStructuredContactProviders(company, (message) =>
+async function tryApolloSearch(
+  company: Company,
+  log: LogCallback,
+): Promise<ContactProviderSearchResult> {
+  const result = await searchStructuredContactProviders(company, (message) =>
     log(message, "info")
   );
 
-  if (contacts.length === 0) {
+  if (result.contacts.length === 0) {
     log("Aucun provider structuré disponible — passage en web search stricte", "info");
   }
 
-  return contacts;
+  return result;
+}
+
+function countUsableEmails(contacts: EnrichContact[]): number {
+  return contacts.filter(
+    (contact) => contact.email && isUsableEmailStatus(contact.email_status),
+  ).length;
+}
+
+function isHttpUrl(value?: string | null): value is string {
+  if (!value) return false;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isOfficialCompanySource(
+  sourceUrl: string | null,
+  companyDomain: string,
+): boolean {
+  if (!isHttpUrl(sourceUrl)) return false;
+  const hostname = new URL(sourceUrl).hostname.replace(/^www\./, "");
+  return hostname === companyDomain || hostname.endsWith(`.${companyDomain}`);
+}
+
+function isEmailDomainSource(
+  sourceUrl: string | null,
+  email: string,
+): boolean {
+  if (!isHttpUrl(sourceUrl)) return false;
+  const emailDomain = email.split("@")[1]?.toLowerCase().replace(/^www\./, "");
+  if (!emailDomain) return false;
+  const hostname = new URL(sourceUrl).hostname.replace(/^www\./, "");
+  return hostname === emailDomain || hostname.endsWith(`.${emailDomain}`);
+}
+
+function isPublicSourceEmailUsable(
+  contact: EnrichContact,
+  companyDomain: string | null,
+): boolean {
+  if (
+    !contact.email ||
+    contact.email_status !== "public_source" ||
+    !contact.email_evidence ||
+    !isHttpUrl(contact.source)
+  ) {
+    return false;
+  }
+
+  return (
+    Boolean(
+      companyDomain && isOfficialCompanySource(contact.source, companyDomain),
+    ) || isEmailDomainSource(contact.source, contact.email)
+  );
 }

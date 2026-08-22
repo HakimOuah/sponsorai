@@ -23,6 +23,19 @@ function employmentConfidence(confidence: ContactCandidate["confidence"]): numbe
   return 0.4;
 }
 
+function candidateSourceUrl(candidate: ContactCandidate): string | null {
+  if (candidate.linkedin) return candidate.linkedin;
+
+  try {
+    const url = new URL(candidate.source);
+    return url.protocol === "http:" || url.protocol === "https:"
+      ? url.toString()
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function persistContactCandidates(
   companyId: string,
   candidates: ContactCandidate[]
@@ -59,19 +72,27 @@ export async function persistContactCandidates(
     );
 
     const existing = await prisma.contact.findFirst({
-      where: {
-        companyId,
-        provider,
-        fullName: { equals: candidate.name, mode: "insensitive" },
-      },
+      where: candidate.providerExternalId
+        ? {
+            provider,
+            providerExternalId: candidate.providerExternalId,
+          }
+        : {
+            companyId,
+            provider,
+            fullName: { equals: candidate.name, mode: "insensitive" },
+          },
     });
 
     const contact = existing
       ? await prisma.contact.update({
           where: { id: existing.id },
           data: {
+            companyId,
             roleRaw: candidate.role,
             roleNormalized,
+            providerExternalId:
+              candidate.providerExternalId || existing.providerExternalId,
             employmentStatus: candidate.verification_status,
             employmentConfidence: employmentConfidence(candidate.confidence),
             relevanceScore: relevance,
@@ -79,7 +100,7 @@ export async function persistContactCandidates(
             contactScoreVersion: "contact-score-v2-contextual",
             contactability,
             source: candidate.source,
-            sourceUrl: candidate.linkedin,
+            sourceUrl: candidateSourceUrl(candidate),
             active: candidate.current_at_company,
           },
         })
@@ -98,7 +119,7 @@ export async function persistContactCandidates(
             contactScoreVersion: "contact-score-v2-contextual",
             contactability,
             source: candidate.source,
-            sourceUrl: candidate.linkedin,
+            sourceUrl: candidateSourceUrl(candidate),
             active: candidate.current_at_company,
           },
         });
@@ -121,7 +142,7 @@ export async function persistContactCandidates(
           titleNormalized: roleNormalized,
           status: "current",
           confidence: employmentConfidence(candidate.confidence),
-          sourceUrl: candidate.linkedin,
+          sourceUrl: candidateSourceUrl(candidate),
         },
       });
     }
@@ -134,7 +155,7 @@ export async function persistContactCandidates(
         },
         update: {
           status: candidate.email_status,
-          source: candidate.source,
+          source: candidate.email_source || candidate.source,
           evidence: candidate.email_evidence || null,
           isPrimary: true,
           verifiedAt: candidate.email_status === "verified" ? new Date() : null,
@@ -144,7 +165,7 @@ export async function persistContactCandidates(
           email: candidate.email.trim().toLowerCase(),
           emailHash: hash,
           status: candidate.email_status,
-          source: candidate.source,
+          source: candidate.email_source || candidate.source,
           evidence: candidate.email_evidence || null,
           isPrimary: true,
           verifiedAt: candidate.email_status === "verified" ? new Date() : null,
@@ -159,7 +180,7 @@ export async function persistContactCandidates(
         evidenceType: "employment",
         claim: candidate.evidence,
         sourceName: candidate.source,
-        sourceUrl: candidate.linkedin,
+        sourceUrl: candidateSourceUrl(candidate),
         confidence: employmentConfidence(candidate.confidence),
       },
     });

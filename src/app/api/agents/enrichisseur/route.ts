@@ -45,9 +45,17 @@ export async function POST(request: NextRequest) {
           companyId,
           result.contacts
         );
+        const usableEmails = result.contacts.filter(
+          (contact) =>
+            contact.email && isUsableEmailStatus(contact.email_status),
+        ).length;
 
         // Update company only with a contact verified as currently working there.
-        const bestContact = result.contacts[0];
+        const bestContact =
+          result.contacts.find(
+            (contact) =>
+              contact.email && isUsableEmailStatus(contact.email_status),
+          ) || result.contacts[0];
         if (bestContact) {
           const updateData: Record<string, string | boolean | null> = {};
 
@@ -91,7 +99,14 @@ export async function POST(request: NextRequest) {
               where: { id: companyId },
               data: updateData,
             });
-            log("Contact vérifié mis à jour dans la fiche entreprise", "success");
+            log(
+              bestContact.email && isUsableEmailStatus(bestContact.email_status)
+                ? "Décideur et email exploitable mis à jour dans la fiche entreprise"
+                : "Décideur identifié sans email exploitable : l’envoi reste bloqué",
+              bestContact.email && isUsableEmailStatus(bestContact.email_status)
+                ? "success"
+                : "info",
+            );
           }
         } else {
           log(
@@ -104,8 +119,15 @@ export async function POST(request: NextRequest) {
         await prisma.activityLog.create({
           data: {
             type: "scan_completed",
-            message: `Enrichissement terminé pour ${company.name} — ${result.contacts.length} contact(s) vérifié(s)`,
-            metadata: { companyId, contacts: result.contacts.length },
+            message: `Enrichissement terminé pour ${company.name} — ${result.contacts.length} décideur(s), ${usableEmails} email(s) exploitable(s)`,
+            metadata: {
+              companyId,
+              decisionMakers: result.contacts.length,
+              usableEmails,
+              diagnostics: result.diagnostics.map((diagnostic) => ({
+                ...diagnostic,
+              })),
+            },
           },
         });
 
@@ -114,11 +136,13 @@ export async function POST(request: NextRequest) {
           result: {
             contacts: publicContacts,
             insights: result.company_insights,
+            diagnostics: result.diagnostics,
           },
         });
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Unknown error";
+        console.error("[enrichisseur] failed", { companyId, message });
         send({ type: "error", message });
       }
 

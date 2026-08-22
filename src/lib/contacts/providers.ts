@@ -1,11 +1,17 @@
 import type { Company } from "@prisma/client";
 import { searchApolloContacts } from "@/lib/agents/apollo";
-import type { ContactCandidate } from "./types";
+import type {
+  ContactDiscoveryDiagnostic,
+  ContactProviderSearchResult,
+} from "./types";
 
 export interface ContactProvider {
   readonly id: string;
   isConfigured(): boolean;
-  search(company: Company): Promise<ContactCandidate[]>;
+  search(
+    company: Company,
+    log?: (message: string) => void,
+  ): Promise<ContactProviderSearchResult>;
 }
 
 class ApolloContactProvider implements ContactProvider {
@@ -15,8 +21,11 @@ class ApolloContactProvider implements ContactProvider {
     return Boolean(process.env.APOLLO_API_KEY);
   }
 
-  async search(company: Company): Promise<ContactCandidate[]> {
-    return searchApolloContacts(company);
+  async search(
+    company: Company,
+    log?: (message: string) => void,
+  ): Promise<ContactProviderSearchResult> {
+    return searchApolloContacts(company, log);
   }
 }
 
@@ -27,19 +36,38 @@ export function getContactProviders(): ContactProvider[] {
 export async function searchStructuredContactProviders(
   company: Company,
   log?: (message: string) => void
-): Promise<ContactCandidate[]> {
+): Promise<ContactProviderSearchResult> {
+  const diagnostics: ContactDiscoveryDiagnostic[] = [];
+
   for (const provider of getContactProviders()) {
-    if (!provider.isConfigured()) continue;
+    if (!provider.isConfigured()) {
+      diagnostics.push({
+        provider: "apollo",
+        stage: "people_search",
+        status: "failed",
+        message: "Apollo n’est pas configuré ; recherche publique utilisée.",
+      });
+      continue;
+    }
 
     try {
       log?.(`Recherche ${provider.id} sur les rôles partenariats/marketing...`);
-      const contacts = await provider.search(company);
-      if (contacts.length > 0) return contacts;
+      const result = await provider.search(company, log);
+      diagnostics.push(...result.diagnostics);
+      if (result.contacts.length > 0) {
+        return { contacts: result.contacts, diagnostics };
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : "erreur inconnue";
       log?.(`${provider.id}: ${message} — provider suivant`);
+      diagnostics.push({
+        provider: "apollo",
+        stage: "people_search",
+        status: "failed",
+        message,
+      });
     }
   }
 
-  return [];
+  return { contacts: [], diagnostics };
 }

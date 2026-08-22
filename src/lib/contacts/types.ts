@@ -10,6 +10,7 @@ export interface ContactCandidate {
   email: string | null;
   email_status: ContactEmailStatus;
   email_evidence?: string | null;
+  email_source?: string | null;
   email_pattern?: string | null;
   email_candidates?: string[];
   linkedin: string | null;
@@ -23,6 +24,33 @@ export interface ContactCandidate {
   evidence: string;
   source: string;
   providerExternalId?: string | null;
+}
+
+export type ContactDiscoveryStage =
+  | "people_search"
+  | "email_enrichment"
+  | "public_web_search";
+
+export type ContactDiscoveryStatus =
+  | "success"
+  | "partial"
+  | "no_result"
+  | "failed";
+
+export interface ContactDiscoveryDiagnostic {
+  provider: "apollo" | "web_search";
+  stage: ContactDiscoveryStage;
+  status: ContactDiscoveryStatus;
+  message: string;
+  requested?: number;
+  matched?: number;
+  usableEmails?: number;
+  creditsConsumed?: number | null;
+}
+
+export interface ContactProviderSearchResult {
+  contacts: ContactCandidate[];
+  diagnostics: ContactDiscoveryDiagnostic[];
 }
 
 export interface PublicContactSummary {

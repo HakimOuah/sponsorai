@@ -80,7 +80,11 @@ export async function POST(request: NextRequest) {
 
     if (!selectedContact && !canSendOutreach(company)) {
       const enrichment = await runEnrichisseur(company, () => undefined);
-      const bestContact = enrichment.contacts[0];
+      const bestContact =
+        enrichment.contacts.find(
+          (contact) =>
+            contact.email && isUsableEmailStatus(contact.email_status),
+        ) || enrichment.contacts[0];
       await persistContactCandidates(company.id, enrichment.contacts);
 
       if (bestContact) {

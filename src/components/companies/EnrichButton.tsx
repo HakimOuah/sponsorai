@@ -4,7 +4,11 @@ import { useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
+  CircleAlert,
+  Database,
+  Globe2,
   LoaderCircle,
+  MailCheck,
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
@@ -23,6 +27,17 @@ interface EnrichContact {
   score: number | null;
   scoreVersion: string;
   source: string | null;
+}
+
+interface EnrichmentDiagnostic {
+  provider: "apollo" | "web_search";
+  stage: "people_search" | "email_enrichment" | "public_web_search";
+  status: "success" | "partial" | "no_result" | "failed";
+  message: string;
+  requested?: number;
+  matched?: number;
+  usableEmails?: number;
+  creditsConsumed?: number | null;
 }
 
 interface CompanyProspect {
@@ -49,6 +64,7 @@ export function EnrichButton({
   const [contacts, setContacts] = useState<EnrichContact[]>([]);
   const [selectedContactId, setSelectedContactId] = useState("");
   const [insights, setInsights] = useState("");
+  const [diagnostics, setDiagnostics] = useState<EnrichmentDiagnostic[]>([]);
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -71,6 +87,7 @@ export function EnrichButton({
     setContacts([]);
     setSelectedContactId("");
     setInsights("");
+    setDiagnostics([]);
     setDone(false);
     setExpanded(true);
     setProgress(8);
@@ -125,20 +142,38 @@ export function EnrichButton({
             } else if (data.type === "done") {
               terminalEventReceived = true;
               const enrichedContacts = data.result.contacts as EnrichContact[];
+              const enrichmentDiagnostics = Array.isArray(
+                data.result.diagnostics,
+              )
+                ? (data.result.diagnostics as EnrichmentDiagnostic[])
+                : [];
+              const usableEmailCount = enrichedContacts.filter((contact) =>
+                isUsableContactability(contact.contactability),
+              ).length;
               setContacts(enrichedContacts);
               setSelectedContactId(
-                enrichedContacts.find((contact) => contact.currentRoleVerified)
-                  ?.id || "",
+                enrichedContacts.find(
+                  (contact) =>
+                    contact.currentRoleVerified &&
+                    isUsableContactability(contact.contactability),
+                )?.id ||
+                  enrichedContacts.find(
+                    (contact) => contact.currentRoleVerified,
+                  )?.id ||
+                  "",
               );
               setInsights(data.result.insights);
+              setDiagnostics(enrichmentDiagnostics);
               setDone(true);
               setProgress(100);
               setDetail(
-                `${data.result.contacts.length} contact${data.result.contacts.length > 1 ? "s" : ""} qualifié${data.result.contacts.length > 1 ? "s" : ""} pour la suite.`,
+                `${enrichedContacts.length} décideur${enrichedContacts.length > 1 ? "s" : ""} identifié${enrichedContacts.length > 1 ? "s" : ""} · ${usableEmailCount} email${usableEmailCount > 1 ? "s" : ""} exploitable${usableEmailCount > 1 ? "s" : ""}.`,
               );
               finishMission(
                 missionId,
-                `${data.result.contacts.length} décideur${data.result.contacts.length > 1 ? "s" : ""} qualifié${data.result.contacts.length > 1 ? "s" : ""}. Choisissez maintenant le destinataire avec Rédacteur.`,
+                usableEmailCount > 0
+                  ? `${usableEmailCount} destinataire${usableEmailCount > 1 ? "s" : ""} joignable${usableEmailCount > 1 ? "s" : ""}. Choisissez maintenant à qui écrire avec Rédacteur.`
+                  : `${enrichedContacts.length} décideur${enrichedContacts.length > 1 ? "s" : ""} identifié${enrichedContacts.length > 1 ? "s" : ""}, mais aucun email exploitable. Vous pouvez préparer le brouillon ; l’envoi restera bloqué.`,
                 {
                   status: "waiting",
                   nextAgentId: "redacteur",
@@ -190,6 +225,10 @@ export function EnrichButton({
     );
   }
 
+  const usableEmailCount = contacts.filter((contact) =>
+    isUsableContactability(contact.contactability),
+  ).length;
+
   return (
     <>
       <AgentExecutionCard
@@ -202,6 +241,27 @@ export function EnrichButton({
       >
         {done && contacts.length > 0 ? (
           <div className="space-y-2.5">
+            <div
+              className={`rounded-2xl border px-3 py-2.5 text-xs leading-relaxed ${
+                usableEmailCount > 0
+                  ? "border-emerald-400/15 bg-emerald-400/[0.05] text-emerald-200/80"
+                  : "border-[#F59E0B]/20 bg-[#F59E0B]/[0.06] text-[#F6C76F]"
+              }`}
+            >
+              <span className="flex items-start gap-2">
+                {usableEmailCount > 0 ? (
+                  <MailCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                ) : (
+                  <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                )}
+                <span>
+                  {usableEmailCount > 0
+                    ? `${usableEmailCount} email${usableEmailCount > 1 ? "s" : ""} professionnel${usableEmailCount > 1 ? "s" : ""} exploitable${usableEmailCount > 1 ? "s" : ""}. L’envoi restera soumis à votre validation.`
+                    : "Apollo et la recherche web publique n’ont confirmé aucun email. Les décideurs peuvent être sélectionnés pour préparer un brouillon, mais l’envoi reste bloqué."}
+                </span>
+              </span>
+            </div>
+
             <fieldset className="space-y-2.5" role="radiogroup">
               <legend className="sr-only">Choisir un décideur</legend>
               {contacts.map((contact) => {
@@ -258,6 +318,39 @@ export function EnrichButton({
               </p>
             ) : null}
 
+            {diagnostics.length > 0 ? (
+              <div className="space-y-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.025] p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#969BA8]">
+                  Sources consultées
+                </p>
+                {diagnostics.map((diagnostic, index) => (
+                  <div
+                    key={`${diagnostic.provider}-${diagnostic.stage}-${index}`}
+                    className="flex items-start gap-2 text-[11px] leading-relaxed text-white/55"
+                  >
+                    {diagnostic.provider === "apollo" ? (
+                      <Database className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F59E0B]" />
+                    ) : (
+                      <Globe2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#C8CEFF]" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      {diagnostic.message}
+                    </span>
+                    <span
+                      className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
+                        diagnostic.status === "success"
+                          ? "bg-emerald-400"
+                          : diagnostic.status === "failed"
+                            ? "bg-rose-400"
+                            : "bg-[#F59E0B]"
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+
             <button
               type="button"
               onClick={() => setHandoffOpen(true)}
@@ -266,11 +359,14 @@ export function EnrichButton({
             >
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold text-[#D9DDFF]">
-                  Passer le relais à Rédacteur
+                  {usableEmailCount > 0
+                    ? "Passer le relais à Rédacteur"
+                    : "Préparer le brouillon sans email"}
                 </span>
                 <span className="mt-1 block text-[11px] leading-relaxed text-[#969BA8]">
-                  Le décideur sélectionné et la langue seront transmis à
-                  Rédacteur pour préparer le brouillon.
+                  {usableEmailCount > 0
+                    ? "Le décideur sélectionné et la langue seront transmis à Rédacteur pour préparer le brouillon."
+                    : "Rédacteur peut préparer le message pour le décideur sélectionné. Dispatcher ne pourra pas l’envoyer tant qu’un email n’aura pas été confirmé."}
                 </span>
               </span>
               <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[#C8CEFF] transition-transform group-hover:translate-x-0.5" />
@@ -329,8 +425,24 @@ function getContactabilityLabel(
   return "email à compléter avant envoi";
 }
 
+function isUsableContactability(
+  contactability: EnrichContact["contactability"],
+) {
+  return contactability === "verified" || contactability === "public_source";
+}
+
 function getEnrichmentDetail(message: string) {
   const normalized = message.toLowerCase();
+  if (
+    normalized.includes("bulk_match") ||
+    normalized.includes("a échoué") ||
+    normalized.includes("aucun email")
+  ) {
+    return "Apollo n’a pas confirmé d’email ; Enrichisseur active la recherche publique de secours.";
+  }
+  if (normalized.includes("recherche publique")) {
+    return "Enrichisseur cherche une coordonnée publique avec une source vérifiable.";
+  }
   if (normalized.includes("apollo")) {
     return "Enrichisseur interroge les sources structurées disponibles.";
   }
