@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { EmailFilters } from "@/components/emails/EmailFilters";
 import { EmailRow } from "@/components/emails/EmailRow";
 import { DispatcherPanel } from "@/components/emails/DispatcherPanel";
+import { MailboxSyncButton } from "@/components/emails/MailboxSyncButton";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export const dynamic = "force-dynamic";
 
@@ -15,32 +17,32 @@ export default async function EmailsPage({ searchParams }: Props) {
   const filters = searchParams.status
     ? { status: searchParams.status }
     : undefined;
-  const emails = await getEmails(filters);
-
-  const allEmails = await getEmails();
+  const [emails, allEmails, draftEmails, access] = await Promise.all([
+    getEmails(filters),
+    getEmails(),
+    prisma.email.findMany({
+      where: { status: "draft" },
+      select: {
+        id: true,
+        subject: true,
+        prospect: { select: { outreachApprovedAt: true } },
+        company: {
+          select: {
+            name: true,
+            outreachReady: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    getCurrentUserAccess(),
+  ]);
   const stats = {
     total: allEmails.length,
     drafts: allEmails.filter((e) => e.status === "draft").length,
     sent: allEmails.filter((e) => e.status === "sent").length,
     replied: allEmails.filter((e) => e.status === "replied").length,
   };
-
-  // Drafts for dispatcher
-  const draftEmails = await prisma.email.findMany({
-    where: { status: "draft" },
-    select: {
-      id: true,
-      subject: true,
-      prospect: { select: { outreachApprovedAt: true } },
-      company: {
-        select: {
-          name: true,
-          outreachReady: true,
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
 
   return (
     <div className="min-w-0">
@@ -51,6 +53,7 @@ export default async function EmailsPage({ searchParams }: Props) {
             Emails
           </h1>
         </div>
+        {access.canOperate ? <MailboxSyncButton /> : null}
       </div>
 
       {/* Stats */}
