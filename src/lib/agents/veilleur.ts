@@ -1,4 +1,4 @@
-import { generateAIText } from "@/lib/ai";
+import { generateClaudeText } from "@/lib/ai";
 import { VEILLEUR_PROMPT } from "./prompts";
 import type { LogCallback } from "./scout";
 
@@ -31,11 +31,15 @@ export async function runVeilleur(
     .replace("{emailSubject}", context.emailSubject)
     .replace("{replyContent}", context.replyContent);
 
-  log("Appel Grok pour classification...", "info");
+  log("Claude Sonnet 5 analyse l’intention de la réponse...", "info");
 
-  const text = await generateAIText({
+  const text = await generateClaudeText({
     prompt,
     maxOutputTokens: 2048,
+    maxWebSearchUses: 1,
+    effort: "low",
+    thinking: "disabled",
+    timeoutMs: 45_000,
   });
 
   const cleaned = text
