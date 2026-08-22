@@ -47,6 +47,7 @@ export function EnrichButton({
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [contacts, setContacts] = useState<EnrichContact[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState("");
   const [insights, setInsights] = useState("");
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -68,6 +69,7 @@ export function EnrichButton({
     setLoading(true);
     setError("");
     setContacts([]);
+    setSelectedContactId("");
     setInsights("");
     setDone(false);
     setExpanded(true);
@@ -122,7 +124,12 @@ export function EnrichButton({
               updateMission(missionId, { detail: nextDetail });
             } else if (data.type === "done") {
               terminalEventReceived = true;
-              setContacts(data.result.contacts);
+              const enrichedContacts = data.result.contacts as EnrichContact[];
+              setContacts(enrichedContacts);
+              setSelectedContactId(
+                enrichedContacts.find((contact) => contact.currentRoleVerified)
+                  ?.id || "",
+              );
               setInsights(data.result.insights);
               setDone(true);
               setProgress(100);
@@ -195,28 +202,55 @@ export function EnrichButton({
       >
         {done && contacts.length > 0 ? (
           <div className="space-y-2.5">
-            {contacts.map((contact) => (
-              <div
-                key={contact.id}
-                className="rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.035] p-3"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
-                  <span className="text-sm font-medium text-white/80">
-                    {contact.role}
-                  </span>
-                  <span className="ml-auto font-mono text-[10px] text-emerald-300">
-                    score {contact.score ?? "—"}/100
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-[#969BA8]">
-                  {contact.currentRoleVerified
-                    ? "Poste actuel vérifié"
-                    : "Poste à confirmer"}{" "}
-                  · contactabilité {contact.contactability}
-                </p>
-              </div>
-            ))}
+            <fieldset className="space-y-2.5" role="radiogroup">
+              <legend className="sr-only">Choisir un décideur</legend>
+              {contacts.map((contact) => {
+                const selected = contact.id === selectedContactId;
+                const selectable = contact.currentRoleVerified;
+
+                return (
+                  <button
+                    key={contact.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    disabled={!selectable}
+                    onClick={() => setSelectedContactId(contact.id)}
+                    className={`w-full rounded-2xl border p-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-45 ${
+                      selected
+                        ? "border-[#F59E0B]/55 bg-[#F59E0B]/[0.10] shadow-[0_0_0_1px_rgba(245,158,11,0.10)]"
+                        : "border-emerald-400/10 bg-emerald-400/[0.035] hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/[0.05]"
+                    }`}
+                  >
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                          selected
+                            ? "border-[#F59E0B] bg-[#F59E0B] text-[#0B0D12]"
+                            : "border-white/20 text-transparent"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        <Check className="h-3 w-3" />
+                      </span>
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+                      <span className="text-sm font-medium text-white/80">
+                        {contact.role}
+                      </span>
+                      <span className="ml-auto font-mono text-[10px] text-emerald-300">
+                        score {contact.score ?? "—"}/100
+                      </span>
+                    </span>
+                    <span className="mt-1 block pl-6 text-[11px] text-[#969BA8]">
+                      {contact.currentRoleVerified
+                        ? "Poste actuel vérifié"
+                        : "Poste à confirmer"}{" "}
+                      · {getContactabilityLabel(contact.contactability)}
+                    </span>
+                  </button>
+                );
+              })}
+            </fieldset>
 
             {insights ? (
               <p className="text-xs italic leading-relaxed text-[#969BA8]">
@@ -227,14 +261,7 @@ export function EnrichButton({
             <button
               type="button"
               onClick={() => setHandoffOpen(true)}
-              disabled={
-                prospects.length === 0 ||
-                !contacts.some((contact) =>
-                  ["verified", "public_source"].includes(
-                    contact.contactability,
-                  ),
-                )
-              }
+              disabled={prospects.length === 0 || !selectedContactId}
               className="group mt-1 flex w-full items-start gap-3 rounded-2xl border border-[#C8CEFF]/15 bg-[#C8CEFF]/[0.05] p-3 text-left transition-colors hover:bg-[#C8CEFF]/[0.08] disabled:opacity-40"
             >
               <span className="min-w-0 flex-1">
@@ -242,8 +269,8 @@ export function EnrichButton({
                   Passer le relais à Rédacteur
                 </span>
                 <span className="mt-1 block text-[11px] leading-relaxed text-[#969BA8]">
-                  J’ai trouvé les décideurs pertinents. Choisissez à qui écrire
-                  et la langue du message ; Rédacteur préparera le brouillon.
+                  Le décideur sélectionné et la langue seront transmis à
+                  Rédacteur pour préparer le brouillon.
                 </span>
               </span>
               <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-[#C8CEFF] transition-transform group-hover:translate-x-0.5" />
@@ -284,10 +311,22 @@ export function EnrichButton({
           companyCountry={companyCountry}
           contacts={contacts}
           prospects={prospects}
+          initialContactId={selectedContactId}
         />
       ) : null}
     </>
   );
+}
+
+function getContactabilityLabel(
+  contactability: EnrichContact["contactability"],
+) {
+  if (contactability === "verified") return "email vérifié";
+  if (contactability === "public_source") {
+    return "email issu d’une source publique";
+  }
+  if (contactability === "guessed") return "email à vérifier avant envoi";
+  return "email à compléter avant envoi";
 }
 
 function getEnrichmentDetail(message: string) {

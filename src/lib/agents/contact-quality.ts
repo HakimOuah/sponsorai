@@ -77,6 +77,15 @@ export function isUsableEmailStatus(status?: string | null): boolean {
   return status === "verified" || status === "public_source";
 }
 
+export function canDraftForContact(contact: {
+  active?: boolean | null;
+  employmentStatus?: string | null;
+}): boolean {
+  return (
+    contact.active === true && contact.employmentStatus === "verified_current"
+  );
+}
+
 export function hasActionableContact(
   contacts: Array<{
     employmentStatus?: string | null;

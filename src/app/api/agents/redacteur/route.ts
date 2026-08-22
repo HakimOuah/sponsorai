@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runRedacteur } from "@/lib/agents/redacteur";
 import { runEnrichisseur } from "@/lib/agents/enrichisseur";
-import { canSendOutreach, isUsableEmailStatus } from "@/lib/agents/contact-quality";
+import {
+  canDraftForContact,
+  canSendOutreach,
+  isUsableEmailStatus,
+} from "@/lib/agents/contact-quality";
 import { persistContactCandidates } from "@/lib/contacts/persistence";
 import {
   isOutreachLanguage,
@@ -50,9 +54,6 @@ export async function POST(request: NextRequest) {
           where: {
             id: requestedContactId,
             companyId: company.id,
-            active: true,
-            employmentStatus: "verified_current",
-            contactability: { in: ["verified", "public_source"] },
           },
           include: {
             contactEmails: {
@@ -66,10 +67,13 @@ export async function POST(request: NextRequest) {
 
     if (
       requestedContactId &&
-      (!selectedContact || selectedContact.contactEmails.length === 0)
+      (!selectedContact || !canDraftForContact(selectedContact))
     ) {
       return NextResponse.json(
-        { error: "Le contact sélectionné n’est pas suffisamment vérifié." },
+        {
+          error:
+            "Ce décideur n’est pas vérifié comme étant actuellement en poste.",
+        },
         { status: 409 },
       );
     }
@@ -180,6 +184,7 @@ export async function POST(request: NextRequest) {
               id: selectedContact.id,
               role: selectedContact.roleRaw,
               score: selectedContact.contactScore,
+              outreachReady: selectedContact.contactEmails.length > 0,
             }
           : null,
       },

@@ -24,6 +24,7 @@ import { useAgentExperience } from "./AgentExperienceProvider";
 interface HandoffContact {
   id: string;
   role: string;
+  currentRoleVerified: boolean;
   contactability: "verified" | "public_source" | "guessed" | "missing";
   score: number | null;
 }
@@ -41,6 +42,7 @@ export function WriterHandoffModal({
   companyCountry,
   contacts,
   prospects,
+  initialContactId,
 }: {
   open: boolean;
   onClose: () => void;
@@ -48,12 +50,10 @@ export function WriterHandoffModal({
   companyCountry?: string | null;
   contacts: HandoffContact[];
   prospects: HandoffProspect[];
+  initialContactId?: string;
 }) {
-  const actionableContacts = useMemo(
-    () =>
-      contacts.filter((contact) =>
-        ["verified", "public_source"].includes(contact.contactability),
-      ),
+  const draftableContacts = useMemo(
+    () => contacts.filter((contact) => contact.currentRoleVerified),
     [contacts],
   );
   const suggestion = useMemo(
@@ -62,7 +62,9 @@ export function WriterHandoffModal({
   );
   const [prospectId, setProspectId] = useState(prospects[0]?.id || "");
   const [contactId, setContactId] = useState(
-    actionableContacts[0]?.id || "",
+    draftableContacts.some((contact) => contact.id === initialContactId)
+      ? initialContactId || ""
+      : draftableContacts[0]?.id || "",
   );
   const [language, setLanguage] = useState<OutreachLanguage>(
     suggestion.language,
@@ -82,6 +84,12 @@ export function WriterHandoffModal({
   const selectedProspect = prospects.find(
     (prospect) => prospect.id === prospectId,
   );
+  const selectedContact = draftableContacts.find(
+    (contact) => contact.id === contactId,
+  );
+  const selectedContactHasUsableEmail = selectedContact
+    ? ["verified", "public_source"].includes(selectedContact.contactability)
+    : false;
 
   const generate = async () => {
     if (!prospectId || !contactId || loading) return;
@@ -250,9 +258,14 @@ export function WriterHandoffModal({
                   onChange={(event) => setContactId(event.target.value)}
                   className="w-full rounded-2xl border border-white/[0.09] bg-white/[0.035] px-3 py-2.5 text-sm text-white focus:border-[#F59E0B]/30 focus:outline-none"
                 >
-                  {actionableContacts.map((contact) => (
+                  {draftableContacts.map((contact) => (
                     <option key={contact.id} value={contact.id}>
                       {contact.role} · {contact.score ?? "—"}/100
+                      {!["verified", "public_source"].includes(
+                        contact.contactability,
+                      )
+                        ? " · email à compléter"
+                        : ""}
                     </option>
                   ))}
                 </select>
@@ -305,10 +318,18 @@ export function WriterHandoffModal({
                 Cette entreprise n’est encore liée à aucune opportunité.
               </p>
             ) : null}
-            {actionableContacts.length === 0 ? (
+            {draftableContacts.length === 0 ? (
               <p className="text-xs text-[#F59E0B]">
-                Aucun destinataire avec des coordonnées suffisamment vérifiées.
+                Aucun décideur avec un poste actuel suffisamment vérifié.
               </p>
+            ) : null}
+
+            {selectedContact && !selectedContactHasUsableEmail ? (
+              <div className="rounded-2xl border border-[#F59E0B]/20 bg-[#F59E0B]/[0.06] px-3.5 py-3 text-xs leading-relaxed text-[#F6C978]">
+                Rédacteur peut préparer le brouillon pour ce décideur. L’envoi
+                restera bloqué tant qu’aucun email vérifié ou issu d’une source
+                publique n’est disponible.
+              </div>
             ) : null}
 
             <button
