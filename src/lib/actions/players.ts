@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireOperationalAccess } from "@/lib/auth/access";
 
 export async function getPlayers() {
   return prisma.player.findMany({
@@ -60,6 +61,7 @@ export async function getPlayer(id: string) {
 }
 
 export async function createPlayer(formData: FormData) {
+  await requireOperationalAccess();
   const data = extractPlayerData(formData);
 
   const player = await prisma.player.create({ data });
@@ -69,6 +71,7 @@ export async function createPlayer(formData: FormData) {
 }
 
 export async function updatePlayer(id: string, formData: FormData) {
+  await requireOperationalAccess();
   const data = extractPlayerData(formData);
 
   await prisma.player.update({
@@ -82,6 +85,7 @@ export async function updatePlayer(id: string, formData: FormData) {
 }
 
 export async function archivePlayer(id: string) {
+  await requireOperationalAccess();
   await prisma.player.update({
     where: { id },
     data: { active: false },

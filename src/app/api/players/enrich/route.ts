@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAIText } from "@/lib/ai";
 import { extractJSONObject } from "@/lib/utils";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +33,17 @@ interface PlayerEnrichment {
 }
 
 export async function POST(request: NextRequest) {
+  const access = await getCurrentUserAccess();
+  if (!access.authenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!access.canOperate) {
+    return NextResponse.json(
+      { error: "Votre compte est en mode découverte." },
+      { status: 403 },
+    );
+  }
+
   const { firstName, lastName, query, profileType, sport } = await request.json();
   const playerQuery = [firstName, lastName].filter(Boolean).join(" ").trim() || query?.trim();
 

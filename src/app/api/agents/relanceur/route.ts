@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runRelanceur } from "@/lib/agents/relanceur";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export async function POST(request: NextRequest) {
+  const access = await getCurrentUserAccess();
+  if (!access.authenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!access.canOperate) {
+    return NextResponse.json(
+      { error: "Votre compte est en mode découverte." },
+      { status: 403 },
+    );
+  }
+
   const { prospectId } = await request.json();
 
   if (!prospectId) {

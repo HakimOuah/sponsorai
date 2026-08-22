@@ -5,11 +5,16 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { requireOperationalAccess } from "@/lib/auth/access";
 
 export async function updateProfile(
   userId: string,
   data: { name: string; email: string }
 ) {
+  const access = await requireOperationalAccess();
+  if (access.userId !== userId && !access.isAdmin) {
+    throw new Error("FORBIDDEN");
+  }
   await prisma.user.update({
     where: { id: userId },
     data: { name: data.name, email: data.email },
@@ -22,6 +27,10 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string
 ) {
+  const access = await requireOperationalAccess();
+  if (access.userId !== userId && !access.isAdmin) {
+    throw new Error("FORBIDDEN");
+  }
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new Error("User not found");
 
@@ -36,6 +45,7 @@ export async function changePassword(
 }
 
 export async function createSendingIdentity(formData: FormData) {
+  await requireOperationalAccess();
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id?: string } | undefined)?.id;
   if (!userId) throw new Error("Unauthorized");
@@ -73,6 +83,7 @@ export async function createSendingIdentity(formData: FormData) {
 }
 
 export async function setDefaultSendingIdentity(identityId: string) {
+  await requireOperationalAccess();
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id?: string } | undefined)?.id;
   if (!userId) throw new Error("Unauthorized");
@@ -96,6 +107,7 @@ export async function setDefaultSendingIdentity(identityId: string) {
 }
 
 export async function exportPlayersCSV() {
+  await requireOperationalAccess();
   const players = await prisma.player.findMany({
     where: { active: true },
     orderBy: { lastName: "asc" },
@@ -141,6 +153,7 @@ export async function exportPlayersCSV() {
 }
 
 export async function exportCompaniesCSV() {
+  await requireOperationalAccess();
   const companies = await prisma.company.findMany({
     select: {
       name: true,
@@ -187,6 +200,7 @@ export async function exportCompaniesCSV() {
 }
 
 export async function exportProspectsCSV() {
+  await requireOperationalAccess();
   const prospects = await prisma.prospect.findMany({
     include: {
       player: { select: { firstName: true, lastName: true } },

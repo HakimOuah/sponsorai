@@ -8,5 +8,9 @@ export default async function AppLayout({
 }) {
   const access = await getCurrentUserAccess();
 
-  return <AppShell isAdmin={access.isAdmin}>{children}</AppShell>;
+  return (
+    <AppShell isAdmin={access.isAdmin} isReadOnly={access.isFreeUser}>
+      {children}
+    </AppShell>
+  );
 }

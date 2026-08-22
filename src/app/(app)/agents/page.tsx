@@ -1,104 +1,17 @@
-import {
-  Bot,
-  Search,
-  Target,
-  PenTool,
-  Database,
-  Send,
-  Eye,
-  RefreshCw,
-  Radar,
-} from "lucide-react";
+import { Bot } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { AgentCard } from "@/components/agents/AgentCard";
-import { ScanLauncher } from "@/components/agents/ScanLauncher";
-import { RelanceurPanel } from "@/components/agents/RelanceurPanel";
-import { VeillePanel } from "@/components/agents/VeillePanel";
-import { agentAvatars } from "@/lib/agent-avatars";
+import { AgentCatalog } from "@/components/agents/AgentCatalog";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export const dynamic = "force-dynamic";
-
-const agents = [
-  {
-    name: "Scout",
-    description:
-      "Recherche web via Claude Sonnet 5. Trouve 12 à 15 marques qualifiées par scan.",
-    icon: Search,
-    avatar: agentAvatars.scout,
-    status: "active" as const,
-    color: "#FF6B3D",
-  },
-  {
-    name: "Matchmaker",
-    description:
-      "Scoring multi-critères des marques. 6 axes d'analyse, priorité A/B/C.",
-    icon: Target,
-    avatar: agentAvatars.matchmaker,
-    status: "active" as const,
-    color: "#C8CEFF",
-  },
-  {
-    name: "Rédacteur",
-    description:
-      "Génération de mails de prospection personnalisés avec templates configurables.",
-    icon: PenTool,
-    avatar: agentAvatars.redacteur,
-    status: "active" as const,
-    color: "#C8CEFF",
-  },
-  {
-    name: "Enrichisseur",
-    description:
-      "Recherche de contacts décisionnaires (nom, email, LinkedIn) pour chaque entreprise.",
-    icon: Database,
-    avatar: agentAvatars.enrichisseur,
-    status: "active" as const,
-    color: "#f59e0b",
-  },
-  {
-    name: "Dispatcher",
-    description:
-      "Envoi en masse des brouillons prêts. Identifie les emails sans contact.",
-    icon: Send,
-    avatar: agentAvatars.dispatcher,
-    status: "active" as const,
-    color: "#ef4444",
-  },
-  {
-    name: "Veilleur",
-    description:
-      "Analyse et catégorisation des réponses reçues. Alerte sur les réponses positives.",
-    icon: Eye,
-    avatar: agentAvatars.veilleur,
-    status: "active" as const,
-    color: "#C8CEFF",
-  },
-  {
-    name: "Relanceur",
-    description:
-      "Relance contextuelle basée sur l'actualité du profil. Timing score et email personnalisé.",
-    icon: RefreshCw,
-    avatar: agentAvatars.relanceur,
-    status: "active" as const,
-    color: "#f59e0b",
-  },
-  {
-    name: "Veille Concurrence",
-    description:
-      "Scan du marché sponsoring : nouveaux deals, fins de contrat, marques entrantes, tendances.",
-    icon: Radar,
-    avatar: agentAvatars.veilleConcurrence,
-    status: "active" as const,
-    color: "#a855f7",
-  },
-];
 
 export default async function AgentsPage({
   searchParams,
 }: {
   searchParams: { prospect?: string };
 }) {
-  const [players, recentScans, contactedProspects] = await Promise.all([
+  const access = await getCurrentUserAccess();
+  const [players, recentScans, contactedProspects, companies] = await Promise.all([
     prisma.player.findMany({
       where: { active: true },
       select: { id: true, firstName: true, lastName: true, club: true },
@@ -125,12 +38,89 @@ export default async function AgentsPage({
       orderBy: { updatedAt: "desc" },
       take: 50,
     }),
+    prisma.company.findMany({
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        country: true,
+        contacts: {
+          where: { active: true },
+          orderBy: [{ contactScore: "desc" }, { relevanceScore: "desc" }],
+          select: {
+            id: true,
+            fullName: true,
+            roleRaw: true,
+            employmentStatus: true,
+            contactability: true,
+            contactScore: true,
+            contactEmails: {
+              where: { status: { in: ["verified", "public_source"] } },
+              orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
+              take: 1,
+              select: {
+                email: true,
+                source: true,
+                evidence: true,
+              },
+            },
+          },
+        },
+        prospects: {
+          orderBy: { score: "desc" },
+          select: {
+            id: true,
+            player: {
+              select: {
+                firstName: true,
+                lastName: true,
+                club: true,
+              },
+            },
+          },
+        },
+      },
+    }),
   ]);
 
   const relanceurProspects = contactedProspects.map((p) => ({
     id: p.id,
     companyName: p.company.name,
     status: p.status,
+  }));
+  const companyOptions = companies.map((company) => ({
+    id: company.id,
+    name: company.name,
+    country: company.country,
+    contacts: company.contacts.map((contact) => {
+      const email = contact.contactEmails[0];
+
+      return {
+        id: contact.id,
+        name: access.isAdmin ? contact.fullName : null,
+        role: contact.roleRaw,
+        currentRoleVerified:
+          contact.employmentStatus === "verified_current",
+        contactability: contact.contactability as
+          | "verified"
+          | "public_source"
+          | "guessed"
+          | "missing",
+        score: contact.contactScore,
+        email: access.isAdmin ? email?.email || null : null,
+        emailSource: access.isAdmin ? email?.source || null : null,
+        emailKind: email
+          ? isFunctionalEmail(email.email)
+            ? ("functional_generic" as const)
+            : ("personal_professional" as const)
+          : ("unknown" as const),
+      };
+    }),
+    prospects: company.prospects.map((prospect) => ({
+      id: prospect.id,
+      athleteName: `${prospect.player.firstName} ${prospect.player.lastName}`,
+      club: prospect.player.club,
+    })),
   }));
 
   return (
@@ -141,51 +131,23 @@ export default async function AgentsPage({
           Agents IA
         </h1>
       </div>
+      <p className="mb-6 max-w-3xl text-sm leading-relaxed text-[#969BA8]">
+        Cliquez sur un agent pour comprendre son rôle, voir ce qu’il peut faire
+        et démarrer la bonne action avec le contexte nécessaire.
+      </p>
 
-      {/* Agent cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-        {agents.map((agent) => (
-          <AgentCard key={agent.name} {...agent} />
-        ))}
-      </div>
-
-      {/* Scan launcher */}
-      <div className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
-          Lancer un scan Scout + Matchmaker
-        </h2>
-        <ScanLauncher players={players} />
-      </div>
-
-      {/* Relanceur */}
-      <div className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
-          Relanceur Intelligent
-        </h2>
-        {relanceurProspects.length > 0 ? (
-          <RelanceurPanel
-            prospects={relanceurProspects}
-            defaultProspectId={searchParams.prospect}
-          />
-        ) : (
-          <p className="text-sm text-[#969BA8]">
-            Aucun prospect contacté disponible. Envoyez d&apos;abord des emails
-            de prospection.
-          </p>
-        )}
-      </div>
-
-      {/* Veille Concurrence */}
-      <div className="mb-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
-          Veille Concurrentielle
-        </h2>
-        <VeillePanel />
-      </div>
+      <AgentCatalog
+        players={players}
+        companies={companyOptions}
+        contactedProspects={relanceurProspects}
+        defaultProspectId={searchParams.prospect}
+        canOperate={access.canOperate}
+        canViewContactDetails={access.isAdmin}
+      />
 
       {/* Recent scans */}
       {recentScans.length > 0 && (
-        <div>
+        <div className="mt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">
             Scans récents
           </h2>
@@ -234,6 +196,13 @@ export default async function AgentsPage({
         </div>
       )}
     </div>
+  );
+}
+
+function isFunctionalEmail(email: string): boolean {
+  const localPart = email.split("@")[0]?.toLowerCase() || "";
+  return /^(contact|info|hello|marketing|communication|communications|partnerships|partenariats|sponsoring|sponsorship|press|presse|media)([._-]|$)/.test(
+    localPart,
   );
 }
 

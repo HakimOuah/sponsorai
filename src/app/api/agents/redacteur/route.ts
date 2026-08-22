@@ -19,6 +19,12 @@ export async function POST(request: NextRequest) {
   if (!access.authenticated) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  if (!access.canOperate) {
+    return NextResponse.json(
+      { error: "Votre compte est en mode découverte." },
+      { status: 403 },
+    );
+  }
 
   const { prospectId, emailType, contactId, language } = await request.json();
 

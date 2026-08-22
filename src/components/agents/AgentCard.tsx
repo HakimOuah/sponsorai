@@ -1,5 +1,7 @@
+"use client";
+
 import Image from "next/image";
-import { LucideIcon } from "lucide-react";
+import { ArrowUpRight, LucideIcon } from "lucide-react";
 
 interface AgentCardProps {
   name: string;
@@ -8,6 +10,7 @@ interface AgentCardProps {
   avatar: string;
   status: "active" | "inactive" | "coming_soon";
   color: string;
+  onSelect: () => void;
 }
 
 export function AgentCard({
@@ -17,6 +20,7 @@ export function AgentCard({
   avatar,
   status,
   color,
+  onSelect,
 }: AgentCardProps) {
   const statusConfig = {
     active: { label: "Actif", bg: "bg-[#FF6B3D]/10", text: "text-[#FF6B3D]" },
@@ -35,7 +39,12 @@ export function AgentCard({
   const s = statusConfig[status];
 
   return (
-    <div className="app-panel group overflow-hidden p-4 transition duration-300 hover:-translate-y-0.5 hover:border-[#FF6B3D]/20">
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-haspopup="dialog"
+      className="app-panel group w-full overflow-hidden p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-[#FF6B3D]/25 hover:bg-white/[0.035] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B3D]/45"
+    >
       <div className="flex items-start gap-4">
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[22px] border border-white/[0.08] bg-[#0B0908] shadow-[0_16px_40px_rgba(0,0,0,0.24)]">
           <div
@@ -75,6 +84,10 @@ export function AgentCard({
       <p className="mt-4 text-sm leading-relaxed text-[#969BA8]">
         {description}
       </p>
-    </div>
+      <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#F6F4EF]/70 transition-colors group-hover:text-[#FF6B3D]">
+        Découvrir et utiliser l’agent
+        <ArrowUpRight className="h-3.5 w-3.5" />
+      </span>
+    </button>
   );
 }

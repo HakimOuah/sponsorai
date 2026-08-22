@@ -9,7 +9,10 @@ import {
   resolveOutreachSendingIdentity,
 } from "@/lib/email/identities";
 import { recordLearningEvent } from "@/lib/learning/events";
-import { getCurrentUserAccess } from "@/lib/auth/access";
+import {
+  getCurrentUserAccess,
+  requireOperationalAccess,
+} from "@/lib/auth/access";
 import { redactRecipientIdentity } from "@/lib/privacy/contact-redaction";
 
 export async function getEmails(filters?: {
@@ -167,6 +170,7 @@ export async function updateEmail(
   id: string,
   data: { subject?: string; body?: string; status?: string }
 ) {
+  await requireOperationalAccess();
   await prisma.email.update({
     where: { id },
     data,
@@ -176,6 +180,7 @@ export async function updateEmail(
 }
 
 export async function deleteEmail(id: string) {
+  await requireOperationalAccess();
   await prisma.email.delete({ where: { id } });
   revalidatePath("/emails");
 }
@@ -196,6 +201,7 @@ export async function createEmailTemplate(data: {
   subject: string;
   body: string;
 }) {
+  await requireOperationalAccess();
   await prisma.emailTemplate.create({ data });
   revalidatePath("/emails/templates");
 }
@@ -204,16 +210,19 @@ export async function updateEmailTemplate(
   id: string,
   data: { name?: string; type?: string; subject?: string; body?: string; active?: boolean }
 ) {
+  await requireOperationalAccess();
   await prisma.emailTemplate.update({ where: { id }, data });
   revalidatePath("/emails/templates");
 }
 
 export async function deleteEmailTemplate(id: string) {
+  await requireOperationalAccess();
   await prisma.emailTemplate.delete({ where: { id } });
   revalidatePath("/emails/templates");
 }
 
 export async function sendEmail(emailId: string) {
+  await requireOperationalAccess();
   const email = await prisma.email.findUnique({
     where: { id: emailId },
     include: {
@@ -345,6 +354,7 @@ export async function sendEmail(emailId: string) {
 }
 
 export async function bulkGenerateEmails(prospectIds: string[], emailType: string) {
+  await requireOperationalAccess();
   const results: { prospectId: string; emailId: string; error?: string }[] = [];
 
   for (const prospectId of prospectIds) {

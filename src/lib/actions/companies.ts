@@ -3,7 +3,10 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getCurrentUserAccess } from "@/lib/auth/access";
+import {
+  getCurrentUserAccess,
+  requireOperationalAccess,
+} from "@/lib/auth/access";
 import { redactRecipientIdentity } from "@/lib/privacy/contact-redaction";
 
 export async function getCompanies(filters?: {
@@ -140,6 +143,7 @@ export async function getCompany(id: string) {
 }
 
 export async function createCompany(formData: FormData) {
+  await requireOperationalAccess();
   const data = extractCompanyData(formData);
   const company = await prisma.company.create({ data });
   revalidatePath("/companies");
@@ -147,6 +151,7 @@ export async function createCompany(formData: FormData) {
 }
 
 export async function updateCompany(id: string, formData: FormData) {
+  await requireOperationalAccess();
   const data = extractCompanyData(formData);
   await prisma.company.update({ where: { id }, data });
   revalidatePath("/companies");
@@ -155,6 +160,7 @@ export async function updateCompany(id: string, formData: FormData) {
 }
 
 export async function deleteCompany(id: string) {
+  await requireOperationalAccess();
   await prisma.company.delete({ where: { id } });
   revalidatePath("/companies");
   redirect("/companies");

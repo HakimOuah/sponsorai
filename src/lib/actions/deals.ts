@@ -9,6 +9,7 @@ import {
   ensureSponsorAIAttribution,
   ensureSuccessFeeRecord,
 } from "@/lib/deals/attribution";
+import { requireOperationalAccess } from "@/lib/auth/access";
 
 export async function getDeals() {
   return prisma.deal.findMany({
@@ -22,6 +23,7 @@ export async function getDeals() {
 }
 
 export async function updateDealStage(dealId: string, stage: string) {
+  await requireOperationalAccess();
   if (!isDealStage(stage)) {
     throw new Error(`Invalid deal stage: ${stage}`);
   }
@@ -96,6 +98,7 @@ export async function updateDeal(
     nextActionDate?: string | null;
   }
 ) {
+  await requireOperationalAccess();
   await prisma.deal.update({
     where: { id: dealId },
     data: {

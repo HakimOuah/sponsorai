@@ -1,10 +1,16 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
-import { LogOut, Menu, ShieldCheck, User } from "lucide-react";
+import { Eye, LogOut, Menu, ShieldCheck, User } from "lucide-react";
 import { BreadcrumbNav } from "./BreadcrumbNav";
 
-export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
+export function TopBar({
+  onMenuClick,
+  isReadOnly,
+}: {
+  onMenuClick: () => void;
+  isReadOnly: boolean;
+}) {
   const { data: session } = useSession();
 
   return (
@@ -23,9 +29,19 @@ export function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <div className="hidden items-center gap-2 rounded-full border border-[#FF6B3D]/15 bg-[#FF6B3D]/10 px-3 py-1.5 text-xs font-semibold text-[#FFE4D8] sm:flex">
-            <ShieldCheck className="h-3.5 w-3.5 text-[#FF6B3D]" />
-            Système actif
+          <div
+            className={`hidden items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold sm:flex ${
+              isReadOnly
+                ? "border-[#C8CEFF]/20 bg-[#C8CEFF]/10 text-[#D9DDFF]"
+                : "border-[#FF6B3D]/15 bg-[#FF6B3D]/10 text-[#FFE4D8]"
+            }`}
+          >
+            {isReadOnly ? (
+              <Eye className="h-3.5 w-3.5 text-[#C8CEFF]" />
+            ) : (
+              <ShieldCheck className="h-3.5 w-3.5 text-[#FF6B3D]" />
+            )}
+            {isReadOnly ? "Mode découverte" : "Système actif"}
           </div>
           {session?.user && (
             <div className="flex items-center gap-1.5 rounded-full border border-white/[0.10] bg-[#0B0D12]/55 px-1.5 py-1.5 sm:gap-2 sm:px-2">

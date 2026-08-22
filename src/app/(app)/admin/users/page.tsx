@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { Eye, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 import { getAdminUsers } from "@/lib/actions/admin-users";
 import { UserRoleManager } from "@/components/admin/UserRoleManager";
 
@@ -10,7 +10,10 @@ export default async function AdminUsersPage() {
   if (!data) redirect("/dashboard");
 
   const adminCount = data.users.filter((user) => user.role === "admin").length;
-  const clientCount = data.users.length - adminCount;
+  const clientCount = data.users.filter((user) => user.role === "client").length;
+  const freeUserCount = data.users.filter(
+    (user) => user.role === "free_user",
+  ).length;
 
   return (
     <div className="min-w-0 space-y-6">
@@ -22,12 +25,12 @@ export default async function AdminUsersPage() {
           Utilisateurs et rôles
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#969BA8]">
-          Les administrateurs voient les coordonnées de prospection. Les clients
-          utilisent les agents et l’envoi sans pouvoir extraire ces données.
+          Créez les accès et choisissez précisément ce que chacun peut faire.
+          Les coordonnées de prospection restent réservées aux administrateurs.
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           icon={UsersRound}
           label="Utilisateurs"
@@ -46,6 +49,12 @@ export default async function AdminUsersPage() {
           value={clientCount}
           accent="text-[#C8CEFF]"
         />
+        <SummaryCard
+          icon={Eye}
+          label="Free users"
+          value={freeUserCount}
+          accent="text-[#C8CEFF]"
+        />
       </div>
 
       <section className="app-panel p-4 sm:p-5">
@@ -54,8 +63,9 @@ export default async function AdminUsersPage() {
             Accès à Vectis
           </h2>
           <p className="text-xs leading-relaxed text-[#969BA8]">
-            Votre propre rôle est verrouillé pour éviter de perdre l’accès à
-            l’administration.
+            Un Free user peut parcourir l’outil, mais ne peut ni lancer un agent
+            ni créer, modifier ou envoyer des données. Votre propre rôle reste
+            verrouillé pour protéger l’administration.
           </p>
         </div>
         <UserRoleManager

@@ -13,12 +13,26 @@ import {
   isPlayerIntelligence,
   PLAYER_INTELLIGENCE_FRESHNESS_MS,
 } from "@/lib/agents/player-intelligence";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
+  const access = await getCurrentUserAccess();
+  if (!access.authenticated) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
+  }
+  if (!access.canOperate) {
+    return new Response(
+      JSON.stringify({ error: "Votre compte est en mode découverte." }),
+      { status: 403 },
+    );
+  }
+
   const { playerId } = await request.json();
 
   if (!playerId) {

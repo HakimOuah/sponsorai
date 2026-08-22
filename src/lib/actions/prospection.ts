@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { recordLearningEvent } from "@/lib/learning/events";
 import { ensureSponsorAIAttribution } from "@/lib/deals/attribution";
+import { requireOperationalAccess } from "@/lib/auth/access";
 
 export async function getProspects(playerId?: string) {
   return prisma.prospect.findMany({
@@ -61,6 +62,7 @@ export async function approveProspectOutreach(
   prospectId: string,
   contactId?: string
 ) {
+  await requireOperationalAccess();
   const prospect = await prisma.prospect.findUnique({
     where: { id: prospectId },
     include: { company: true },
@@ -124,6 +126,7 @@ export async function submitProspectFeedback(
     notes?: string;
   }
 ) {
+  await requireOperationalAccess();
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id?: string } | undefined)?.id;
   const feedback = await prisma.prospectFeedback.create({
@@ -157,6 +160,7 @@ export async function submitProspectFeedback(
 }
 
 export async function revokeProspectOutreachApproval(prospectId: string) {
+  await requireOperationalAccess();
   await prisma.prospect.update({
     where: { id: prospectId },
     data: {
@@ -180,6 +184,7 @@ export async function getScansForPlayer(playerId: string) {
 }
 
 export async function bulkCreateDeals(prospectIds: string[]) {
+  await requireOperationalAccess();
   let created = 0;
 
   for (const id of prospectIds) {
@@ -234,6 +239,7 @@ export async function bulkCreateDeals(prospectIds: string[]) {
 }
 
 export async function updateProspectStatus(id: string, status: string) {
+  await requireOperationalAccess();
   await prisma.prospect.update({
     where: { id },
     data: { status },

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { recordLearningEvent } from "@/lib/learning/events";
 import { ensureSponsorAIAttribution, ensureSuccessFeeRecord } from "@/lib/deals/attribution";
+import { requireOperationalAccess } from "@/lib/auth/access";
 
 export async function getDealWorkspace(dealId: string) {
   return prisma.deal.findUnique({
@@ -37,6 +38,7 @@ export async function createMeeting(input: {
   externalUrl?: string;
   notes?: string;
 }) {
+  await requireOperationalAccess();
   const deal = await prisma.deal.findUnique({ where: { id: input.dealId } });
   if (!deal) throw new Error("Deal not found");
   const scheduledAt = new Date(input.scheduledAt);
@@ -84,6 +86,7 @@ export async function completeMeeting(input: {
   outcome: string;
   notes?: string;
 }) {
+  await requireOperationalAccess();
   const meeting = await prisma.meeting.update({
     where: { id: input.meetingId },
     data: {
@@ -120,6 +123,7 @@ export async function createProposal(input: {
   summary?: string;
   externalUrl?: string;
 }) {
+  await requireOperationalAccess();
   const deal = await prisma.deal.findUnique({ where: { id: input.dealId } });
   if (!deal) throw new Error("Deal not found");
   const sentAt = new Date();
@@ -175,6 +179,7 @@ export async function createContract(input: {
   externalUrl?: string;
   expiresAt?: string;
 }) {
+  await requireOperationalAccess();
   const deal = await prisma.deal.findUnique({ where: { id: input.dealId } });
   if (!deal) throw new Error("Deal not found");
   const sentAt = new Date();
@@ -208,6 +213,7 @@ export async function createContract(input: {
 }
 
 export async function markContractSigned(contractId: string) {
+  await requireOperationalAccess();
   const signedAt = new Date();
   const contract = await prisma.contract.update({
     where: { id: contractId },

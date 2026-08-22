@@ -2,8 +2,21 @@ import { prisma } from "@/lib/prisma";
 import { runVeille } from "@/lib/agents/veille";
 import type { Prisma } from "@prisma/client";
 import { ingestVeilleAlerts } from "@/lib/veille/ingest";
+import { NextResponse } from "next/server";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export async function POST() {
+  const access = await getCurrentUserAccess();
+  if (!access.authenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!access.canOperate) {
+    return NextResponse.json(
+      { error: "Votre compte est en mode découverte." },
+      { status: 403 },
+    );
+  }
+
   // Gather context
   const [players, deals] = await Promise.all([
     prisma.player.findMany({
