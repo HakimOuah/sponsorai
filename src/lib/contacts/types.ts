@@ -11,6 +11,10 @@ export interface ContactCandidate {
   email_status: ContactEmailStatus;
   email_evidence?: string | null;
   email_source?: string | null;
+  email_kind?:
+    | "personal_professional"
+    | "functional_generic"
+    | "unknown";
   email_pattern?: string | null;
   email_candidates?: string[];
   linkedin: string | null;
@@ -55,6 +59,7 @@ export interface ContactProviderSearchResult {
 
 export interface PublicContactSummary {
   id: string;
+  name?: string | null;
   role: string;
   roleNormalized: string;
   currentRoleVerified: boolean;
@@ -63,4 +68,9 @@ export interface PublicContactSummary {
   score: number | null;
   scoreVersion: string;
   source: string | null;
+  email?: string | null;
+  emailStatus?: ContactEmailStatus | null;
+  emailSource?: string | null;
+  emailEvidence?: string | null;
+  emailKind?: "personal_professional" | "functional_generic" | "unknown";
 }

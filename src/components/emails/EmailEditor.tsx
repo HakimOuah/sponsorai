@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Send, Save, Trash2, Loader2 } from "lucide-react";
+import { ExternalLink, Send, Save, Trash2, Loader2 } from "lucide-react";
 import { updateEmail, deleteEmail, sendEmail } from "@/lib/actions/emails";
 import { useRouter } from "next/navigation";
 
@@ -19,6 +19,17 @@ interface EmailEditorProps {
       contactRole?: string | null;
       contactEmailStatus?: string | null;
       outreachReady?: boolean | null;
+    };
+    contactReady: boolean;
+    canViewContactDetails: boolean;
+    recipient: {
+      name: string | null;
+      role: string | null;
+      email: string | null;
+      status: string;
+      source: string | null;
+      evidence: string | null;
+      kind: "personal_professional" | "functional_generic" | "unknown";
     };
     prospect: {
       outreachApprovedAt: Date | null;
@@ -39,7 +50,7 @@ export function EmailEditor({ email }: EmailEditorProps) {
   const isDraft = email.status === "draft";
   const hasChanges = subject !== email.subject || body !== email.body;
   const sendable = Boolean(
-    email.company.outreachReady &&
+    email.contactReady &&
     (email.type !== "first_contact" || email.prospect?.outreachApprovedAt),
   );
 
@@ -91,10 +102,14 @@ export function EmailEditor({ email }: EmailEditorProps) {
         <span>
           À :{" "}
           <span className="text-white/60">
-            {email.company.contactRole || "Décideur qualifié"}
+            {email.canViewContactDetails && email.recipient.name
+              ? `${email.recipient.name} — ${email.recipient.role || "Décideur qualifié"}`
+              : email.recipient.role ||
+                email.company.contactRole ||
+                "Décideur qualifié"}
           </span>
         </span>
-        {email.company.outreachReady && (
+        {email.contactReady && (
           <>
             <span>·</span>
             <span className={sendable ? "text-[#FF6B3D]" : "text-[#f59e0b]"}>
@@ -131,6 +146,51 @@ export function EmailEditor({ email }: EmailEditorProps) {
           </>
         )}
       </div>
+
+      {email.canViewContactDetails ? (
+        <div
+          className={`rounded-2xl border px-4 py-3 text-xs ${
+            email.recipient.email
+              ? "border-emerald-400/15 bg-emerald-400/[0.05] text-emerald-100/75"
+              : "border-[#F59E0B]/20 bg-[#F59E0B]/[0.05] text-[#F6C978]"
+          }`}
+        >
+          {email.recipient.email ? (
+            <>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-white/45">Adresse d’envoi :</span>
+                <span className="font-mono">{email.recipient.email}</span>
+                <span className="rounded-full border border-white/[0.09] px-2 py-0.5 text-[9px] uppercase tracking-wider text-white/40">
+                  {email.recipient.kind === "functional_generic"
+                    ? "boîte fonctionnelle"
+                    : "email professionnel"}
+                </span>
+                {isHttpUrl(email.recipient.source) ? (
+                  <a
+                    href={email.recipient.source}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-[#C8CEFF] hover:underline"
+                  >
+                    Vérifier la source <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : null}
+              </div>
+              {email.recipient.evidence ? (
+                <p className="mt-2 leading-relaxed text-white/45">
+                  {email.recipient.evidence}
+                </p>
+              ) : null}
+            </>
+          ) : (
+            "Aucune adresse exploitable n’est associée à ce brouillon."
+          )}
+        </div>
+      ) : email.contactReady ? (
+        <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-xs text-white/50">
+          Une adresse qualifiée est disponible et protégée dans Vectis.
+        </div>
+      ) : null}
 
       {/* Subject */}
       <div>
@@ -242,4 +302,14 @@ export function EmailEditor({ email }: EmailEditorProps) {
       </div>
     </div>
   );
+}
+
+function isHttpUrl(value?: string | null): value is string {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }

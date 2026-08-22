@@ -35,6 +35,7 @@ export type ApolloContact = {
   email_status: "verified" | "missing";
   email_evidence?: string | null;
   email_source?: string | null;
+  email_kind?: "personal_professional" | "unknown";
   email_pattern?: string | null;
   email_candidates?: string[];
   linkedin: string | null;
@@ -400,6 +401,7 @@ function toApolloContact(
       ? "Apollo indique un email professionnel vérifié pour ce contact."
       : null,
     email_source: hasVerifiedEmail ? "Apollo People API" : null,
+    email_kind: hasVerifiedEmail ? "personal_professional" : "unknown",
     email_pattern: null,
     email_candidates: [],
     linkedin: person.linkedin_url || null,

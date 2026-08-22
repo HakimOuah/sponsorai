@@ -38,7 +38,8 @@ function candidateSourceUrl(candidate: ContactCandidate): string | null {
 
 export async function persistContactCandidates(
   companyId: string,
-  candidates: ContactCandidate[]
+  candidates: ContactCandidate[],
+  options: { includePrivate?: boolean } = {},
 ): Promise<PublicContactSummary[]> {
   const summaries: PublicContactSummary[] = [];
   const company = await prisma.company.findUnique({ where: { id: companyId } });
@@ -187,6 +188,7 @@ export async function persistContactCandidates(
 
     summaries.push({
       id: contact.id,
+      name: options.includePrivate ? contact.fullName : null,
       role: contact.roleRaw,
       roleNormalized: contact.roleNormalized,
       currentRoleVerified: contact.employmentStatus === "verified_current",
@@ -195,6 +197,17 @@ export async function persistContactCandidates(
       score: contact.contactScore,
       scoreVersion: contact.contactScoreVersion,
       source: contact.source,
+      email: options.includePrivate && candidate.email ? candidate.email : null,
+      emailStatus: options.includePrivate ? candidate.email_status : null,
+      emailSource: options.includePrivate
+        ? candidate.email_source || null
+        : null,
+      emailEvidence: options.includePrivate
+        ? candidate.email_evidence || null
+        : null,
+      emailKind: options.includePrivate
+        ? candidate.email_kind || classifyEmailKind(candidate.email)
+        : undefined,
     });
   }
 
@@ -202,22 +215,80 @@ export async function persistContactCandidates(
 }
 
 export async function getPublicContactsForCompany(
-  companyId: string
+  companyId: string,
+  options: { includePrivate?: boolean } = {},
 ): Promise<PublicContactSummary[]> {
   const contacts = await prisma.contact.findMany({
     where: { companyId, active: true },
     orderBy: [{ contactScore: "desc" }, { relevanceScore: "desc" }],
+    include: {
+      contactEmails: {
+        where: { status: { in: ["verified", "public_source"] } },
+        orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
+        take: 1,
+      },
+    },
   });
 
-  return contacts.map((contact) => ({
-    id: contact.id,
-    role: contact.roleRaw,
-    roleNormalized: contact.roleNormalized,
-    currentRoleVerified: contact.employmentStatus === "verified_current",
-    contactability: contact.contactability as PublicContactSummary["contactability"],
-    relevance: contact.relevanceScore,
-    score: contact.contactScore,
-    scoreVersion: contact.contactScoreVersion,
-    source: contact.source,
-  }));
+  return contacts.map((contact) => {
+    const primaryEmail = contact.contactEmails[0];
+
+    return {
+      id: contact.id,
+      name: options.includePrivate ? contact.fullName : null,
+      role: contact.roleRaw,
+      roleNormalized: contact.roleNormalized,
+      currentRoleVerified: contact.employmentStatus === "verified_current",
+      contactability:
+        contact.contactability as PublicContactSummary["contactability"],
+      relevance: contact.relevanceScore,
+      score: contact.contactScore,
+      scoreVersion: contact.contactScoreVersion,
+      source: contact.source,
+      email: options.includePrivate ? primaryEmail?.email || null : null,
+      emailStatus: options.includePrivate
+        ? (primaryEmail?.status as PublicContactSummary["emailStatus"]) || null
+        : null,
+      emailSource: options.includePrivate ? primaryEmail?.source || null : null,
+      emailEvidence: options.includePrivate
+        ? primaryEmail?.evidence || null
+        : null,
+      emailKind: options.includePrivate
+        ? classifyEmailKind(primaryEmail?.email, primaryEmail?.evidence)
+        : undefined,
+    };
+  });
+}
+
+function classifyEmailKind(
+  email?: string | null,
+  evidence?: string | null,
+): "personal_professional" | "functional_generic" | "unknown" {
+  if (!email) return "unknown";
+  if (evidence?.toLowerCase().includes("boîte fonctionnelle")) {
+    return "functional_generic";
+  }
+
+  const localPart = email.split("@")[0]?.toLowerCase() || "";
+  const functionalPrefixes = [
+    "contact",
+    "info",
+    "hello",
+    "marketing",
+    "communication",
+    "communications",
+    "partnerships",
+    "partenariats",
+    "sponsoring",
+    "sponsorship",
+    "press",
+    "presse",
+    "media",
+  ];
+
+  return functionalPrefixes.some(
+    (prefix) => localPart === prefix || localPart.startsWith(`${prefix}.`),
+  )
+    ? "functional_generic"
+    : "personal_professional";
 }

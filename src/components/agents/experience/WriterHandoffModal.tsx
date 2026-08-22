@@ -23,10 +23,14 @@ import { useAgentExperience } from "./AgentExperienceProvider";
 
 interface HandoffContact {
   id: string;
+  name?: string | null;
   role: string;
   currentRoleVerified: boolean;
   contactability: "verified" | "public_source" | "guessed" | "missing";
   score: number | null;
+  email?: string | null;
+  emailSource?: string | null;
+  emailKind?: "personal_professional" | "functional_generic" | "unknown";
 }
 
 interface HandoffProspect {
@@ -260,15 +264,26 @@ export function WriterHandoffModal({
                 >
                   {draftableContacts.map((contact) => (
                     <option key={contact.id} value={contact.id}>
-                      {contact.role} · {contact.score ?? "—"}/100
-                      {!["verified", "public_source"].includes(
-                        contact.contactability,
-                      )
-                        ? " · email à compléter"
-                        : ""}
+                      {contact.name ? `${contact.name} — ` : ""}
+                      {contact.role} · {contact.score ?? "—"}/100 ·{" "}
+                      {contact.email ||
+                        (!["verified", "public_source"].includes(
+                          contact.contactability,
+                        )
+                          ? "email à compléter"
+                          : "coordonnée protégée")}
                     </option>
                   ))}
                 </select>
+                {selectedContact?.email ? (
+                  <p className="flex flex-wrap items-center gap-1.5 px-1 text-[10px] text-emerald-200/70">
+                    <Mail className="h-3 w-3" />
+                    <span className="font-mono">{selectedContact.email}</span>
+                    {selectedContact.emailKind === "functional_generic"
+                      ? "· boîte fonctionnelle officielle"
+                      : "· email professionnel"}
+                  </p>
+                ) : null}
               </label>
             </div>
 

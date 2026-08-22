@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getCurrentUserAccess } from "@/lib/auth/access";
+import { redactRecipientIdentity } from "@/lib/privacy/contact-redaction";
 
 export async function getCompanies(filters?: {
   sector?: string;
@@ -42,7 +44,8 @@ export async function getCompanies(filters?: {
 }
 
 export async function getCompany(id: string) {
-  return prisma.company.findUnique({
+  const access = await getCurrentUserAccess();
+  const company = await prisma.company.findUnique({
     where: { id },
     include: {
       prospects: {
@@ -60,12 +63,21 @@ export async function getCompany(id: string) {
       emails: {
         orderBy: { createdAt: "desc" },
         take: 20,
+        select: {
+          id: true,
+          subject: true,
+          type: true,
+          status: true,
+          createdAt: true,
+          contact: { select: { fullName: true } },
+        },
       },
       contacts: {
         where: { active: true },
         orderBy: [{ contactScore: "desc" }, { relevanceScore: "desc" }],
         select: {
           id: true,
+          fullName: true,
           roleRaw: true,
           roleNormalized: true,
           employmentStatus: true,
@@ -74,6 +86,17 @@ export async function getCompany(id: string) {
           contactScore: true,
           contactScoreVersion: true,
           source: true,
+          contactEmails: {
+            where: { status: { in: ["verified", "public_source"] } },
+            orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
+            take: 1,
+            select: {
+              email: true,
+              status: true,
+              source: true,
+              evidence: true,
+            },
+          },
         },
       },
       sponsorships: {
@@ -89,6 +112,31 @@ export async function getCompany(id: string) {
       },
     },
   });
+
+  if (!company) return null;
+
+  return {
+    ...company,
+    contactName: access.isAdmin ? company.contactName : null,
+    contactEmail: access.isAdmin ? company.contactEmail : null,
+    contactEvidence: access.isAdmin ? company.contactEvidence : null,
+    contactSource: access.isAdmin ? company.contactSource : null,
+    contactLinkedin: access.isAdmin ? company.contactLinkedin : null,
+    contactPhone: access.isAdmin ? company.contactPhone : null,
+    canViewContactDetails: access.isAdmin,
+    emails: company.emails.map((email) => ({
+      ...email,
+      subject: access.isAdmin
+        ? email.subject
+        : redactRecipientIdentity(email.subject, email.contact?.fullName),
+      contact: undefined,
+    })),
+    contacts: company.contacts.map((contact) => ({
+      ...contact,
+      fullName: access.isAdmin ? contact.fullName : null,
+      contactEmails: access.isAdmin ? contact.contactEmails : [],
+    })),
+  };
 }
 
 export async function createCompany(formData: FormData) {

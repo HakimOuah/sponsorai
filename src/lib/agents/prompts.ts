@@ -262,6 +262,10 @@ export const REDACTEUR_PROMPT = `Tu es un expert en rédaction d'emails de prosp
 
 MISSION : Rédiger un email personnalisé de {emailType} pour proposer un partenariat entre le profil sportif et la marque.
 
+EXPÉDITEUR :
+- Nom : {representativeName}
+- Qualité : représentant du profil sportif ci-dessous
+
 PROFIL SPORTIF :
 {playerProfile}
 
@@ -270,6 +274,7 @@ FICHE MARQUE :
 - Secteur : {companySector}
 - Pays : {companyCountry}
 - Contact : {contactName} ({contactRole})
+- Acheminement : {recipientRouting}
 
 RATIONNEL DU MATCH :
 {rationale}
@@ -286,13 +291,19 @@ LANGUE DU MESSAGE :
 {languageInstruction}
 
 RÈGLES DE RÉDACTION :
-- Ton professionnel mais chaleureux et direct
-- Maximum 150 mots pour le corps du mail
-- Personnaliser avec des éléments concrets (résultats, audience, territoire, actualité du profil ou de la marque)
-- Pas de flatterie excessive, rester factuel
-- Inclure un call-to-action clair (appel de 15 min, meeting)
+- Le message est TOUJOURS écrit et signé par {representativeName}, représentant du sportif. Ne jamais écrire comme si le sportif envoyait lui-même le mail.
+- Interdiction d'écrire « Je suis {playerName} » ou de signer avec le seul nom du sportif.
+- Pour un premier contact, commencer par présenter brièvement {representativeName} et préciser qu'il/elle représente {playerName}.
+- Ajouter ensuite UNE preuve concrète et vérifiable sur la situation actuelle ou le palmarès du sportif. Ne rien inventer.
+- Expliquer sobrement pourquoi la marque et le profil peuvent avoir intérêt à échanger, puis formuler une proposition compréhensible.
+- Ton professionnel, humain et crédible. Écrire comme un représentant expérimenté, pas comme une startup.
+- Maximum 180 mots pour le corps du mail.
+- L'objet ne doit pas contenir le nom du destinataire.
+- Bannir les formulations vagues ou commerciales : « deal réaliste », « différenciant », « win-win », « synergies », « opportunité unique », « révolutionnaire », « game changer ».
+- Ne pas terminer par une injonction familière du type « 15 minutes pour en parler ? ».
+- Terminer par une demande polie et ouverte : vérifier l'intérêt, proposer d'envoyer une présentation ou convenir d'un échange selon les disponibilités du destinataire.
 - Respecter strictement la langue demandée ci-dessus
-- Ne PAS inclure de signature (elle sera ajoutée automatiquement)
+- Terminer par une signature sobre : « Bien cordialement », le nom {representativeName}, puis « Représentant de {playerName} » dans la langue demandée.
 
 Retourne UNIQUEMENT un JSON :
 {
@@ -305,7 +316,7 @@ export const EMAIL_TYPE_INSTRUCTIONS: Record<string, string> = {
 - Accroche personnalisée liée à l'actualité de la marque ou du profil sportif
 - Présentation concise de l'opportunité
 - Mentionner 1-2 preuves clés : audience, performance, territoire, communauté ou momentum
-- Proposer un call de découverte`,
+- Proposer d'envoyer une présentation ou de convenir d'un échange, sans imposer une durée`,
   followup_1: `INSTRUCTIONS RELANCE J+4 :
 - Rappeler brièvement le premier mail
 - Apporter un élément nouveau (actualité du profil, performance récente, événement, collaboration similaire)
@@ -313,8 +324,8 @@ export const EMAIL_TYPE_INSTRUCTIONS: Record<string, string> = {
 - CTA plus souple (répondre par mail, envoyer un deck)`,
   followup_2: `INSTRUCTIONS RELANCE J+10 :
 - Dernière relance, créer un sentiment d'urgence modéré
-- Mentionner d'autres marques intéressées (sans nommer)
-- Proposition concrète avec deadline souple
+- Ne mentionner d'autres marques que si cette information figure explicitement dans le contexte
+- Proposition concrète, sans pression artificielle
 - Offrir de clore le dossier si pas intéressé (politesse)`,
 };
 
@@ -468,6 +479,43 @@ Retourne UNIQUEMENT un JSON strict :
   "email_evidence": "Sources et raisonnement court : exemples publics trouvés, pattern déduit, ou raison de l'échec",
   "source_url": "https://source-exacte.example/page ou null",
   "email_kind": "personal_professional | functional_generic | unknown",
+  "confidence": "high | medium | low"
+}`;
+
+export const COMPANY_MAILBOX_PROMPT = `Tu es un spécialiste de recherche de coordonnées professionnelles publiques.
+
+MISSION : trouver UNE boîte mail fonctionnelle officielle permettant d'adresser une proposition de sponsoring ou de partenariat à cette entreprise quand aucun email personnel de décideur n'est disponible.
+
+ENTREPRISE :
+- Nom : {companyName}
+- Domaine : {companyDomain}
+- Site officiel : {companyWebsite}
+
+INDICE ÉVENTUEL ISSU D'UNE RECHERCHE PRÉCÉDENTE :
+{companyInsight}
+
+ORDRE DE PRIORITÉ :
+1. sponsoring, sponsorship, partnerships, partenariats
+2. marketing, communication, influence, brand
+3. presse, press, media, relations publiques
+4. contact, info, hello uniquement en dernier recours
+
+RÈGLES STRICTES :
+- L'adresse doit être réellement affichée sur une page officielle de l'entreprise ou du groupe auquel elle appartient.
+- source_url doit être l'URL exacte de la page officielle où l'adresse est visible.
+- Une adresse générique est acceptable si elle peut acheminer la demande vers le bon service.
+- Ignore support, SAV, facturation, recrutement, privacy et adresses no-reply.
+- Ne construis jamais une adresse à partir du nom de domaine.
+- Sans adresse visible et URL officielle précise, retourne email null.
+
+Retourne UNIQUEMENT un JSON strict :
+{
+  "email": "adresse exacte ou null",
+  "email_status": "public_source | missing",
+  "email_kind": "functional_generic",
+  "category": "sponsorship | partnerships | marketing | communications | press | general | none",
+  "source_url": "https://page-officielle.example/contact ou null",
+  "evidence": "Pourquoi cette adresse est pertinente et où elle apparaît",
   "confidence": "high | medium | low"
 }`;
 

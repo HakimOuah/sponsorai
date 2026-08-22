@@ -27,6 +27,12 @@ interface EnrichContact {
   score: number | null;
   scoreVersion: string;
   source: string | null;
+  name?: string | null;
+  email?: string | null;
+  emailStatus?: "verified" | "public_source" | "guessed" | "missing" | null;
+  emailSource?: string | null;
+  emailEvidence?: string | null;
+  emailKind?: "personal_professional" | "functional_generic" | "unknown";
 }
 
 interface EnrichmentDiagnostic {
@@ -51,6 +57,7 @@ interface EnrichButtonProps {
   companyName: string;
   companyCountry?: string | null;
   prospects?: CompanyProspect[];
+  canViewContactDetails?: boolean;
 }
 
 export function EnrichButton({
@@ -58,6 +65,7 @@ export function EnrichButton({
   companyName,
   companyCountry,
   prospects = [],
+  canViewContactDetails = false,
 }: EnrichButtonProps) {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -65,6 +73,9 @@ export function EnrichButton({
   const [selectedContactId, setSelectedContactId] = useState("");
   const [insights, setInsights] = useState("");
   const [diagnostics, setDiagnostics] = useState<EnrichmentDiagnostic[]>([]);
+  const [canViewPrivateDetails, setCanViewPrivateDetails] = useState(
+    canViewContactDetails,
+  );
   const [error, setError] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -164,6 +175,9 @@ export function EnrichButton({
               );
               setInsights(data.result.insights);
               setDiagnostics(enrichmentDiagnostics);
+              setCanViewPrivateDetails(
+                data.result.canViewContactDetails === true,
+              );
               setDone(true);
               setProgress(100);
               setDetail(
@@ -269,45 +283,85 @@ export function EnrichButton({
                 const selectable = contact.currentRoleVerified;
 
                 return (
-                  <button
-                    key={contact.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    disabled={!selectable}
-                    onClick={() => setSelectedContactId(contact.id)}
-                    className={`w-full rounded-2xl border p-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-45 ${
-                      selected
-                        ? "border-[#F59E0B]/55 bg-[#F59E0B]/[0.10] shadow-[0_0_0_1px_rgba(245,158,11,0.10)]"
-                        : "border-emerald-400/10 bg-emerald-400/[0.035] hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/[0.05]"
-                    }`}
-                  >
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
-                          selected
-                            ? "border-[#F59E0B] bg-[#F59E0B] text-[#0B0D12]"
-                            : "border-white/20 text-transparent"
-                        }`}
-                        aria-hidden="true"
+                  <div key={contact.id} className="space-y-1.5">
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      disabled={!selectable}
+                      onClick={() => setSelectedContactId(contact.id)}
+                      className={`w-full rounded-2xl border p-3 text-left transition-all disabled:cursor-not-allowed disabled:opacity-45 ${
+                        selected
+                          ? "border-[#F59E0B]/55 bg-[#F59E0B]/[0.10] shadow-[0_0_0_1px_rgba(245,158,11,0.10)]"
+                          : "border-emerald-400/10 bg-emerald-400/[0.035] hover:border-[#F59E0B]/30 hover:bg-[#F59E0B]/[0.05]"
+                      }`}
+                    >
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border ${
+                            selected
+                              ? "border-[#F59E0B] bg-[#F59E0B] text-[#0B0D12]"
+                              : "border-white/20 text-transparent"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          <Check className="h-3 w-3" />
+                        </span>
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
+                        <span className="text-sm font-medium text-white/80">
+                          {canViewPrivateDetails && contact.name
+                            ? contact.name
+                            : contact.role}
+                        </span>
+                        <span className="ml-auto font-mono text-[10px] text-emerald-300">
+                          score {contact.score ?? "—"}/100
+                        </span>
+                      </span>
+                      <span className="mt-1 block pl-6 text-[11px] text-[#969BA8]">
+                        {canViewPrivateDetails && contact.name
+                          ? `${contact.role} · `
+                          : ""}
+                        {contact.currentRoleVerified
+                          ? "Poste actuel vérifié"
+                          : "Poste à confirmer"}{" "}
+                        · {getContactabilityLabel(contact.contactability)}
+                      </span>
+                      {canViewPrivateDetails ? (
+                        <span className="mt-2 block pl-6">
+                          {contact.email ? (
+                            <span className="flex flex-wrap items-center gap-2 text-[11px] text-emerald-200/80">
+                              <MailCheck className="h-3.5 w-3.5" />
+                              <span className="font-mono">{contact.email}</span>
+                              <span className="rounded-full border border-white/[0.08] px-2 py-0.5 text-[9px] uppercase tracking-wider text-white/40">
+                                {contact.emailKind === "functional_generic"
+                                  ? "boîte fonctionnelle"
+                                  : "email professionnel"}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-[#F59E0B]">
+                              Aucun email exploitable trouvé
+                            </span>
+                          )}
+                        </span>
+                      ) : null}
+                    </button>
+                    {canViewPrivateDetails && contact.emailEvidence ? (
+                      <p className="ml-3 text-[11px] leading-relaxed text-white/40">
+                        {contact.emailEvidence}
+                      </p>
+                    ) : null}
+                    {canViewPrivateDetails && isHttpUrl(contact.emailSource) ? (
+                      <a
+                        href={contact.emailSource}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="ml-3 inline-flex text-[11px] text-[#C8CEFF] hover:underline"
                       >
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" />
-                      <span className="text-sm font-medium text-white/80">
-                        {contact.role}
-                      </span>
-                      <span className="ml-auto font-mono text-[10px] text-emerald-300">
-                        score {contact.score ?? "—"}/100
-                      </span>
-                    </span>
-                    <span className="mt-1 block pl-6 text-[11px] text-[#969BA8]">
-                      {contact.currentRoleVerified
-                        ? "Poste actuel vérifié"
-                        : "Poste à confirmer"}{" "}
-                      · {getContactabilityLabel(contact.contactability)}
-                    </span>
-                  </button>
+                        Vérifier la source de l’adresse
+                      </a>
+                    ) : null}
+                  </div>
                 );
               })}
             </fieldset>
@@ -429,6 +483,17 @@ function isUsableContactability(
   contactability: EnrichContact["contactability"],
 ) {
   return contactability === "verified" || contactability === "public_source";
+}
+
+function isHttpUrl(value?: string | null): value is string {
+  if (!value) return false;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function getEnrichmentDetail(message: string) {

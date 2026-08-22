@@ -9,20 +9,30 @@ import {
   resolveOutreachSendingIdentity,
 } from "@/lib/email/identities";
 import { recordLearningEvent } from "@/lib/learning/events";
+import { getCurrentUserAccess } from "@/lib/auth/access";
+import { redactRecipientIdentity } from "@/lib/privacy/contact-redaction";
 
 export async function getEmails(filters?: {
   status?: string;
   companyId?: string;
   prospectId?: string;
 }) {
-  return prisma.email.findMany({
+  const access = await getCurrentUserAccess();
+  const emails = await prisma.email.findMany({
     where: {
       ...(filters?.status && { status: filters.status }),
       ...(filters?.companyId && { companyId: filters.companyId }),
       ...(filters?.prospectId && { prospectId: filters.prospectId }),
     },
-    include: {
+    select: {
+      id: true,
+      type: true,
+      subject: true,
+      status: true,
+      sentAt: true,
+      createdAt: true,
       company: { select: { name: true } },
+      contact: { select: { fullName: true } },
       prospect: {
         select: {
           player: { select: { firstName: true, lastName: true } },
@@ -31,10 +41,19 @@ export async function getEmails(filters?: {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  return emails.map((email) => ({
+    ...email,
+    subject: access.isAdmin
+      ? email.subject
+      : redactRecipientIdentity(email.subject, email.contact?.fullName),
+    contact: undefined,
+  }));
 }
 
 export async function getEmail(id: string) {
-  return prisma.email.findUnique({
+  const access = await getCurrentUserAccess();
+  const email = await prisma.email.findUnique({
     where: { id },
     select: {
       id: true,
@@ -47,9 +66,31 @@ export async function getEmail(id: string) {
       company: {
         select: {
           name: true,
+          contactName: true,
           contactRole: true,
+          contactEmail: true,
           contactEmailStatus: true,
+          contactSource: true,
+          contactEvidence: true,
           outreachReady: true,
+        },
+      },
+      contact: {
+        select: {
+          fullName: true,
+          roleRaw: true,
+          contactability: true,
+          contactEmails: {
+            where: { status: { in: ["verified", "public_source"] } },
+            orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
+            take: 1,
+            select: {
+              email: true,
+              status: true,
+              source: true,
+              evidence: true,
+            },
+          },
         },
       },
       prospect: {
@@ -60,6 +101,66 @@ export async function getEmail(id: string) {
       },
     },
   });
+
+  if (!email) return null;
+
+  const contactEmail = email.contact?.contactEmails[0];
+  const recipientEmail = contactEmail?.email || email.company.contactEmail;
+  const recipientEvidence =
+    contactEmail?.evidence || email.company.contactEvidence;
+  const recipientName =
+    email.contact?.fullName || email.company.contactName || null;
+
+  return {
+    ...email,
+    subject: access.isAdmin
+      ? email.subject
+      : redactRecipientIdentity(email.subject, recipientName),
+    body: access.isAdmin
+      ? email.body
+      : redactRecipientIdentity(email.body, recipientName),
+    contact: undefined,
+    company: {
+      ...email.company,
+      contactEmail: undefined,
+      contactName: undefined,
+      contactEvidence: undefined,
+      contactSource: undefined,
+    },
+    contactReady: Boolean(recipientEmail),
+    canViewContactDetails: access.isAdmin,
+    recipient: {
+      name: access.isAdmin
+        ? recipientName
+        : null,
+      role: email.contact?.roleRaw || email.company.contactRole,
+      email: access.isAdmin ? recipientEmail || null : null,
+      status:
+        contactEmail?.status || email.company.contactEmailStatus || "missing",
+      source: access.isAdmin
+        ? contactEmail?.source || email.company.contactSource
+        : null,
+      evidence: access.isAdmin ? recipientEvidence || null : null,
+      kind: classifyRecipientEmail(recipientEmail, recipientEvidence),
+    },
+  };
+}
+
+function classifyRecipientEmail(
+  email?: string | null,
+  evidence?: string | null,
+): "personal_professional" | "functional_generic" | "unknown" {
+  if (!email) return "unknown";
+  if (evidence?.toLowerCase().includes("boîte fonctionnelle")) {
+    return "functional_generic";
+  }
+
+  const localPart = email.split("@")[0]?.toLowerCase() || "";
+  return /^(contact|info|hello|marketing|communication|communications|partnerships|partenariats|sponsoring|sponsorship|press|presse|media)([._-]|$)/.test(
+    localPart,
+  )
+    ? "functional_generic"
+    : "personal_professional";
 }
 
 export async function updateEmail(

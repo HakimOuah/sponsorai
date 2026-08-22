@@ -12,8 +12,14 @@ import {
   isOutreachLanguage,
   suggestOutreachLanguage,
 } from "@/lib/agents/outreach-language";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export async function POST(request: NextRequest) {
+  const access = await getCurrentUserAccess();
+  if (!access.authenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { prospectId, emailType, contactId, language } = await request.json();
 
   if (!prospectId || !emailType) {
@@ -143,9 +149,16 @@ export async function POST(request: NextRequest) {
       prospect,
       emailType as "first_contact" | "followup_1" | "followup_2",
       {
-        contactName: selectedContact?.fullName,
+        contactName: access.isAdmin
+          ? selectedContact?.fullName
+          : "Responsable partenariats",
         contactRole: selectedContact?.roleRaw,
         language: selectedLanguage,
+        representativeName: access.userName,
+        recipientEmailKind: classifyRecipientEmail(
+          selectedContact?.contactEmails[0]?.email,
+          selectedContact?.contactEmails[0]?.evidence,
+        ),
       },
     );
 
@@ -200,4 +213,21 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function classifyRecipientEmail(
+  email?: string | null,
+  evidence?: string | null,
+): "personal_professional" | "functional_generic" | "unknown" {
+  if (!email) return "unknown";
+  if (evidence?.toLowerCase().includes("boîte fonctionnelle")) {
+    return "functional_generic";
+  }
+
+  const localPart = email.split("@")[0]?.toLowerCase() || "";
+  return /^(contact|info|hello|marketing|communication|communications|partnerships|partenariats|sponsoring|sponsorship|press|presse|media)([._-]|$)/.test(
+    localPart,
+  )
+    ? "functional_generic"
+    : "personal_professional";
 }

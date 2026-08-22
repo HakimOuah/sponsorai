@@ -3,8 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { runEnrichisseur } from "@/lib/agents/enrichisseur";
 import { isUsableEmailStatus } from "@/lib/agents/contact-quality";
 import { persistContactCandidates } from "@/lib/contacts/persistence";
+import { getCurrentUserAccess } from "@/lib/auth/access";
+import { redactContactIntelligence } from "@/lib/privacy/contact-redaction";
 
 export async function POST(request: NextRequest) {
+  const access = await getCurrentUserAccess();
+  if (!access.authenticated) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { companyId } = await request.json();
 
   if (!companyId) {
@@ -43,7 +50,8 @@ export async function POST(request: NextRequest) {
         const result = await runEnrichisseur(company, log);
         const publicContacts = await persistContactCandidates(
           companyId,
-          result.contacts
+          result.contacts,
+          { includePrivate: access.isAdmin },
         );
         const usableEmails = result.contacts.filter(
           (contact) =>
@@ -135,8 +143,14 @@ export async function POST(request: NextRequest) {
           type: "done",
           result: {
             contacts: publicContacts,
-            insights: result.company_insights,
+            insights: access.isAdmin
+              ? result.company_insights
+              : redactContactIntelligence(
+                  result.company_insights,
+                  result.contacts.map((contact) => contact.name),
+                ),
             diagnostics: result.diagnostics,
+            canViewContactDetails: access.isAdmin,
           },
         });
       } catch (error) {

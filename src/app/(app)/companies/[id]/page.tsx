@@ -1,6 +1,14 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Pencil, ArrowLeft, Globe, MapPin, ShieldCheck } from "lucide-react";
+import {
+  Pencil,
+  ArrowLeft,
+  ExternalLink,
+  Globe,
+  Mail,
+  MapPin,
+  ShieldCheck,
+} from "lucide-react";
 import { getCompany } from "@/lib/actions/companies";
 import { DeleteCompanyButton } from "@/components/companies/DeleteCompanyButton";
 import { EnrichButton } from "@/components/companies/EnrichButton";
@@ -150,33 +158,107 @@ export default async function CompanyDetailPage({
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-sm text-white/80">
                       <ShieldCheck className="h-3.5 w-3.5 text-[#FF6B3D]" />{" "}
-                      {contact.roleRaw}
+                      {company.canViewContactDetails && contact.fullName
+                        ? contact.fullName
+                        : contact.roleRaw}
                     </span>
                     <span className="font-mono text-xs text-[#FF6B3D]">
                       {contact.contactScore ?? "—"}/100
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-[#969BA8]">
+                    {company.canViewContactDetails && contact.fullName
+                      ? `${contact.roleRaw} · `
+                      : ""}
                     {contact.employmentStatus === "verified_current"
                       ? "Poste actuel vérifié"
                       : "Poste à vérifier"}{" "}
                     · contactabilité {contact.contactability}
                   </p>
-                  <p className="mt-1 text-[11px] text-[#969BA8]/60">
-                    Coordonnées conservées côté serveur
-                  </p>
+                  {company.canViewContactDetails ? (
+                    contact.contactEmails[0] ? (
+                      <div className="mt-2 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.04] px-3 py-2">
+                        <p className="flex flex-wrap items-center gap-2 text-xs text-emerald-200/80">
+                          <Mail className="h-3.5 w-3.5" />
+                          <span className="font-mono">
+                            {contact.contactEmails[0].email}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-wider text-emerald-300/60">
+                            {isFunctionalEmail(contact.contactEmails[0])
+                              ? "boîte fonctionnelle"
+                              : "email professionnel"}
+                          </span>
+                        </p>
+                        {contact.contactEmails[0].evidence ? (
+                          <p className="mt-1.5 text-[11px] leading-relaxed text-white/45">
+                            {contact.contactEmails[0].evidence}
+                          </p>
+                        ) : null}
+                        {isHttpUrl(contact.contactEmails[0].source) ? (
+                          <a
+                            href={contact.contactEmails[0].source}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-[#C8CEFF] hover:underline"
+                          >
+                            Vérifier la source
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-[11px] text-[#F59E0B]">
+                        Aucun email exploitable trouvé.
+                      </p>
+                    )
+                  ) : (
+                    <p className="mt-1 text-[11px] text-[#969BA8]/60">
+                      Coordonnées protégées dans Vectis
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
           ) : company.contactRole || company.outreachReady ? (
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.025] p-3">
               <p className="text-sm text-white/80">
-                {company.contactRole || "Décideur qualifié"}
+                {company.canViewContactDetails && company.contactName
+                  ? company.contactName
+                  : company.contactRole || "Décideur qualifié"}
               </p>
               <p className="mt-1 text-xs text-[#969BA8]">
-                Contactabilité {company.contactEmailStatus} · coordonnées
-                privées
+                {company.canViewContactDetails && company.contactName
+                  ? `${company.contactRole || "Décideur qualifié"} · `
+                  : ""}
+                Contactabilité {company.contactEmailStatus} ·{" "}
+                {company.canViewContactDetails
+                  ? "détails administrateur"
+                  : "coordonnées protégées"}
               </p>
+              {company.canViewContactDetails && company.contactEmail ? (
+                <div className="mt-2 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.04] px-3 py-2">
+                  <p className="flex flex-wrap items-center gap-2 text-xs text-emerald-200/80">
+                    <Mail className="h-3.5 w-3.5" />
+                    <span className="font-mono">{company.contactEmail}</span>
+                  </p>
+                  {company.contactEvidence ? (
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-white/45">
+                      {company.contactEvidence}
+                    </p>
+                  ) : null}
+                  {isHttpUrl(company.contactSource) ? (
+                    <a
+                      href={company.contactSource}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-[#C8CEFF] hover:underline"
+                    >
+                      Vérifier la source
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           ) : (
             <p className="text-sm text-[#969BA8]/55 mb-3">
@@ -193,6 +275,7 @@ export default async function CompanyDetailPage({
                 athleteName: `${prospect.player.firstName} ${prospect.player.lastName}`,
                 club: prospect.player.club,
               }))}
+              canViewContactDetails={company.canViewContactDetails}
             />
           </div>
         </div>
@@ -407,6 +490,29 @@ export default async function CompanyDetailPage({
         </div>
       )}
     </div>
+  );
+}
+
+function isHttpUrl(value?: string | null): value is string {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isFunctionalEmail(contactEmail: {
+  email: string;
+  evidence: string | null;
+}) {
+  if (contactEmail.evidence?.toLowerCase().includes("boîte fonctionnelle")) {
+    return true;
+  }
+  const localPart = contactEmail.email.split("@")[0]?.toLowerCase() || "";
+  return /^(contact|info|hello|marketing|communication|communications|partnerships|partenariats|sponsoring|sponsorship|press|presse|media)([._-]|$)/.test(
+    localPart,
   );
 }
 
