@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildEvaluatedBrandsQuery,
+  deduplicateBrandCandidates,
   filterAlreadyEvaluatedBrands,
   getExcludedBrandNames,
 } from "../src/lib/agents/scout-deduplication";
@@ -38,5 +39,25 @@ test("Scout filters only brands already evaluated for the selected athlete", () 
   assert.deepEqual(
     filterAlreadyEvaluatedBrands(candidates, [" maison   m "]),
     [{ name: "Atlas Mobility" }, { name: "North Studio" }]
+  );
+});
+
+test("parallel Scout waves are deduplicated before scoring", () => {
+  assert.deepEqual(
+    deduplicateBrandCandidates([
+      { name: "Maison M" },
+      { name: " maison   m " },
+      { name: "Atlas Mobility" },
+      { name: "Basic-Fit" },
+      { name: "Basic Fit" },
+      { name: "Royal Air Maroc" },
+      { name: "Royal Air Maroc Cargo Business Class" },
+    ]),
+    [
+      { name: "Maison M" },
+      { name: "Atlas Mobility" },
+      { name: "Basic-Fit" },
+      { name: "Royal Air Maroc" },
+    ],
   );
 });

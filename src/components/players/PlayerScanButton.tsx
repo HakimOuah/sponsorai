@@ -123,13 +123,23 @@ export function PlayerScanButton({
                 </button>
 
                 {scan.result?.success && (
-                  <Link
-                    href={`/prospection?player=${playerId}`}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-[#FF6B3D] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F]"
-                  >
-                    Voir les opportunités
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  <>
+                    <button
+                      type="button"
+                      onClick={launchScan}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-[#FF6B3D]/30 px-4 py-2.5 text-sm font-semibold text-[#FF9A7A] transition-colors hover:bg-[#FF6B3D]/10"
+                    >
+                      <ScanLine className="h-4 w-4" />
+                      Trouver 15 autres
+                    </button>
+                    <Link
+                      href={`/prospection?player=${playerId}`}
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[#FF6B3D] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F]"
+                    >
+                      Voir les opportunités
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </>
                 )}
 
                 {scan.result && !scan.result.success && (

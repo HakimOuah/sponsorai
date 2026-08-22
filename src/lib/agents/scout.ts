@@ -1,16 +1,83 @@
-import { generateAIText } from "@/lib/ai";
+import { generateAIText, generateClaudeText } from "@/lib/ai";
 import { extractJSON, extractJSONObject } from "@/lib/utils";
 import {
   SCOUT_RESEARCH_PROMPT,
-  SCOUT_SEARCH_PROMPT,
+  SCOUT_DISCOVERY_PROMPT,
   buildPlayerProfile,
 } from "./prompts";
 import type { ScoutBrand, PlayerIntelligence } from "@/types";
 import type { Player } from "@prisma/client";
 import { SCAN_STAGE_TIMEOUT_MS } from "./scan-budget";
-import { filterAlreadyEvaluatedBrands } from "./scout-deduplication";
+import {
+  deduplicateBrandCandidates,
+  filterAlreadyEvaluatedBrands,
+} from "./scout-deduplication";
 
 export type LogCallback = (message: string, type?: "info" | "success" | "error" | "data") => void;
+
+export const SCOUT_BATCHES = [
+  {
+    name: "France locale & nationale",
+    targetCount: "2 à 3",
+    directive:
+      "Priorise les marques françaises et les entreprises régionales ou nationales accessibles, en croissance et cohérentes avec le territoire du profil.",
+  },
+  {
+    name: "Europe accessible",
+    targetCount: "2 à 3",
+    directive:
+      "Cherche des marques européennes accessibles qui se développent en France et partagent l'audience, les valeurs ou les usages du profil.",
+  },
+  {
+    name: "MENA & diaspora",
+    targetCount: "2 à 3",
+    directive:
+      "Explore le MENA et les marchés internationaux directement reliés à la nationalité, l'audience, les valeurs ou les angles commerciaux du profil. Évite les rapprochements géographiques artificiels.",
+  },
+  {
+    name: "Nutrition, bien-être & D2C",
+    targetCount: "2 à 3",
+    directive:
+      "Recherche des marques D2C et émergentes de nutrition, récupération, santé ou bien-être avec un signal récent et une vraie capacité à activer ce profil.",
+  },
+  {
+    name: "Lifestyle, mode & technologie",
+    targetCount: "2 à 3",
+    directive:
+      "Recherche des marques émergentes de mode, streetwear, accessoires, technologie grand public ou lifestyle qui correspondent réellement à l'image et à l'audience du profil.",
+  },
+  {
+    name: "Services, mobilité & employeurs",
+    targetCount: "2 à 3",
+    directive:
+      "Cible des entreprises de services, mobilité, fintech, assurance, télécom, formation ou des employeurs régionaux. Cherche un angle d'ancrage territorial, de jeunesse, de performance ou d'inclusion différent des vagues produit et lifestyle.",
+  },
+] as const;
+
+export function buildScoutIntelligenceBrief(
+  intelligence?: PlayerIntelligence,
+): string {
+  if (!intelligence) {
+    return "Dossier indisponible : se baser uniquement sur le profil.";
+  }
+
+  const angles = (intelligence.commercial_angles || []).slice(0, 4).map((angle) => ({
+    name: angle.name,
+    ideal_brand_profile: angle.ideal_brand_profile,
+    target_regions: angle.target_regions,
+  }));
+
+  return JSON.stringify({
+    public_image: intelligence.public_image,
+    audience_demographics: intelligence.audience_demographics,
+    recent_news: intelligence.recent_news,
+    key_values: (intelligence.key_values || []).slice(0, 5),
+    brand_affinities: (intelligence.brand_affinities || []).slice(0, 6),
+    existing_partnerships: intelligence.existing_partnerships || [],
+    brand_conflicts: intelligence.brand_conflicts || [],
+    commercial_angles: angles,
+  });
+}
 
 export async function runPlayerResearch(
   player: Player,
@@ -99,33 +166,86 @@ export async function runScout(
     exclusionSection += `\n\nMARQUES / CATÉGORIES CONCURRENTES À ÉVITER :\n${intelligence.brand_conflicts.map((p) => `- ${p}`).join("\n")}`;
   }
 
-  let searchPrompt = SCOUT_SEARCH_PROMPT
-    .replace("{playerProfile}", playerProfile)
-    .replace("{exclusionSection}", exclusionSection);
+  const buildDiscoveryPrompt = (
+    batch: { targetCount: string; directive: string },
+    additionalExclusions: string[] = [],
+  ) => {
+    const runtimeExclusions = additionalExclusions.length > 0
+      ? `${exclusionSection}\n\nCANDIDATS DÉJÀ TROUVÉS PENDANT CE SCAN — NE PAS LES RÉPÉTER :\n${additionalExclusions.map((name) => `- ${name}`).join("\n")}`
+      : exclusionSection;
 
-  if (intelligence) {
-    searchPrompt = searchPrompt.replace(
-      "{playerIntelligence}",
-      JSON.stringify(intelligence, null, 2)
-    );
-  } else {
-    searchPrompt = searchPrompt.replace(
-      "{playerIntelligence}",
-      "Non disponible — se baser uniquement sur le profil ci-dessus."
-    );
-  }
+    return SCOUT_DISCOVERY_PROMPT
+      .replace("{playerProfile}", playerProfile)
+      .replace("{exclusionSection}", runtimeExclusions)
+      .replace("{playerIntelligenceBrief}", buildScoutIntelligenceBrief(intelligence))
+      .replace(/\{targetCount\}/g, batch.targetCount)
+      .replace("{batchDirective}", batch.directive);
+  };
 
-  log("Appel Grok avec web search activé...", "info");
+  const runDiscoveryBatch = async (
+    batch: { name: string; targetCount: string; directive: string },
+    additionalExclusions: string[] = [],
+    timeoutMs: number = SCAN_STAGE_TIMEOUT_MS.scoutSearch,
+  ) => {
+    log(`Vague ${batch.name} en cours...`, "info");
+    const searchText = await generateClaudeText({
+      prompt: buildDiscoveryPrompt(batch, additionalExclusions),
+      maxOutputTokens: 2200,
+      maxWebSearchUses: 1,
+      effort: "low",
+      timeoutMs,
+    });
+    const batchBrands = extractJSON<ScoutBrand>(searchText);
+    log(`Vague ${batch.name} terminée — ${batchBrands.length} marques`, "success");
+    return batchBrands;
+  };
 
-  const searchText = await generateAIText({
-    prompt: searchPrompt,
-    maxOutputTokens: 8192,
-    webSearch: true,
-    timeoutMs: SCAN_STAGE_TIMEOUT_MS.scoutSearch,
+  log("Claude Sonnet 5 lance 6 recherches ciblées en parallèle...", "info");
+
+  const batchResults = await Promise.allSettled(
+    SCOUT_BATCHES.map((batch) => runDiscoveryBatch(batch))
+  );
+
+  const generatedBrands: ScoutBrand[] = [];
+  const batchErrors: unknown[] = [];
+
+  batchResults.forEach((result, index) => {
+    if (result.status === "fulfilled") {
+      generatedBrands.push(...result.value);
+      return;
+    }
+
+    batchErrors.push(result.reason);
+    log(`Vague ${SCOUT_BATCHES[index].name} interrompue — les autres résultats sont conservés`, "error");
   });
 
-  const brands = extractJSON<ScoutBrand>(searchText);
-  log(`Recherche et structuration terminées — ${brands.length} marques`, "success");
+  if (generatedBrands.length === 0) {
+    throw batchErrors[0] || new Error("Aucune vague Scout n'a abouti");
+  }
+
+  let brands = deduplicateBrandCandidates(generatedBrands);
+
+  if (brands.length < 12) {
+    log(`Seulement ${brands.length} marques uniques — lancement d'une vague de rattrapage...`, "info");
+    try {
+      const recoveryBrands = await runDiscoveryBatch(
+        {
+          name: "Rattrapage multi-secteurs",
+          targetCount: "4 à 5",
+          directive:
+            "Complète les résultats avec des marques accessibles issues de secteurs encore absents. Élargis la géographie seulement si elle reste cohérente avec le profil et privilégie les entreprises ayant un signal d'activation récent.",
+        },
+        brands.map((brand) => brand.name),
+        SCAN_STAGE_TIMEOUT_MS.scoutRecovery,
+      );
+      brands = deduplicateBrandCandidates([...brands, ...recoveryBrands]);
+    } catch {
+      log("Vague de rattrapage interrompue — les résultats déjà obtenus sont conservés", "error");
+    }
+  }
+
+  brands = brands.slice(0, 15);
+  log(`Recherche parallèle terminée — ${brands.length} marques uniques`, "success");
 
   // Post-filter: remove any excluded brands that slipped through
   const filteredBrands = filterAlreadyEvaluatedBrands(brands, excludedBrands);

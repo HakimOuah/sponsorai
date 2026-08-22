@@ -93,6 +93,10 @@ export default async function SettingsPage() {
               }
             />
             <EnvField
+              label="Claude API Key"
+              value={process.env.ANTHROPIC_API_KEY ? "Configurée" : undefined}
+            />
+            <EnvField
               label="Apollo.io API Key"
               value={process.env.APOLLO_API_KEY ? "Configurée" : undefined}
             />
@@ -118,8 +122,8 @@ export default async function SettingsPage() {
             />
             <ConfigCard
               label="Volume par scan"
-              value="25-30"
-              description="Marques recherchées par scan Scout"
+              value="12-15"
+              description="Marques qualifiées par scan Scout"
             />
             <ConfigCard
               label="Délais relance"

@@ -18,18 +18,35 @@ export function buildEvaluatedBrandsQuery(playerId: string) {
 }
 
 export function normalizeBrandName(name: string): string {
-  return name.normalize("NFKC").trim().replace(/\s+/g, " ").toLocaleLowerCase("fr-FR");
+  return name
+    .normalize("NFKC")
+    .replace(/[-‐‑‒–—―_./\\&+()'’"“”]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("fr-FR");
+}
+
+function areEquivalentBrandNames(left: string, right: string): boolean {
+  if (left === right) return true;
+  const [shorter, longer] = left.length <= right.length
+    ? [left, right]
+    : [right, left];
+
+  return shorter.length >= 8 && longer.startsWith(`${shorter} `);
 }
 
 export function getExcludedBrandNames(rows: EvaluatedBrandRow[]): string[] {
-  const seen = new Set<string>();
+  const seen: string[] = [];
 
   return rows.reduce<string[]>((names, row) => {
     const name = row.company.name.trim();
     const normalizedName = normalizeBrandName(name);
 
-    if (normalizedName && !seen.has(normalizedName)) {
-      seen.add(normalizedName);
+    if (
+      normalizedName
+      && !seen.some((existing) => areEquivalentBrandNames(existing, normalizedName))
+    ) {
+      seen.push(normalizedName);
       names.push(name);
     }
 
@@ -41,9 +58,27 @@ export function filterAlreadyEvaluatedBrands<T extends Pick<ScoutBrand, "name">>
   brands: T[],
   excludedBrands: string[]
 ): T[] {
-  const excludedNames = new Set(excludedBrands.map(normalizeBrandName));
+  const excludedNames = excludedBrands.map(normalizeBrandName);
 
   return brands.filter(
-    (brand) => !excludedNames.has(normalizeBrandName(brand.name))
+    (brand) => !excludedNames.some((excludedName) =>
+      areEquivalentBrandNames(excludedName, normalizeBrandName(brand.name))
+    )
   );
+}
+
+export function deduplicateBrandCandidates<
+  T extends Pick<ScoutBrand, "name">,
+>(brands: T[]): T[] {
+  const seen: string[] = [];
+
+  return brands.filter((brand) => {
+    const normalizedName = normalizeBrandName(brand.name);
+    if (
+      !normalizedName
+      || seen.some((existing) => areEquivalentBrandNames(existing, normalizedName))
+    ) return false;
+    seen.push(normalizedName);
+    return true;
+  });
 }

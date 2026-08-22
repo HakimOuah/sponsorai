@@ -22,7 +22,7 @@ const agents = [
   {
     name: "Scout",
     description:
-      "Recherche de marques potentielles via web search + Grok. Trouve 25-30 marques par scan.",
+      "Recherche web via Claude Sonnet 5. Trouve 12 à 15 marques qualifiées par scan.",
     icon: Search,
     avatar: agentAvatars.scout,
     status: "active" as const,
