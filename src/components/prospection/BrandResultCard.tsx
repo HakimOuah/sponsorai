@@ -223,6 +223,7 @@ export function BrandResultCard({
               <EmailGenerator
                 prospectId={prospect.id}
                 companyName={prospect.company.name}
+                companyCountry={prospect.company.country}
               />
             </div>
 

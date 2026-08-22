@@ -4,9 +4,13 @@ import { runRedacteur } from "@/lib/agents/redacteur";
 import { runEnrichisseur } from "@/lib/agents/enrichisseur";
 import { canSendOutreach, isUsableEmailStatus } from "@/lib/agents/contact-quality";
 import { persistContactCandidates } from "@/lib/contacts/persistence";
+import {
+  isOutreachLanguage,
+  suggestOutreachLanguage,
+} from "@/lib/agents/outreach-language";
 
 export async function POST(request: NextRequest) {
-  const { prospectId, emailType } = await request.json();
+  const { prospectId, emailType, contactId, language } = await request.json();
 
   if (!prospectId || !emailType) {
     return NextResponse.json(
@@ -40,8 +44,37 @@ export async function POST(request: NextRequest) {
 
   try {
     let company = prospect.company;
+    const requestedContactId = contactId || prospect.selectedContactId;
+    const selectedContact = requestedContactId
+      ? await prisma.contact.findFirst({
+          where: {
+            id: requestedContactId,
+            companyId: company.id,
+            active: true,
+            employmentStatus: "verified_current",
+            contactability: { in: ["verified", "public_source"] },
+          },
+          include: {
+            contactEmails: {
+              where: { status: { in: ["verified", "public_source"] } },
+              orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
+              take: 1,
+            },
+          },
+        })
+      : null;
 
-    if (!canSendOutreach(company)) {
+    if (
+      requestedContactId &&
+      (!selectedContact || selectedContact.contactEmails.length === 0)
+    ) {
+      return NextResponse.json(
+        { error: "Le contact sélectionné n’est pas suffisamment vérifié." },
+        { status: 409 },
+      );
+    }
+
+    if (!selectedContact && !canSendOutreach(company)) {
       const enrichment = await runEnrichisseur(company, () => undefined);
       const bestContact = enrichment.contacts[0];
       await persistContactCandidates(company.id, enrichment.contacts);
@@ -75,7 +108,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!canSendOutreach(company)) {
+    if (!selectedContact && !canSendOutreach(company)) {
       return NextResponse.json(
         {
           error:
@@ -85,11 +118,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (selectedContact) {
+      await prisma.prospect.update({
+        where: { id: prospect.id },
+        data: { selectedContactId: selectedContact.id },
+      });
+    }
+
+    const selectedLanguage = isOutreachLanguage(language)
+      ? language
+      : suggestOutreachLanguage(company.country).language;
+
     const generated = await runRedacteur(
       prospect.player,
       company,
       prospect,
-      emailType as "first_contact" | "followup_1" | "followup_2"
+      emailType as "first_contact" | "followup_1" | "followup_2",
+      {
+        contactName: selectedContact?.fullName,
+        contactRole: selectedContact?.roleRaw,
+        language: selectedLanguage,
+      },
     );
 
     // Save as draft email
@@ -97,11 +146,12 @@ export async function POST(request: NextRequest) {
       data: {
         prospectId: prospect.id,
         companyId: company.id,
+        contactId: selectedContact?.id || null,
         type: emailType,
         subject: generated.subject,
         body: generated.body,
         status: "draft",
-        templateVersion: `redacteur-v1:${emailType}`,
+        templateVersion: `redacteur-v2:${emailType}:${selectedLanguage}`,
       },
     });
 
@@ -124,6 +174,14 @@ export async function POST(request: NextRequest) {
         id: email.id,
         subject: generated.subject,
         body: generated.body,
+        language: selectedLanguage,
+        contact: selectedContact
+          ? {
+              id: selectedContact.id,
+              role: selectedContact.roleRaw,
+              score: selectedContact.contactScore,
+            }
+          : null,
       },
     });
   } catch (error) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAgentExperience } from "./experience/AgentExperienceProvider";
 
 export type ScanPhase =
   | "idle"
@@ -36,6 +37,12 @@ function isActivePhase(
 }
 
 export function useScanRunner(options?: { onSuccess?: () => void }) {
+  const {
+    startMission,
+    updateMission,
+    finishMission,
+    failMission,
+  } = useAgentExperience();
   const [isRunning, setIsRunning] = useState(false);
   const [phase, setPhase] = useState<ScanPhase>("idle");
   const [progress, setProgress] = useState(0);
@@ -43,6 +50,7 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const runningRef = useRef(false);
   const startedAtRef = useRef<number | null>(null);
+  const missionIdRef = useRef<string | null>(null);
   const onSuccessRef = useRef(options?.onSuccess);
 
   useEffect(() => {
@@ -72,7 +80,7 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
     startedAtRef.current = null;
   }, []);
 
-  const startScan = useCallback(async (playerId: string) => {
+  const startScan = useCallback(async (playerId: string, playerName?: string) => {
     if (!playerId || runningRef.current) return;
 
     runningRef.current = true;
@@ -82,6 +90,13 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
     setProgress(PHASE_PROGRESS.init.start);
     setResult(null);
     setElapsedSeconds(0);
+    const missionId = startMission({
+      agentId: "scout",
+      title: `Analyse de ${playerName || "un talent"}`,
+      detail: "Scout prépare la recherche de partenaires.",
+      progress: PHASE_PROGRESS.init.start,
+    });
+    missionIdRef.current = missionId;
 
     try {
       const response = await fetch("/api/agents/scan", {
@@ -97,6 +112,7 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let receivedTerminalEvent = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -126,9 +142,19 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
                   ? target.start
                   : Math.min(current + 2, target.cap)
               );
+              const missionAgent =
+                data.phase === "matchmaker" || data.phase === "save"
+                  ? "matchmaker"
+                  : "scout";
+              updateMission(missionId, {
+                agentId: missionAgent,
+                progress: target.start,
+                detail: getMissionDetail(data.phase),
+              });
             }
 
             if (data.done) {
+              receivedTerminalEvent = true;
               const success = data.type !== "error";
               setPhase(success ? "done" : "error");
               if (success) setProgress(100);
@@ -141,22 +167,46 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
               });
 
               if (success) onSuccessRef.current?.();
+              if (success) {
+                finishMission(
+                  missionId,
+                  data.message || "Les opportunités sont prêtes à être consultées.",
+                  {
+                    status: "waiting",
+                    nextAgentId: "enrichisseur",
+                    actionLabel: "Choisir les opportunités",
+                    actionHref: `/prospection?player=${playerId}`,
+                  },
+                );
+              } else {
+                failMission(
+                  missionId,
+                  data.message || "Le scan a rencontré une erreur.",
+                );
+              }
             }
           } catch {
             // Ignore malformed SSE events while keeping the scan alive.
           }
         }
       }
+
+      if (!receivedTerminalEvent) {
+        throw new Error(
+          "Le scan a été interrompu avant la fin. Vous pouvez le relancer."
+        );
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Erreur inconnue";
       setPhase("error");
       setResult({ success: false, message });
+      if (missionIdRef.current) failMission(missionIdRef.current, message);
     } finally {
       runningRef.current = false;
       setIsRunning(false);
     }
-  }, []);
+  }, [failMission, finishMission, startMission, updateMission]);
 
   return {
     isRunning,
@@ -167,4 +217,20 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
     startScan,
     reset,
   };
+}
+
+function getMissionDetail(
+  phase: Exclude<ScanPhase, "idle" | "done" | "error">,
+) {
+  const details = {
+    init: "Scout prépare la recherche de partenaires.",
+    research: "Scout rassemble les signaux publics du profil.",
+    scout: "Scout détecte et vérifie de nouvelles marques.",
+    matchmaker: "Matchmaker compare les opportunités sur huit critères.",
+    save: "Matchmaker consolide le classement et crée les opportunités.",
+  } satisfies Record<
+    Exclude<ScanPhase, "idle" | "done" | "error">,
+    string
+  >;
+  return details[phase];
 }

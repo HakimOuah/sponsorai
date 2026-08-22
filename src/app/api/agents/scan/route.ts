@@ -12,6 +12,7 @@ import { recordLearningEvent } from "@/lib/learning/events";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   const { playerId } = await request.json();
@@ -29,6 +30,17 @@ export async function POST(request: NextRequest) {
       status: 404,
     });
   }
+
+  // A serverless invocation can be terminated before its catch block runs.
+  // Close abandoned attempts before starting a fresh mission for this athlete.
+  await prisma.scan.updateMany({
+    where: {
+      playerId: player.id,
+      status: "running",
+      updatedAt: { lt: new Date(Date.now() - 10 * 60 * 1000) },
+    },
+    data: { status: "failed" },
+  });
 
   // Create SSE stream
   const encoder = new TextEncoder();
@@ -55,8 +67,36 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    const runWithHeartbeat = async <T>(
+      phase: "research" | "scout" | "matchmaker",
+      messages: string[],
+      task: () => Promise<T>
+    ): Promise<T> => {
+      let messageIndex = 0;
+      const heartbeat = setInterval(() => {
+        const message = messages[messageIndex % messages.length];
+        messageIndex += 1;
+        const elapsed = Math.round((Date.now() - startTime) / 1000);
+        sendEvent({ message, type: "progress", phase }).catch(() => {});
+        prisma.scan
+          .update({ where: { id: scan.id }, data: { duration: elapsed } })
+          .catch(() => {});
+      }, 10_000);
+
+      try {
+        return await task();
+      } finally {
+        clearInterval(heartbeat);
+      }
+    };
+
     try {
-      await sendEvent({ message: "Démarrage du scan v2...", type: "info", phase: "init" });
+      await sendEvent({
+        message: "Démarrage du scan v2...",
+        type: "info",
+        phase: "init",
+        scanId: scan.id,
+      });
 
       // A brand can be relevant to several athletes. Only exclude brands that
       // have already been evaluated for the current player.
@@ -82,7 +122,14 @@ export async function POST(request: NextRequest) {
 
       let playerIntelligence: PlayerIntelligence | undefined;
       try {
-        playerIntelligence = await runPlayerResearch(player, researchLog);
+        playerIntelligence = await runWithHeartbeat(
+          "research",
+          [
+            "Scout rassemble les signaux publics du profil...",
+            "Scout vérifie l'image, l'audience et l'actualité du profil...",
+          ],
+          () => runPlayerResearch(player, researchLog)
+        );
 
         // Persist intelligence in scan
         await prisma.scan.update({
@@ -161,10 +208,18 @@ export async function POST(request: NextRequest) {
         sendEvent({ message, type, phase: "scout" }).catch(() => {});
       };
 
-      const brands = await runScout(player, scoutLog, {
-        playerIntelligence,
-        excludedBrands,
-      });
+      const brands = await runWithHeartbeat(
+        "scout",
+        [
+          "Scout explore de nouveaux territoires de marque...",
+          "Scout vérifie la cohérence des partenaires détectés...",
+        ],
+        () =>
+          runScout(player, scoutLog, {
+            playerIntelligence,
+            excludedBrands,
+          })
+      );
 
       await prisma.scan.update({
         where: { id: scan.id },
@@ -181,7 +236,15 @@ export async function POST(request: NextRequest) {
         sendEvent({ message, type, phase: "matchmaker" }).catch(() => {});
       };
 
-      const baseScoredBrands = await runMatchmaker(player, brands, matchLog, playerIntelligence);
+      const baseScoredBrands = await runWithHeartbeat(
+        "matchmaker",
+        [
+          "Matchmaker compare les opportunités sur huit critères...",
+          "Matchmaker priorise les marques les plus accessibles...",
+          "Matchmaker consolide le classement final...",
+        ],
+        () => runMatchmaker(player, brands, matchLog, playerIntelligence)
+      );
       const historicalCompanies = baseScoredBrands.length > 0
         ? await prisma.company.findMany({
             where: {
@@ -274,8 +337,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Erreur inconnue";
+      const errorMessage = getScanErrorMessage(error);
 
       await prisma.scan.update({
         where: { id: scan.id },
@@ -304,6 +366,20 @@ export async function POST(request: NextRequest) {
       Connection: "keep-alive",
     },
   });
+}
+
+function getScanErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    if (
+      error.name === "TimeoutError" ||
+      error.name === "AbortError" ||
+      error.message.toLowerCase().includes("timeout")
+    ) {
+      return "Un agent n'a pas répondu dans le délai prévu. Le scan peut être relancé sans risque.";
+    }
+    return error.message;
+  }
+  return "Erreur inconnue";
 }
 
 async function createProspectFromBrand(

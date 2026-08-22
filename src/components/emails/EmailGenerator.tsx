@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { PenTool, Loader2, Check, Mail } from "lucide-react";
+import { PenTool, Loader2, Check, Mail, ArrowRight, Languages } from "lucide-react";
+import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
+import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";
+import {
+  OUTREACH_LANGUAGES,
+  suggestOutreachLanguage,
+  type OutreachLanguage,
+} from "@/lib/agents/outreach-language";
 
 interface EmailGeneratorProps {
   prospectId: string;
   companyName: string;
+  companyCountry?: string | null;
   onGenerated?: (email: { id: string; subject: string; body: string }) => void;
 }
 
@@ -18,10 +26,14 @@ const EMAIL_TYPES = [
 export function EmailGenerator({
   prospectId,
   companyName,
+  companyCountry,
   onGenerated,
 }: EmailGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [emailType, setEmailType] = useState("first_contact");
+  const [language, setLanguage] = useState<OutreachLanguage>(
+    () => suggestOutreachLanguage(companyCountry).language,
+  );
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{
     id: string;
@@ -29,17 +41,23 @@ export function EmailGenerator({
     body: string;
   } | null>(null);
   const [error, setError] = useState("");
+  const { startMission, finishMission, failMission } = useAgentExperience();
 
   const generate = async () => {
     setLoading(true);
     setError("");
     setResult(null);
+    const missionId = startMission({
+      agentId: "redacteur",
+      title: `Email pour ${companyName}`,
+      detail: "Rédacteur adapte l’angle, le destinataire et la langue.",
+    });
 
     try {
       const res = await fetch("/api/agents/redacteur", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prospectId, emailType }),
+        body: JSON.stringify({ prospectId, emailType, language }),
       });
 
       if (!res.ok) {
@@ -50,12 +68,23 @@ export function EmailGenerator({
       const data = await res.json();
       setResult(data.email);
       onGenerated?.(data.email);
+      finishMission(
+        missionId,
+        `Le brouillon pour ${companyName} est prêt. Relisez-le avant de demander à Dispatcher de l’envoyer.`,
+        {
+          status: "waiting",
+          nextAgentId: "dispatcher",
+          actionLabel: "Relire le brouillon",
+          actionHref: `/emails/${data.email.id}`,
+        },
+      );
     } catch (error) {
-      setError(
+      const message =
         error instanceof Error
           ? error.message
-          : "Impossible de générer l'email. Réessayez.",
-      );
+          : "Impossible de générer l'email. Réessayez.";
+      setError(message);
+      failMission(missionId, message);
     } finally {
       setLoading(false);
     }
@@ -67,8 +96,8 @@ export function EmailGenerator({
         onClick={() => setIsOpen(true)}
         className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#C8CEFF]/20 bg-[#C8CEFF]/5 px-3 py-2 text-xs text-[#C8CEFF] transition-colors hover:bg-[#C8CEFF]/10 sm:w-auto sm:py-1.5"
       >
-        <PenTool className="h-3 w-3" />
-        Générer email
+        <AgentAvatar agentId="redacteur" size="sm" />
+        Demander à Rédacteur
       </button>
     );
   }
@@ -77,7 +106,11 @@ export function EmailGenerator({
     <div className="app-panel p-4">
       <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <PenTool className="h-4 w-4 text-[#C8CEFF]" />
+          <AgentAvatar
+            agentId="redacteur"
+            size="sm"
+            status={loading ? "active" : result ? "done" : undefined}
+          />
           <h3 className="truncate text-sm font-semibold text-white">
             Agent Rédacteur — {companyName}
           </h3>
@@ -97,6 +130,30 @@ export function EmailGenerator({
       {/* Type selector */}
       {!result && (
         <div className="space-y-3">
+          <div className="flex flex-col gap-2 rounded-2xl border border-white/[0.08] bg-white/[0.025] p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-2">
+              <Languages className="mt-0.5 h-3.5 w-3.5 text-[#C8CEFF]" />
+              <div>
+                <p className="text-xs text-white/65">Langue du message</p>
+                <p className="text-[10px] text-[#969BA8]">
+                  Suggestion modifiable avant génération
+                </p>
+              </div>
+            </div>
+            <select
+              value={language}
+              onChange={(event) =>
+                setLanguage(event.target.value as OutreachLanguage)
+              }
+              className="rounded-xl border border-white/[0.09] bg-[#0B0D12] px-3 py-2 text-xs text-white"
+            >
+              {OUTREACH_LANGUAGES.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
             {EMAIL_TYPES.map((t) => (
               <button
@@ -162,11 +219,12 @@ export function EmailGenerator({
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <a
-              href={`/emails`}
+              href={`/emails/${result.id}`}
               className="flex items-center justify-center gap-1.5 rounded-full bg-white/[0.06] px-3 py-2 text-xs text-white/50 transition-colors hover:bg-white/[0.1] sm:py-1.5"
             >
               <Mail className="h-3 w-3" />
-              Voir dans Emails
+              Relire puis passer à Dispatcher
+              <ArrowRight className="h-3 w-3" />
             </a>
             <button
               onClick={() => {

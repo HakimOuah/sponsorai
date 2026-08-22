@@ -184,7 +184,16 @@ export default async function CompanyDetailPage({
             </p>
           )}
           <div className="mt-4 pt-4 border-t border-[#FF6B3D]/10">
-            <EnrichButton companyId={company.id} companyName={company.name} />
+            <EnrichButton
+              companyId={company.id}
+              companyName={company.name}
+              companyCountry={company.country}
+              prospects={company.prospects.map((prospect) => ({
+                id: prospect.id,
+                athleteName: `${prospect.player.firstName} ${prospect.player.lastName}`,
+                club: prospect.player.club,
+              }))}
+            />
           </div>
         </div>
       </div>

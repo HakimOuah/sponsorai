@@ -8,6 +8,7 @@ import {
 } from "./prompts";
 import type { ScoutBrand, PlayerIntelligence } from "@/types";
 import type { Player } from "@prisma/client";
+import { SCAN_STAGE_TIMEOUT_MS } from "./scan-budget";
 import { filterAlreadyEvaluatedBrands } from "./scout-deduplication";
 
 export type LogCallback = (message: string, type?: "info" | "success" | "error" | "data") => void;
@@ -27,6 +28,7 @@ export async function runPlayerResearch(
     prompt,
     maxOutputTokens: 4096,
     webSearch: true,
+    timeoutMs: SCAN_STAGE_TIMEOUT_MS.playerResearch,
   });
 
   const intelligence = extractJSONObject<PlayerIntelligence>(responseText);
@@ -119,6 +121,7 @@ export async function runScout(
     prompt: searchPrompt,
     maxOutputTokens: 4096,
     webSearch: true,
+    timeoutMs: SCAN_STAGE_TIMEOUT_MS.scoutSearch,
   });
 
   const brandMentions = searchText.split("\n").filter((l) => l.trim()).length;
@@ -135,6 +138,7 @@ export async function runScout(
   const structureText = await generateAIText({
     prompt: structurePrompt,
     maxOutputTokens: 8192,
+    timeoutMs: SCAN_STAGE_TIMEOUT_MS.scoutStructure,
   });
 
   const brands = extractJSON<ScoutBrand>(structureText);

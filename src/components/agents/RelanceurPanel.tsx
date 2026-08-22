@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { RefreshCw, Loader2, Newspaper, Mail, Clock, Zap } from "lucide-react";
+import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
+import { AgentExecutionCard } from "@/components/agents/experience/AgentExecutionCard";
+import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";
 
 interface NewsItem {
   headline: string;
@@ -18,12 +22,6 @@ interface RelanceurResult {
   timing_score: number;
   timing_rationale: string;
   emailId: string;
-}
-
-interface LogEntry {
-  message: string;
-  type: string;
-  timestamp: number;
 }
 
 interface RelanceurPanelProps {
@@ -43,19 +41,30 @@ export function RelanceurPanel({
     defaultProspectId || "",
   );
   const [isRunning, setIsRunning] = useState(false);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [missionDetail, setMissionDetail] = useState("");
   const [result, setResult] = useState<RelanceurResult | null>(null);
   const [error, setError] = useState("");
+  const { startMission, updateMission, finishMission, failMission } =
+    useAgentExperience();
 
   const launch = useCallback(async () => {
     if (!selectedProspect || isRunning) return;
 
     setIsRunning(true);
-    setLogs([]);
+    setProgress(8);
+    setMissionDetail("Relanceur relit le contexte du premier contact.");
     setResult(null);
     setError("");
-
-    const startTime = Date.now();
+    const prospect = prospects.find((item) => item.id === selectedProspect);
+    const missionId = startMission({
+      agentId: "relanceur",
+      title: `Préparer une relance${prospect ? ` pour ${prospect.companyName}` : ""}`,
+      detail: "Relanceur relit le contexte du premier contact.",
+      progress: 8,
+    });
+    let semanticProgress = 8;
+    let receivedTerminalEvent = false;
 
     try {
       const response = await fetch("/api/agents/relanceur", {
@@ -87,18 +96,34 @@ export function RelanceurPanel({
               const data = JSON.parse(line.slice(6));
 
               if (data.type === "log") {
-                setLogs((prev) => [
-                  ...prev,
-                  {
-                    message: data.message,
-                    type: data.logType || "info",
-                    timestamp: Date.now() - startTime,
-                  },
-                ]);
+                semanticProgress = Math.min(88, semanticProgress + 14);
+                const detail = relanceurDetail(String(data.message || ""));
+                setProgress(semanticProgress);
+                setMissionDetail(detail);
+                updateMission(missionId, {
+                  progress: semanticProgress,
+                  detail,
+                });
               } else if (data.type === "done") {
+                receivedTerminalEvent = true;
                 setResult(data.result);
+                setProgress(100);
+                setMissionDetail(
+                  "La relance est prête en brouillon et attend votre validation.",
+                );
+                finishMission(
+                  missionId,
+                  "La relance est prête en brouillon et attend votre validation.",
+                  {
+                    status: "waiting",
+                    nextAgentId: "dispatcher",
+                    actionLabel: "Relire la relance",
+                    actionHref: `/emails/${data.result.emailId}`,
+                  },
+                );
               } else if (data.type === "error") {
-                setError(data.message);
+                receivedTerminalEvent = true;
+                throw new Error(data.message);
               }
             } catch {
               // Skip malformed
@@ -106,12 +131,27 @@ export function RelanceurPanel({
           }
         }
       }
+      if (!receivedTerminalEvent) {
+        throw new Error(
+          "La génération s’est interrompue avant la création du brouillon.",
+        );
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
+      const message = err instanceof Error ? err.message : "Erreur inconnue";
+      setError(message);
+      failMission(missionId, message);
     } finally {
       setIsRunning(false);
     }
-  }, [selectedProspect, isRunning]);
+  }, [
+    failMission,
+    finishMission,
+    isRunning,
+    prospects,
+    selectedProspect,
+    startMission,
+    updateMission,
+  ]);
 
   const timingColor =
     result && result.timing_score >= 7
@@ -150,42 +190,21 @@ export function RelanceurPanel({
             </>
           ) : (
             <>
-              <RefreshCw className="h-4 w-4" />
+              <AgentAvatar agentId="relanceur" size="sm" />
               Relancer
             </>
           )}
         </button>
       </div>
 
-      {/* Console logs */}
-      {logs.length > 0 && (
-        <div className="rounded-xl border border-[#FF6B3D]/10 bg-[#0B0D12] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
-          {logs.map((log, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-2 ${
-                log.type === "success"
-                  ? "text-[#FF6B3D]"
-                  : log.type === "data"
-                    ? "text-[#C8CEFF]"
-                    : log.type === "error"
-                      ? "text-red-400"
-                      : "text-white/50"
-              }`}
-            >
-              <span className="text-[#969BA8]/55 shrink-0">
-                {(log.timestamp / 1000).toFixed(1)}s
-              </span>
-              <span>{log.message}</span>
-            </div>
-          ))}
-          {isRunning && (
-            <div className="flex items-center gap-2 text-[#969BA8]">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>En cours…</span>
-            </div>
-          )}
-        </div>
+      {(isRunning || error) && (
+        <AgentExecutionCard
+          agentId="relanceur"
+          title="Relance contextuelle en préparation"
+          detail={error || missionDetail}
+          status={error ? "error" : "running"}
+          progress={progress}
+        />
       )}
 
       {/* Error */}
@@ -297,9 +316,32 @@ export function RelanceurPanel({
                 Sauvegardé en brouillon — retrouvez-le dans la section Emails
               </span>
             </div>
+            <Link
+              href={`/emails/${result.emailId}`}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#FF6B3D] px-4 py-2 text-xs font-semibold text-[#0B0D12] transition hover:bg-[#FF865F]"
+            >
+              Relire avec Dispatcher
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
       )}
     </div>
   );
+}
+
+function relanceurDetail(message: string) {
+  if (message.includes("actualité")) {
+    return "Relanceur cherche un angle récent et crédible pour reprendre contact.";
+  }
+  if (message.includes("Accroche")) {
+    return "Relanceur a sélectionné l’accroche la plus pertinente.";
+  }
+  if (message.includes("Timing")) {
+    return "Relanceur vérifie que le moment est favorable avant de proposer le brouillon.";
+  }
+  if (message.includes("sauvegardé")) {
+    return "Le brouillon est enregistré et prêt à être relu.";
+  }
+  return "Relanceur croise le contexte, le timing et l’actualité disponible.";
 }

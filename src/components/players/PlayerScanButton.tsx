@@ -20,14 +20,18 @@ export function PlayerScanButton({
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const onSuccess = useCallback(() => router.refresh(), [router]);
-  const scan = useScanRunner({ onSuccess });
+  const scan = useScanRunner();
   const startScan = scan.startScan;
+
+  const closeModal = useCallback(() => {
+    setIsOpen(false);
+    if (scan.result?.success) router.refresh();
+  }, [router, scan.result?.success]);
 
   const launchScan = useCallback(() => {
     setIsOpen(true);
-    startScan(playerId);
-  }, [playerId, startScan]);
+    startScan(playerId, playerName);
+  }, [playerId, playerName, startScan]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -37,7 +41,7 @@ export function PlayerScanButton({
     closeButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === "Escape") closeModal();
     };
     window.addEventListener("keydown", handleKeyDown);
 
@@ -45,7 +49,7 @@ export function PlayerScanButton({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [closeModal, isOpen]);
 
   return (
     <>
@@ -70,7 +74,7 @@ export function PlayerScanButton({
             aria-modal="true"
             aria-labelledby="player-scan-title"
             onMouseDown={(event) => {
-              if (event.target === event.currentTarget) setIsOpen(false);
+              if (event.target === event.currentTarget) closeModal();
             }}
           >
             <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-[28px] border border-white/[0.10] bg-[#080A0F] p-2 shadow-[0_28px_100px_rgba(0,0,0,0.6)] sm:p-3">
@@ -90,7 +94,7 @@ export function PlayerScanButton({
                 <button
                   ref={closeButtonRef}
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeModal}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF8A66]"
                   aria-label={
                     scan.isRunning ? "Réduire la progression" : "Fermer"
@@ -112,7 +116,7 @@ export function PlayerScanButton({
               <div className="flex flex-col-reverse gap-2 px-2 pb-1 pt-3 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeModal}
                   className="rounded-full border border-white/[0.10] px-4 py-2.5 text-sm font-medium text-white/55 transition-colors hover:bg-white/[0.05] hover:text-white"
                 >
                   {scan.isRunning ? "Réduire" : "Fermer"}

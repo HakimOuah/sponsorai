@@ -81,6 +81,11 @@ export function ScanProgress({
 }: ScanProgressProps) {
   const currentStep = PHASE_INDEX[phase];
   const hasError = phase === "error" || result?.success === false;
+  const isMatchmaker =
+    phase === "matchmaker" || phase === "save" || phase === "done";
+  const activeAgent = isMatchmaker
+    ? { name: "Matchmaker", avatar: agentAvatars.matchmaker }
+    : { name: "Scout", avatar: agentAvatars.scout };
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-white/[0.09] bg-[#0A0C11]">
@@ -96,8 +101,8 @@ export function ScanProgress({
             <div className="absolute inset-0 rounded-2xl bg-[#FF6B3D]/25 blur-xl" />
             <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-[#FF6B3D]/25 bg-[#11141B] sm:h-20 sm:w-20">
               <Image
-                src={agentAvatars.scout}
-                alt="Avatar de l’agent Scout"
+                src={activeAgent.avatar}
+                alt={`Avatar de l’agent ${activeAgent.name}`}
                 fill
                 sizes="80px"
                 className="object-cover"
@@ -118,7 +123,7 @@ export function ScanProgress({
           <div className="min-w-0 flex-1">
             <div className="mb-2 flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-[#FF6B3D]/20 bg-[#FF6B3D]/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.16em] text-[#FF9A7A]">
-                Agent Scout
+                Agent {activeAgent.name}
               </span>
               <span className="font-mono text-[11px] text-white/35">
                 {formatElapsed(elapsedSeconds)}
@@ -129,7 +134,9 @@ export function ScanProgress({
                 ? "Scan interrompu"
                 : phase === "done"
                   ? "Opportunités détectées"
-                  : `Analyse de ${playerName}`}
+                  : isMatchmaker
+                    ? "Classement des opportunités"
+                    : `Analyse de ${playerName}`}
             </h2>
             <p
               className="mt-1.5 text-sm leading-relaxed text-[#969BA8]"

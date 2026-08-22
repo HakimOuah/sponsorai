@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { PenTool, Loader2, Check } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
+import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
+import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";
 
 interface BulkEmailGeneratorProps {
   prospectIds: string[];
@@ -19,12 +21,20 @@ export function BulkEmailGenerator({
     success: 0,
     errors: 0,
   });
+  const { startMission, updateMission, finishMission, failMission } =
+    useAgentExperience();
 
   const generate = async () => {
     setLoading(true);
     setProgress(0);
     let success = 0;
     let errors = 0;
+    const missionId = startMission({
+      agentId: "redacteur",
+      title: `${prospectIds.length} messages à préparer`,
+      detail: "Rédacteur personnalise chaque brouillon.",
+      progress: 4,
+    });
 
     for (let i = 0; i < prospectIds.length; i++) {
       try {
@@ -48,10 +58,28 @@ export function BulkEmailGenerator({
 
       setProgress(i + 1);
       setResults({ success, errors });
+      updateMission(missionId, {
+        progress: ((i + 1) / prospectIds.length) * 100,
+        detail: `${i + 1}/${prospectIds.length} brouillon${prospectIds.length > 1 ? "s" : ""} traité${prospectIds.length > 1 ? "s" : ""}.`,
+      });
     }
 
     setLoading(false);
     setDone(true);
+    if (success === 0) {
+      failMission(missionId, "Aucun brouillon n’a pu être généré.");
+    } else {
+      finishMission(
+        missionId,
+        `${success} brouillon${success > 1 ? "s" : ""} prêt${success > 1 ? "s" : ""}. Relisez-les avant l’envoi.`,
+        {
+          status: "waiting",
+          nextAgentId: "dispatcher",
+          actionLabel: "Relire les brouillons",
+          actionHref: "/emails",
+        },
+      );
+    }
     onDone?.();
   };
 
@@ -97,8 +125,9 @@ export function BulkEmailGenerator({
       disabled={prospectIds.length === 0}
       className="flex items-center justify-center gap-1.5 rounded-full border border-[#C8CEFF]/20 bg-[#C8CEFF]/10 px-3 py-2 text-xs font-medium text-[#C8CEFF] transition-colors hover:bg-[#C8CEFF]/20 disabled:opacity-40 sm:py-1.5"
     >
-      <PenTool className="h-3 w-3" />
-      Générer {prospectIds.length} email{prospectIds.length > 1 ? "s" : ""}
+      <AgentAvatar agentId="redacteur" size="sm" />
+      Confier {prospectIds.length} email{prospectIds.length > 1 ? "s" : ""} à
+      Rédacteur
     </button>
   );
 }

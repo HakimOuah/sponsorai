@@ -12,6 +12,10 @@ import {
   ArrowRight,
   Clock,
 } from "lucide-react";
+import Link from "next/link";
+import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
+import { AgentExecutionCard } from "@/components/agents/experience/AgentExecutionCard";
+import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";
 
 interface ReplyAnalysis {
   sentiment: "positive" | "neutral" | "negative" | "question";
@@ -34,6 +38,8 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ReplyAnalysis | null>(null);
   const [error, setError] = useState("");
+  const { startMission, updateMission, finishMission, failMission } =
+    useAgentExperience();
 
   const analyze = async () => {
     if (!replyContent.trim()) return;
@@ -41,8 +47,18 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
     setLoading(true);
     setError("");
     setAnalysis(null);
+    const missionId = startMission({
+      agentId: "veilleur",
+      title: `Comprendre la réponse de ${companyName}`,
+      detail: "Veilleur identifie l’intention, l’urgence et la prochaine action.",
+      progress: 12,
+    });
 
     try {
+      updateMission(missionId, {
+        progress: 46,
+        detail: "Veilleur classe la réponse et repère les informations clés.",
+      });
       const res = await fetch("/api/agents/veilleur", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -53,8 +69,24 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
 
       const data = await res.json();
       setAnalysis(data.analysis);
-    } catch {
-      setError("Impossible d'analyser la réponse. Réessayez.");
+      const nextStep = getVeilleurHandoff(data.analysis);
+      finishMission(
+        missionId,
+        `${data.analysis.summary} Prochaine étape : ${data.analysis.next_action}`,
+        {
+          status: "waiting",
+          nextAgentId: nextStep.nextAgentId,
+          actionLabel: nextStep.label,
+          actionHref: nextStep.href,
+        },
+      );
+    } catch (caught) {
+      const message =
+        caught instanceof Error
+          ? caught.message
+          : "Impossible d’analyser la réponse. Réessayez.";
+      setError(message);
+      failMission(missionId, message);
     } finally {
       setLoading(false);
     }
@@ -66,7 +98,7 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
         onClick={() => setIsOpen(true)}
         className="flex w-full items-center justify-center gap-1.5 rounded-full border border-[#C8CEFF]/20 bg-[#C8CEFF]/5 px-3 py-2.5 text-sm text-[#C8CEFF] transition-colors hover:bg-[#C8CEFF]/10 sm:w-auto sm:py-2"
       >
-        <Eye className="h-4 w-4" />
+        <AgentAvatar agentId="veilleur" size="sm" />
         Analyser une réponse
       </button>
     );
@@ -129,6 +161,21 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
       {/* Input */}
       {!analysis && (
         <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <AgentAvatar
+              agentId="veilleur"
+              size="md"
+              status={loading ? "active" : undefined}
+            />
+            <div>
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#C8CEFF]">
+                Agent Veilleur
+              </p>
+              <p className="mt-1 text-xs text-[#969BA8]">
+                Je transforme chaque réponse en décision claire pour la suite.
+              </p>
+            </div>
+          </div>
           <div>
             <label className="text-[11px] font-medium uppercase tracking-wider text-[#969BA8] mb-1 block">
               Collez la réponse reçue
@@ -159,6 +206,15 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
               </>
             )}
           </button>
+          {loading && (
+            <AgentExecutionCard
+              agentId="veilleur"
+              title={`Analyse de la réponse de ${companyName}`}
+              detail="Je distingue le sentiment, l’urgence et l’action commerciale la plus pertinente."
+              status="running"
+              progress={58}
+            />
+          )}
         </div>
       )}
 
@@ -170,6 +226,7 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
           const sc = sentimentConfig[analysis.sentiment];
           const SentimentIcon = sc.icon;
           const uc = urgencyConfig[analysis.urgency];
+          const handoff = getVeilleurHandoff(analysis);
 
           return (
             <div className="space-y-3">
@@ -215,6 +272,27 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
                 </div>
               </div>
 
+              <Link
+                href={handoff.href}
+                className="group flex items-center justify-between gap-3 rounded-2xl border border-[#C8CEFF]/20 bg-[#C8CEFF]/[0.06] p-3 transition hover:bg-[#C8CEFF]/10"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <AgentAvatar
+                    agentId={handoff.nextAgentId}
+                    size="sm"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-[#C8CEFF]">
+                      Étape recommandée
+                    </p>
+                    <p className="mt-0.5 text-sm text-white/75">
+                      {handoff.guide}
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#C8CEFF] transition-transform group-hover:translate-x-1" />
+              </Link>
+
               {/* Key info */}
               {analysis.key_info && (
                 <div className="flex items-start gap-2">
@@ -249,4 +327,32 @@ export function VeilleurPanel({ emailId, companyName }: VeilleurPanelProps) {
         })()}
     </div>
   );
+}
+
+function getVeilleurHandoff(analysis: ReplyAnalysis) {
+  if (
+    analysis.sentiment === "positive" ||
+    analysis.category === "meeting_request"
+  ) {
+    return {
+      nextAgentId: "matchmaker" as const,
+      label: "Faire avancer le deal",
+      href: "/pipeline",
+      guide: "La réponse est favorable : ouvrez le pipeline et préparez l’étape commerciale.",
+    };
+  }
+  if (analysis.sentiment === "question") {
+    return {
+      nextAgentId: "redacteur" as const,
+      label: "Préparer la réponse",
+      href: "/emails",
+      guide: "La marque attend une précision : passez la main au Rédacteur.",
+    };
+  }
+  return {
+    nextAgentId: "relanceur" as const,
+    label: "Planifier la suite",
+    href: "/emails",
+    guide: "Veilleur a clarifié le signal : consultez la recommandation avant toute relance.",
+  };
 }

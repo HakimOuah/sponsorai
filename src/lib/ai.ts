@@ -9,6 +9,7 @@ export interface GenerateAITextOptions {
   maxOutputTokens?: number;
   webSearch?: boolean;
   reasoningEffort?: ReasoningEffort;
+  timeoutMs?: number;
 }
 
 type GrokResponse = {
@@ -27,6 +28,7 @@ export async function generateAIText({
   maxOutputTokens = 4096,
   webSearch = false,
   reasoningEffort = "low",
+  timeoutMs = 90_000,
 }: GenerateAITextOptions): Promise<string> {
   const apiKey = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
 
@@ -48,7 +50,7 @@ export async function generateAIText({
       ...(webSearch ? { tools: [{ type: "web_search" }] } : {}),
     }),
     cache: "no-store",
-    signal: AbortSignal.timeout(180_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
 
   if (!response.ok) {

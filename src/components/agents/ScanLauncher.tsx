@@ -33,7 +33,14 @@ export function ScanLauncher({ players }: ScanLauncherProps) {
         </select>
 
         <button
-          onClick={() => scan.startScan(selectedPlayer)}
+          onClick={() =>
+            scan.startScan(
+              selectedPlayer,
+              selectedProfile
+                ? `${selectedProfile.firstName} ${selectedProfile.lastName}`
+                : undefined,
+            )
+          }
           disabled={!selectedPlayer || scan.isRunning}
           className="flex items-center gap-2 rounded-full bg-[#FF6B3D] px-5 py-2.5 text-sm font-semibold text-[#0B0D12] hover:bg-[#FF865F] transition-colors disabled:opacity-50"
         >

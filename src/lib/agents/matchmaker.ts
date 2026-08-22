@@ -3,6 +3,7 @@ import { extractJSON } from "@/lib/utils";
 import { MATCHMAKER_PROMPT, buildPlayerProfile } from "./prompts";
 import type { ScoutBrand, ScoredBrand, PlayerIntelligence } from "@/types";
 import type { Player } from "@prisma/client";
+import { SCAN_STAGE_TIMEOUT_MS } from "./scan-budget";
 import type { LogCallback } from "./scout";
 
 export async function runMatchmaker(
@@ -36,8 +37,11 @@ export async function runMatchmaker(
 
   const responseText = await generateAIText({
     prompt,
-    maxOutputTokens: 16384,
-    webSearch: true,
+    maxOutputTokens: 8192,
+    // Scout has already gathered the web evidence. Enabling another web
+    // search here made the four-step scan exceed Vercel Hobby's 5-minute cap.
+    webSearch: false,
+    timeoutMs: SCAN_STAGE_TIMEOUT_MS.matchmaker,
   });
 
   const scoredBrands = extractJSON<ScoredBrand>(responseText);

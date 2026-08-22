@@ -246,13 +246,16 @@ TYPE DE PARTENARIAT : {partnershipType}
 TYPE D'EMAIL : {emailType}
 {emailTypeInstructions}
 
+LANGUE DU MESSAGE :
+{languageInstruction}
+
 RÈGLES DE RÉDACTION :
 - Ton professionnel mais chaleureux et direct
 - Maximum 150 mots pour le corps du mail
 - Personnaliser avec des éléments concrets (résultats, audience, territoire, actualité du profil ou de la marque)
 - Pas de flatterie excessive, rester factuel
 - Inclure un call-to-action clair (appel de 15 min, meeting)
-- Écrire en français sauf si la marque est internationale (alors en anglais)
+- Respecter strictement la langue demandée ci-dessus
 - Ne PAS inclure de signature (elle sera ajoutée automatiquement)
 
 Retourne UNIQUEMENT un JSON :

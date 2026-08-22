@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import {
-  Radar,
   Loader2,
   AlertTriangle,
   TrendingUp,
@@ -11,6 +10,9 @@ import {
   LogOut,
   Clock,
 } from "lucide-react";
+import { AgentAvatar } from "./experience/AgentAvatar";
+import { AgentExecutionCard } from "./experience/AgentExecutionCard";
+import { useAgentExperience } from "./experience/AgentExperienceProvider";
 
 interface VeilleAlert {
   type:
@@ -30,27 +32,31 @@ interface VeilleResult {
   market_summary: string;
 }
 
-interface LogEntry {
-  message: string;
-  type: string;
-  timestamp: number;
-}
-
 export function VeillePanel() {
   const [isRunning, setIsRunning] = useState(false);
-  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [missionDetail, setMissionDetail] = useState("");
   const [result, setResult] = useState<VeilleResult | null>(null);
   const [error, setError] = useState("");
+  const { startMission, updateMission, finishMission, failMission } =
+    useAgentExperience();
 
   const launch = useCallback(async () => {
     if (isRunning) return;
 
     setIsRunning(true);
-    setLogs([]);
+    setProgress(8);
+    setMissionDetail("Veille cartographie l’actualité récente du sponsoring.");
     setResult(null);
     setError("");
-
-    const startTime = Date.now();
+    const missionId = startMission({
+      agentId: "veille-concurrence",
+      title: "Détecter les signaux du marché",
+      detail: "Veille cartographie l’actualité récente du sponsoring.",
+      progress: 8,
+    });
+    let semanticProgress = 8;
+    let receivedTerminalEvent = false;
 
     try {
       const response = await fetch("/api/agents/veille", {
@@ -79,18 +85,30 @@ export function VeillePanel() {
               const data = JSON.parse(line.slice(6));
 
               if (data.type === "log") {
-                setLogs((prev) => [
-                  ...prev,
-                  {
-                    message: data.message,
-                    type: data.logType || "info",
-                    timestamp: Date.now() - startTime,
-                  },
-                ]);
+                semanticProgress = Math.min(90, semanticProgress + 15);
+                const detail = veilleDetail(String(data.message || ""));
+                setProgress(semanticProgress);
+                setMissionDetail(detail);
+                updateMission(missionId, {
+                  progress: semanticProgress,
+                  detail,
+                });
               } else if (data.type === "done") {
+                receivedTerminalEvent = true;
                 setResult(data.result);
+                finishMission(
+                  missionId,
+                  `${data.result.alerts.length} signal${data.result.alerts.length > 1 ? "s" : ""} détecté${data.result.alerts.length > 1 ? "s" : ""}. Choisissez une alerte pour orienter Scout.`,
+                  {
+                    status: "waiting",
+                    nextAgentId: "scout",
+                    actionLabel: "Explorer les talents",
+                    actionHref: "/players",
+                  },
+                );
               } else if (data.type === "error") {
-                setError(data.message);
+                receivedTerminalEvent = true;
+                throw new Error(data.message);
               }
             } catch {
               // Skip malformed
@@ -98,12 +116,23 @@ export function VeillePanel() {
           }
         }
       }
+      if (!receivedTerminalEvent) {
+        throw new Error("La veille s’est interrompue avant la synthèse finale.");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
+      const message = err instanceof Error ? err.message : "Erreur inconnue";
+      setError(message);
+      failMission(missionId, message);
     } finally {
       setIsRunning(false);
     }
-  }, [isRunning]);
+  }, [
+    failMission,
+    finishMission,
+    isRunning,
+    startMission,
+    updateMission,
+  ]);
 
   const typeConfig: Record<
     string,
@@ -154,7 +183,7 @@ export function VeillePanel() {
             </>
           ) : (
             <>
-              <Radar className="h-4 w-4" />
+              <AgentAvatar agentId="veille-concurrence" size="sm" />
               Lancer la veille concurrentielle
             </>
           )}
@@ -167,35 +196,14 @@ export function VeillePanel() {
         )}
       </div>
 
-      {/* Console logs */}
-      {logs.length > 0 && (
-        <div className="rounded-xl border border-[#FF6B3D]/10 bg-[#0B0D12] p-3 max-h-48 overflow-y-auto font-mono text-xs space-y-1">
-          {logs.map((log, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-2 ${
-                log.type === "success"
-                  ? "text-[#FF6B3D]"
-                  : log.type === "data"
-                    ? "text-[#C8CEFF]"
-                    : log.type === "error"
-                      ? "text-red-400"
-                      : "text-white/50"
-              }`}
-            >
-              <span className="text-[#969BA8]/55 shrink-0">
-                {(log.timestamp / 1000).toFixed(1)}s
-              </span>
-              <span>{log.message}</span>
-            </div>
-          ))}
-          {isRunning && (
-            <div className="flex items-center gap-2 text-[#969BA8]">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>En cours…</span>
-            </div>
-          )}
-        </div>
+      {(isRunning || error) && (
+        <AgentExecutionCard
+          agentId="veille-concurrence"
+          title="Lecture du marché en cours"
+          detail={error || missionDetail}
+          status={error ? "error" : "running"}
+          progress={progress}
+        />
       )}
 
       {/* Error */}
@@ -323,4 +331,20 @@ export function VeillePanel() {
       )}
     </div>
   );
+}
+
+function veilleDetail(message: string) {
+  if (message.includes("actualités")) {
+    return "Veille rassemble les annonces et mouvements récents du sponsoring sportif.";
+  }
+  if (message.includes("signal")) {
+    return "Veille rattache les signaux utiles au graphe d’intelligence.";
+  }
+  if (message.includes("alerte")) {
+    return "Veille classe les alertes selon leur potentiel et leur urgence.";
+  }
+  if (message.includes("Résumé")) {
+    return "Veille prépare une synthèse exploitable par Scout.";
+  }
+  return "Veille croise l’actualité avec vos talents et les marques du pipeline.";
 }

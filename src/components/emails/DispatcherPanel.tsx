@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Send, Loader2, Check, AlertTriangle } from "lucide-react";
 import { sendEmail } from "@/lib/actions/emails";
+import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
+import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";
 
 const MAX_APPROVED_BATCH_SIZE = 30;
 
@@ -27,6 +29,8 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
     noContact: number;
   } | null>(null);
   const [confirmAll, setConfirmAll] = useState(false);
+  const { startMission, updateMission, finishMission, failMission } =
+    useAgentExperience();
 
   const approved = draftEmails.filter(
     (email) =>
@@ -51,6 +55,12 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
     setConfirmAll(false);
     let sent = 0;
     let errors = 0;
+    const missionId = startMission({
+      agentId: "dispatcher",
+      title: `${sendable.length} envoi${sendable.length > 1 ? "s" : ""} approuvé${sendable.length > 1 ? "s" : ""}`,
+      detail: "Dispatcher envoie uniquement les messages validés.",
+      progress: 4,
+    });
 
     for (let i = 0; i < sendable.length; i++) {
       try {
@@ -60,6 +70,10 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
         errors++;
       }
       setProgress(i + 1);
+      updateMission(missionId, {
+        progress: ((i + 1) / sendable.length) * 100,
+        detail: `${i + 1}/${sendable.length} message${sendable.length > 1 ? "s" : ""} traité${sendable.length > 1 ? "s" : ""}.`,
+      });
     }
 
     setResults({
@@ -68,6 +82,20 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
       noContact: noContact.length + notQualified.length,
     });
     setSending(false);
+    if (sent === 0) {
+      failMission(missionId, "Aucun message n’a pu être envoyé.");
+    } else {
+      finishMission(
+        missionId,
+        `${sent} message${sent > 1 ? "s" : ""} envoyé${sent > 1 ? "s" : ""}. Veilleur pourra analyser les réponses reçues.`,
+        {
+          status: "waiting",
+          nextAgentId: "veilleur",
+          actionLabel: "Suivre les réponses",
+          actionHref: "/emails",
+        },
+      );
+    }
   };
 
   if (draftEmails.length === 0) {
@@ -85,15 +113,25 @@ export function DispatcherPanel({ draftEmails }: DispatcherPanelProps) {
   return (
     <div className="app-panel space-y-4 p-4 sm:p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-white">
-            {draftEmails.length} brouillon{draftEmails.length > 1 ? "s" : ""}{" "}
-            prêt{draftEmails.length > 1 ? "s" : ""}
-          </h3>
-          <p className="text-xs text-[#969BA8] mt-0.5">
-            {sendable.length} dans ce lot approuvé · {noContact.length} sans
-            contact · {notQualified.length} à valider
-          </p>
+        <div className="flex items-start gap-3">
+          <AgentAvatar
+            agentId="dispatcher"
+            size="sm"
+            status={sending ? "active" : results ? "done" : undefined}
+          />
+          <div>
+            <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#FF8A66]">
+              Agent Dispatcher
+            </p>
+            <h3 className="mt-0.5 text-sm font-semibold text-white">
+              {draftEmails.length} brouillon{draftEmails.length > 1 ? "s" : ""}{" "}
+              prêt{draftEmails.length > 1 ? "s" : ""}
+            </h3>
+            <p className="mt-0.5 text-xs text-[#969BA8]">
+              {sendable.length} dans ce lot approuvé · {noContact.length} sans
+              contact · {notQualified.length} à valider
+            </p>
+          </div>
           {deferred > 0 && (
             <p className="mt-1 text-[11px] text-[#f59e0b]">
               {deferred} brouillon{deferred > 1 ? "s" : ""} reporté

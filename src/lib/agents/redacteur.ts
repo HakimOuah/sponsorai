@@ -5,6 +5,10 @@ import {
   buildPlayerProfile,
 } from "./prompts";
 import type { Player, Company, Prospect } from "@prisma/client";
+import {
+  getLanguageInstruction,
+  type OutreachLanguage,
+} from "./outreach-language";
 
 interface GeneratedEmail {
   subject: string;
@@ -15,7 +19,12 @@ export async function runRedacteur(
   player: Player,
   company: Company,
   prospect: Prospect,
-  emailType: "first_contact" | "followup_1" | "followup_2"
+  emailType: "first_contact" | "followup_1" | "followup_2",
+  options?: {
+    contactName?: string | null;
+    contactRole?: string | null;
+    language?: OutreachLanguage;
+  },
 ): Promise<GeneratedEmail> {
   const playerProfile = buildPlayerProfile(player);
 
@@ -23,8 +32,11 @@ export async function runRedacteur(
     .replace("{companyName}", company.name)
     .replace("{companySector}", company.sector || "Non renseigné")
     .replace("{companyCountry}", company.country || "Non renseigné")
-    .replace("{contactName}", company.contactName || "Responsable partenariats")
-    .replace("{contactRole}", company.contactRole || "—")
+    .replace(
+      "{contactName}",
+      options?.contactName || company.contactName || "Responsable partenariats",
+    )
+    .replace("{contactRole}", options?.contactRole || company.contactRole || "—")
     .replace("{rationale}", prospect.rationale || "Correspondance identifiée par l'agent IA")
     .replace(
       "{recommendedApproach}",
@@ -35,6 +47,10 @@ export async function runRedacteur(
     .replace(
       "{emailTypeInstructions}",
       EMAIL_TYPE_INSTRUCTIONS[emailType] || ""
+    )
+    .replace(
+      "{languageInstruction}",
+      getLanguageInstruction(options?.language || "fr"),
     );
 
   const text = await generateAIText({
