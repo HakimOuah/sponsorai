@@ -77,6 +77,19 @@ export function isUsableEmailStatus(status?: string | null): boolean {
   return status === "verified" || status === "public_source";
 }
 
+export function hasActionableContact(
+  contacts: Array<{
+    employmentStatus?: string | null;
+    contactability?: string | null;
+  }>,
+): boolean {
+  return contacts.some(
+    (contact) =>
+      contact.employmentStatus === "verified_current"
+      && isUsableEmailStatus(contact.contactability),
+  );
+}
+
 export function isBusinessEmailForCompany(
   email?: string | null,
   companyDomain?: string | null

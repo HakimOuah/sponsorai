@@ -19,6 +19,11 @@ type Prospect = {
   outreachApprovedAt: Date | null;
   selectedContactId: string | null;
   scoreDetails: unknown;
+  player: {
+    firstName: string;
+    lastName: string;
+    club: string;
+  };
   company: {
     id: string;
     name: string;

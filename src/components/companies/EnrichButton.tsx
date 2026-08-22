@@ -4,12 +4,12 @@ import { useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
-  Database,
   LoaderCircle,
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
 import { AgentExecutionCard } from "@/components/agents/experience/AgentExecutionCard";
+import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
 import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";
 import { WriterHandoffModal } from "@/components/agents/experience/WriterHandoffModal";
 
@@ -176,9 +176,9 @@ export function EnrichButton({
         ) : done ? (
           <Check className="h-4 w-4" />
         ) : (
-          <Database className="h-4 w-4" />
+          <AgentAvatar agentId="enrichisseur" size="sm" />
         )}
-        {done ? "Voir les décideurs" : "Enrichir les contacts"}
+        {done ? "Voir les décideurs" : "Demander à Enrichisseur"}
       </button>
     );
   }

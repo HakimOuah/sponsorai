@@ -4,8 +4,10 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { EmailGenerator } from "@/components/emails/EmailGenerator";
+import { EnrichButton } from "@/components/companies/EnrichButton";
 import { OutreachApproval } from "./OutreachApproval";
 import { ProspectFeedback } from "./ProspectFeedback";
+import { hasActionableContact } from "@/lib/agents/contact-quality";
 import type { ScoreDetails } from "@/types";
 
 interface BrandResultCardProps {
@@ -21,6 +23,11 @@ interface BrandResultCardProps {
     outreachApprovedAt: Date | null;
     selectedContactId: string | null;
     scoreDetails: ScoreDetails | null;
+    player: {
+      firstName: string;
+      lastName: string;
+      club: string;
+    };
     company: {
       id: string;
       name: string;
@@ -68,6 +75,7 @@ export function BrandResultCard({
 
   const p = prospect.priority || "C";
   const scoreDetails = prospect.scoreDetails as ScoreDetails | null;
+  const canWriteEmail = hasActionableContact(prospect.company.contacts);
 
   // Check if relance is suggested: contacted > 7 days ago, no reply
   const lastEmail = prospect.emails?.[0];
@@ -211,20 +219,34 @@ export function BrandResultCard({
                 )}
               </div>
 
-              {/* Email generator */}
-              <OutreachApproval
-                prospectId={prospect.id}
-                approved={Boolean(prospect.outreachApprovedAt)}
-                selectedContactId={prospect.selectedContactId}
-                contacts={prospect.company.contacts}
-                legacyContactReady={prospect.company.outreachReady}
-              />
+              {canWriteEmail ? (
+                <>
+                  <OutreachApproval
+                    prospectId={prospect.id}
+                    approved={Boolean(prospect.outreachApprovedAt)}
+                    selectedContactId={prospect.selectedContactId}
+                    contacts={prospect.company.contacts}
+                    legacyContactReady={prospect.company.outreachReady}
+                  />
+                  <EmailGenerator
+                    prospectId={prospect.id}
+                    companyName={prospect.company.name}
+                    companyCountry={prospect.company.country}
+                  />
+                </>
+              ) : (
+                <EnrichButton
+                  companyId={prospect.company.id}
+                  companyName={prospect.company.name}
+                  companyCountry={prospect.company.country}
+                  prospects={[{
+                    id: prospect.id,
+                    athleteName: `${prospect.player.firstName} ${prospect.player.lastName}`,
+                    club: prospect.player.club,
+                  }]}
+                />
+              )}
               <ProspectFeedback prospectId={prospect.id} />
-              <EmailGenerator
-                prospectId={prospect.id}
-                companyName={prospect.company.name}
-                companyCountry={prospect.company.country}
-              />
             </div>
 
             {/* Right: score breakdown */}
