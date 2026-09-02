@@ -20,6 +20,7 @@ export default async function SettingsPage() {
       id: true,
       name: true,
       email: true,
+      role: true,
       sendingIdentities: {
         where: { purpose: "outreach" },
         orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
@@ -36,6 +37,7 @@ export default async function SettingsPage() {
   });
 
   if (!user) redirect("/login");
+  const isAdmin = user.role === "admin";
 
   return (
     <div className="min-w-0">
