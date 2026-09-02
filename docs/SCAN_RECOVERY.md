@@ -11,7 +11,9 @@ variable, migration ou activation Gmail/Outlook n'est nécessaire.
 - Délai commun de 65 secondes pour l'ensemble du scoring, pas 65 secondes
   supplémentaires par lot. Les scans habituels contiennent au plus 15 marques.
 - Aucune recherche web au scoring, réflexion adaptative désactivée.
-- Sortie JSON structurée : index de marque, huit notes, justification et approche.
+- Sortie JSON structurée : une clé obligatoire par marque (`brand_0`, etc.),
+  huit notes, justification et approche. Le schéma est adapté à la taille réelle
+  du lot, y compris le dernier lot incomplet (par exemple 5 + 5 + 3 marques).
   L'application conserve les faits de Scout, calcule la moyenne et vérifie que
   chaque marque est présente exactement une fois. Les sorties tronquées ou
   invalides ne sont pas enregistrées comme un succès.
@@ -40,3 +42,8 @@ idempotents ; elle ne crée pas de nouveaux emails et n'envoie rien.
 Tests ciblés : `tests/matchmaker.test.ts` et `tests/scan-recovery.test.ts`.
 En production, corréler `[scan] started` (`resumed: true`) et les durées d'étapes
 avec le résultat de la modale et les opportunités visibles après rechargement.
+
+La première reprise réelle a confirmé la conservation des 13 marques et l'absence
+de nouvel appel Scout, mais a révélé qu'un tableau JSON valide pouvait encore
+omettre des scores. Le contrat impose donc chaque clé au niveau du schéma Claude,
+en complément de la validation serveur. Le test de non-régression couvre 13 marques.

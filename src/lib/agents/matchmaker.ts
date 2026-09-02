@@ -24,54 +24,59 @@ export const SCORE_AXES = [
   "brand_momentum",
 ] as const;
 
-const SCORE_SCHEMA = {
+const SCORE_ROW_SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["scores"],
+  required: ["rationale", "score_details", "recommended_approach"],
   properties: {
-    scores: {
-      type: "array",
-      items: {
-        type: "object",
-        additionalProperties: false,
-        required: [
-          "brand_index",
-          "rationale",
-          "score_details",
-          "recommended_approach",
-        ],
-        properties: {
-          brand_index: {
-            type: "integer",
-            description: "Index exact fourni dans le lot.",
-          },
-          rationale: {
-            type: "string",
-            description: "Deux phrases courtes maximum.",
-          },
-          recommended_approach: {
-            type: "string",
-            description: "Deux phrases courtes maximum.",
-          },
-          score_details: {
-            type: "object",
-            additionalProperties: false,
-            required: [...SCORE_AXES],
-            properties: Object.fromEntries(
-              SCORE_AXES.map((axis) => [
-                axis,
-                {
-                  type: "integer",
-                  description: "Note entière de 1 à 10.",
-                },
-              ]),
-            ),
-          },
-        },
-      },
+    rationale: {
+      type: "string",
+      description: "Deux phrases courtes maximum.",
+    },
+    recommended_approach: {
+      type: "string",
+      description: "Deux phrases courtes maximum.",
+    },
+    score_details: {
+      type: "object",
+      additionalProperties: false,
+      required: [...SCORE_AXES],
+      properties: Object.fromEntries(
+        SCORE_AXES.map((axis) => [
+          axis,
+          { type: "integer", description: "Note entière de 1 à 10." },
+        ]),
+      ),
     },
   },
 };
+
+function brandKey(index: number): string {
+  return `brand_${index}`;
+}
+
+function scoreSchema(brandCount: number): Record<string, unknown> {
+  const keys = Array.from({ length: brandCount }, (_, index) =>
+    brandKey(index),
+  );
+  // Required object keys guarantee full coverage at generation time. An array
+  // schema can otherwise be valid even when the model returns only one score.
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["scores"],
+    properties: {
+      scores: {
+        type: "object",
+        additionalProperties: false,
+        required: keys,
+        properties: Object.fromEntries(
+          keys.map((key) => [key, SCORE_ROW_SCHEMA]),
+        ),
+      },
+    },
+  };
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -85,24 +90,24 @@ export function parseMatchmakerBatch(
   const data: unknown = JSON.parse(text);
   if (
     !isRecord(data) ||
-    !Array.isArray(data.scores) ||
-    data.scores.length !== brands.length
+    !isRecord(data.scores) ||
+    Object.keys(data.scores).length !== brands.length ||
+    brands.some(
+      (_, index) => !Object.hasOwn(data.scores as object, brandKey(index)),
+    )
   ) {
     throw new Error(
       "Matchmaker a retourné un lot incomplet. Les marques restent conservées.",
     );
   }
-  const seen = new Set<number>();
-  return data.scores.map((row: unknown) => {
-    if (!isRecord(row) || !Number.isInteger(row.brand_index)) {
-      throw new Error("Matchmaker a retourné un index de marque invalide.");
+  const scores = data.scores;
+  return brands.map((brand, index) => {
+    const row = scores[brandKey(index)];
+    if (!isRecord(row)) {
+      throw new Error("Matchmaker a retourné un scoring de marque invalide.");
     }
-    const index = row.brand_index as number;
     const details = row.score_details;
     if (
-      index < 0 ||
-      index >= brands.length ||
-      seen.has(index) ||
       !isRecord(details) ||
       SCORE_AXES.some(
         (axis) =>
@@ -119,8 +124,6 @@ export function parseMatchmakerBatch(
         "Matchmaker a retourné un scoring invalide. Les marques restent conservées.",
       );
     }
-    seen.add(index);
-    const brand = brands[index];
     const scoreDetails = Object.fromEntries(
       SCORE_AXES.map((axis) => [axis, details[axis]]),
     ) as unknown as ScoreDetails;
@@ -188,13 +191,18 @@ export async function runMatchmaker(
         const batch = batches[batchIndex];
         const prompt = MATCHMAKER_PROMPT.replace(
           "{playerProfile}",
-          playerProfile,
+          () => playerProfile,
         )
-          .replace("{playerIntelligence}", intelligence)
-          .replace(
-            "{brandsJSON}",
+          .replace("{playerIntelligence}", () => intelligence)
+          .replace("{brandKeys}", () =>
+            batch.map((_, index) => brandKey(index)).join(", "),
+          )
+          .replace("{brandsJSON}", () =>
             JSON.stringify(
-              batch.map((brand, brand_index) => ({ ...brand, brand_index })),
+              batch.map((brand, index) => ({
+                ...brand,
+                brand_key: brandKey(index),
+              })),
             ),
           );
         const text = await generateClaudeText({
@@ -203,7 +211,7 @@ export async function runMatchmaker(
           maxWebSearchUses: 0,
           thinking: "disabled",
           effort: "low",
-          outputSchema: SCORE_SCHEMA,
+          outputSchema: scoreSchema(batch.length),
           timeoutMs: Math.max(1, deadline - Date.now()),
           signal,
         });

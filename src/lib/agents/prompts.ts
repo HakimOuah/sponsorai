@@ -219,10 +219,10 @@ Pour chaque marque, score sur 10 ces 8 critères :
 
 Utilise aussi les champs commercial_angle et opportunity_signal. Une marque sans angle commercial clair ou sans signal d'opportunité crédible ne doit pas dépasser 6/10.
 
-Retourne UNIQUEMENT cet objet JSON, avec exactement une entrée par marque du lot. Recopie son brand_index sans le modifier. Ne recopie pas ses coordonnées ou sa fiche : elles sont conservées par l'application. Limite rationale et recommended_approach à deux phrases courtes chacun.
-{"scores": [
-  {
-    "brand_index": 0,
+Retourne UNIQUEMENT un objet JSON scores contenant une propriété OBLIGATOIRE pour CHAQUE brand_key fourni. Les clés exactes à inclure sont : {brandKeys}. Aucune marque ne doit être omise, même si son score est faible. Ne recopie pas ses coordonnées ou sa fiche : elles sont conservées par l'application. Limite rationale et recommended_approach à deux phrases courtes chacun.
+Structure de chaque propriété (répéter pour TOUTES les clés du lot, pas seulement brand_0) :
+{"scores": {
+  "brand_0": {
     "rationale": "Raison du match SPÉCIFIQUE au profil sportif — pas de généralités",
     "score_details": {
       "image_coherence": 9,
@@ -236,7 +236,7 @@ Retourne UNIQUEMENT cet objet JSON, avec exactement une entrée par marque du lo
     },
     "recommended_approach": "Approche concrète en deux phrases courtes : canal, angle et preuve à mettre en avant"
   }
-]}
+}}
 
 RÈGLES DE SCORING :
 - Chaque note est un entier entre 1 et 10. L'application calcule le score global (moyenne arrondie) et la priorité.

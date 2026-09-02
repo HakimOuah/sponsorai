@@ -28,15 +28,22 @@ const brands = Array.from(
     opportunity_signal: "Nouvelle gamme annoncée",
   }),
 );
-function row(brand_index: number, note = 8) {
+function row(note = 8) {
   return {
-    brand_index,
     rationale: "Compatibilité documentée.",
     recommended_approach: "Proposer une présentation.",
     score_details: Object.fromEntries(SCORE_AXES.map((axis) => [axis, note])),
   };
 }
-function claudeResponse(scores: unknown[], stop_reason = "end_turn") {
+function rows(count: number) {
+  return Object.fromEntries(
+    Array.from({ length: count }, (_, index) => [`brand_${index}`, row()]),
+  );
+}
+function claudeResponse(
+  scores: Record<string, unknown>,
+  stop_reason = "end_turn",
+) {
   return Response.json({
     stop_reason,
     content: [{ type: "text", text: JSON.stringify({ scores }) }],
@@ -60,7 +67,7 @@ test("Matchmaker scores fifteen brands in three concurrent Claude calls without 
     const body = JSON.parse(String(init.body));
     calls.push(body);
     await new Promise<void>((resolve) => releases.push(resolve));
-    return claudeResponse(Array.from({ length: 5 }, (_, index) => row(index)));
+    return claudeResponse(rows(5));
   });
   const logs: string[] = [];
   const resultPromise = runMatchmaker(player, brands, (message) =>
@@ -88,19 +95,40 @@ test("Matchmaker scores fifteen brands in three concurrent Claude calls without 
       (call.output_config as { format: { type: string } }).format.type,
       "json_schema",
     );
+    const format = (
+      call.output_config as {
+        format: {
+          schema: {
+            properties: {
+              scores: {
+                type: string;
+                required: string[];
+                additionalProperties: boolean;
+              };
+            };
+          };
+        };
+      }
+    ).format;
+    assert.equal(format.schema.properties.scores.type, "object");
+    assert.equal(format.schema.properties.scores.additionalProperties, false);
+    assert.deepEqual(
+      format.schema.properties.scores.required,
+      Object.keys(rows(5)),
+    );
   }
   assert.ok(logs.some((message) => message.includes("15/15")));
 });
 
-test("Matchmaker rejects missing, duplicate or foreign brands and invalid scores", () => {
+test("Matchmaker rejects missing or foreign brands, array responses and invalid scores", () => {
   const input = brands.slice(0, 2);
   for (const scores of [
-    [row(0)],
-    [row(0), row(0)],
-    [row(0), row(5)],
-    [row(0), row(1, 99)],
-    [row(0), { ...row(1), score_details: {} }],
-    [row(0), { ...row(1), rationale: "" }],
+    { brand_0: row() },
+    { brand_0: row(), brand_5: row() },
+    { brand_0: row(), brand_1: row(99) },
+    { brand_0: row(), brand_1: { ...row(), score_details: {} } },
+    { brand_0: row(), brand_1: { ...row(), rationale: "" } },
+    [row(), row()],
   ])
     assert.throws(() =>
       parseMatchmakerBatch(JSON.stringify({ scores }), input),
@@ -112,17 +140,17 @@ test("Matchmaker preserves Scout facts and caps scores without strong evidence",
   const input = [{ ...brands[0], opportunity_signal: "Signal faible" }];
   const [scored] = parseMatchmakerBatch(
     JSON.stringify({
-      scores: [{ ...row(0, 10), website: "https://invented.example" }],
+      scores: { brand_0: { ...row(10), website: "https://invented.example" } },
     }),
     input,
   );
   assert.equal(scored.website, input[0].website);
   assert.equal(scored.score, 6);
   assert.equal(scored.priority, "B");
-  const exclusive = row(0, 10);
+  const exclusive = row(10);
   exclusive.score_details.exclusivity_risk = 2;
   assert.equal(
-    parseMatchmakerBatch(JSON.stringify({ scores: [exclusive] }), [
+    parseMatchmakerBatch(JSON.stringify({ scores: { brand_0: exclusive } }), [
       brands[0],
     ])[0].score,
     6,
@@ -132,7 +160,7 @@ test("Matchmaker preserves Scout facts and caps scores without strong evidence",
 test("Claude structured scoring rejects truncated or refused output", async (t) => {
   withTestKey(t);
   t.mock.method(globalThis, "fetch", async () =>
-    claudeResponse([row(0)], "max_tokens"),
+    claudeResponse(rows(1), "max_tokens"),
   );
   await assert.rejects(
     generateClaudeText({
@@ -177,7 +205,7 @@ test("Matchmaker aborts sibling calls and does not retry a failed paid request",
 test("Claude accepts cancellation before making a request", async (t) => {
   withTestKey(t);
   const fetchMock = t.mock.method(globalThis, "fetch", async () =>
-    claudeResponse([]),
+    claudeResponse({}),
   );
   await assert.rejects(
     generateClaudeText({ prompt: "test", signal: AbortSignal.abort() }),
@@ -188,4 +216,54 @@ test("Claude accepts cancellation before making a request", async (t) => {
 
 test("Matchmaker handles empty input without charging", async () => {
   assert.deepEqual(await runMatchmaker(player, [], () => {}), []);
+});
+
+test("Matchmaker makes every brand mandatory for full batches and the final partial batch", async (t) => {
+  withTestKey(t);
+  const sizes: number[] = [];
+  t.mock.method(
+    globalThis,
+    "fetch",
+    async (_url: string, init: RequestInit) => {
+      const body = JSON.parse(String(init.body));
+      const required = body.output_config.format.schema.properties.scores
+        .required as string[];
+      const prompt = body.messages[0].content as string;
+      const input = JSON.parse(
+        prompt
+          .split("LISTE DES MARQUES :\n")[1]
+          .split("\n\nPour chaque marque,")[0],
+      ) as Array<{ brand_key: string }>;
+      assert.deepEqual(
+        required,
+        input.map((brand) => brand.brand_key),
+      );
+      assert.ok(
+        prompt.includes(
+          `Les clés exactes à inclure sont : ${required.join(", ")}`,
+        ),
+      );
+      sizes.push(required.length);
+      return claudeResponse(
+        Object.fromEntries(required.map((key) => [key, row()])),
+      );
+    },
+  );
+  const result = await runMatchmaker(player, brands.slice(0, 13), () => {});
+  assert.deepEqual(sizes, [5, 5, 3]);
+  assert.equal(result.length, 13);
+});
+
+test("Matchmaker maps unordered result keys back to the correct Scout brands", () => {
+  const result = parseMatchmakerBatch(
+    JSON.stringify({ scores: { brand_1: row(5), brand_0: row(9) } }),
+    brands.slice(0, 2),
+  );
+  assert.deepEqual(
+    result.map((brand) => [brand.name, brand.score]),
+    [
+      ["Marque 0", 9],
+      ["Marque 1", 5],
+    ],
+  );
 });
