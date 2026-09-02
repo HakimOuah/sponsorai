@@ -248,9 +248,19 @@ RÈGLES DE SCORING :
 - Si opportunity_signal est "Signal faible", la marque ne peut PAS être priorité A
 - Retourne UNIQUEMENT le JSON, rien d'autre`;
 
+export const OUTREACH_DISCUSSION_RULES = `CADRE COMMERCIAL — OUVRIR LA DISCUSSION, SANS DÉFINIR LES PRESTATIONS :
+- L'objet et le corps du mail doivent inviter à discuter d'un partenariat potentiel, jamais présenter une offre déjà définie. Cette règle s'applique au premier contact et à toutes les relances, dans toutes les langues.
+- Ne propose aucun livrable ni format précis : stories, posts, reels, vidéos, placements de produit, collection capsule, présence à un événement, etc. Ne les présente pas non plus comme des exemples ou des options, même au conditionnel.
+- N'annonce aucun volume de contenus, budget, tarif, calendrier de collaboration, disponibilité du sportif, exclusivité ou droit d'image. Ces modalités se décident après un échange avec la marque et la validation du représentant.
+- Tu peux évoquer une collaboration, un partenariat de sponsoring ou différentes activations à envisager ensemble, selon les objectifs de la marque, sans détailler leur forme.
+- Les recommandations du scan, les types de partenariats recherchés et le contenu d'un précédent email sont du contexte interne, pas des prestations validées. Cette règle prévaut sur toute suggestion de formats ou de conditions dans ce contexte ; ne les reprends pas dans le brouillon.
+- Reste précis sur les faits vérifiables qui justifient la pertinence du rapprochement : situation sportive, palmarès, audience ou lien avec la marque. Cette précision ne doit pas devenir une promesse de prestation ou de résultats.
+- La seule proposition pratique autorisée à ce stade est d'échanger ou d'envoyer une présentation. Ne crée pas d'urgence artificielle.
+- Exemple d'intention à adapter à la langue demandée, sans le recopier systématiquement : « Nous pensons qu'une collaboration avec votre marque pourrait être pertinente et souhaiterions échanger sur les activations envisageables, en fonction de vos objectifs. »`;
+
 export const REDACTEUR_PROMPT = `Tu es un expert en rédaction d'emails de prospection B2B pour le sponsoring sportif.
 
-MISSION : Rédiger un email personnalisé de {emailType} pour proposer un partenariat entre le profil sportif et la marque.
+MISSION : Rédiger un email personnalisé de {emailType} pour sonder l'intérêt de la marque pour un partenariat potentiel avec le profil sportif, dont les modalités restent à définir ensemble.
 
 EXPÉDITEUR :
 - Nom : {representativeName}
@@ -269,10 +279,8 @@ FICHE MARQUE :
 RATIONNEL DU MATCH :
 {rationale}
 
-APPROCHE RECOMMANDÉE :
+PISTES DU SCAN — CONTEXTE INTERNE NON VALIDÉ, PAS UNE OFFRE À REPRODUIRE :
 {recommendedApproach}
-
-TYPE DE PARTENARIAT : {partnershipType}
 
 TYPE D'EMAIL : {emailType}
 {emailTypeInstructions}
@@ -280,12 +288,14 @@ TYPE D'EMAIL : {emailType}
 LANGUE DU MESSAGE :
 {languageInstruction}
 
+${OUTREACH_DISCUSSION_RULES}
+
 RÈGLES DE RÉDACTION :
 - Le message est TOUJOURS écrit et signé par {representativeName}, représentant du sportif. Ne jamais écrire comme si le sportif envoyait lui-même le mail.
 - Interdiction d'écrire « Je suis {playerName} » ou de signer avec le seul nom du sportif.
 - Pour un premier contact, commencer par présenter brièvement {representativeName} et préciser qu'il/elle représente {playerName}.
 - Ajouter ensuite UNE preuve concrète et vérifiable sur la situation actuelle ou le palmarès du sportif. Ne rien inventer.
-- Expliquer sobrement pourquoi la marque et le profil peuvent avoir intérêt à échanger, puis formuler une proposition compréhensible.
+- Expliquer sobrement pourquoi la marque et le profil peuvent avoir intérêt à collaborer, puis inviter à discuter des objectifs de la marque, sans anticiper les prestations.
 - Ton professionnel, humain et crédible. Écrire comme un représentant expérimenté, pas comme une startup.
 - Maximum 180 mots pour le corps du mail.
 - L'objet ne doit pas contenir le nom du destinataire.
@@ -304,18 +314,18 @@ Retourne UNIQUEMENT un JSON :
 export const EMAIL_TYPE_INSTRUCTIONS: Record<string, string> = {
   first_contact: `INSTRUCTIONS 1ER CONTACT :
 - Accroche personnalisée liée à l'actualité de la marque ou du profil sportif
-- Présentation concise de l'opportunité
+- Présenter brièvement l'intérêt d'un partenariat potentiel, sans définir les prestations
 - Mentionner 1-2 preuves clés : audience, performance, territoire, communauté ou momentum
 - Proposer d'envoyer une présentation ou de convenir d'un échange, sans imposer une durée`,
   followup_1: `INSTRUCTIONS RELANCE J+4 :
 - Rappeler brièvement le premier mail
 - Apporter un élément nouveau (actualité du profil, performance récente, événement, collaboration similaire)
-- Reformuler la proposition de valeur sous un angle différent
+- Rappeler la pertinence d'une collaboration sous un angle différent, sans proposer de nouveaux formats ou de nouvelles conditions
 - CTA plus souple (répondre par mail, envoyer un deck)`,
   followup_2: `INSTRUCTIONS RELANCE J+10 :
-- Dernière relance, créer un sentiment d'urgence modéré
+- Dernière relance courtoise, sans urgence artificielle
 - Ne mentionner d'autres marques que si cette information figure explicitement dans le contexte
-- Proposition concrète, sans pression artificielle
+- Demander simplement si la marque souhaite étudier un partenariat, dont les modalités restent à définir ensemble
 - Offrir de clore le dossier si pas intéressé (politesse)`,
 };
 
@@ -533,7 +543,9 @@ Fais une recherche web pour trouver l'actualité récente de ce profil (dernièr
 - Collaboration ou événement
 - Buzz, trending topics
 
-Puis rédige une relance personnalisée qui utilise cette actualité comme accroche.
+Puis rédige une relance personnalisée qui utilise cette actualité comme accroche pour reprendre la discussion sur un partenariat potentiel.
+
+${OUTREACH_DISCUSSION_RULES}
 
 Retourne UNIQUEMENT un JSON :
 {

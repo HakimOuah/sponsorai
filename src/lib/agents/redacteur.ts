@@ -53,7 +53,6 @@ export async function runRedacteur(
       "{recommendedApproach}",
       prospect.recommendedApproach || "Approche directe"
     )
-    .replace("{partnershipType}", prospect.partnershipType || "À définir")
     .replace(/{emailType}/g, emailType)
     .replace(
       "{emailTypeInstructions}",
