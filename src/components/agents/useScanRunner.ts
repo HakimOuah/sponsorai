@@ -15,6 +15,7 @@ export type ScanPhase =
 
 export type ScanResult = {
   scanId?: string;
+  resumable?: boolean;
   success: boolean;
   message: string;
 };
@@ -31,18 +32,14 @@ const PHASE_PROGRESS: Record<
 };
 
 function isActivePhase(
-  phase: ScanPhase
+  phase: ScanPhase,
 ): phase is Exclude<ScanPhase, "idle" | "done" | "error"> {
   return phase in PHASE_PROGRESS;
 }
 
 export function useScanRunner(options?: { onSuccess?: () => void }) {
-  const {
-    startMission,
-    updateMission,
-    finishMission,
-    failMission,
-  } = useAgentExperience();
+  const { startMission, updateMission, finishMission, failMission } =
+    useAgentExperience();
   const [isRunning, setIsRunning] = useState(false);
   const [phase, setPhase] = useState<ScanPhase>("idle");
   const [progress, setProgress] = useState(0);
@@ -51,6 +48,7 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
   const runningRef = useRef(false);
   const startedAtRef = useRef<number | null>(null);
   const missionIdRef = useRef<string | null>(null);
+  const retryRef = useRef<{ playerId: string; scanId: string } | null>(null);
   const onSuccessRef = useRef(options?.onSuccess);
 
   useEffect(() => {
@@ -63,7 +61,7 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
     const interval = window.setInterval(() => {
       if (startedAtRef.current) {
         setElapsedSeconds(
-          Math.floor((Date.now() - startedAtRef.current) / 1000)
+          Math.floor((Date.now() - startedAtRef.current) / 1000),
         );
       }
     }, 1000);
@@ -78,135 +76,156 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
     setResult(null);
     setElapsedSeconds(0);
     startedAtRef.current = null;
+    retryRef.current = null;
   }, []);
 
-  const startScan = useCallback(async (playerId: string, playerName?: string) => {
-    if (!playerId || runningRef.current) return;
+  const startScan = useCallback(
+    async (playerId: string, playerName?: string, savedScanId?: string) => {
+      if (!playerId || runningRef.current) return;
+      const resumeScanId =
+        savedScanId ??
+        (retryRef.current?.playerId === playerId
+          ? retryRef.current.scanId
+          : undefined);
+      retryRef.current = null;
 
-    runningRef.current = true;
-    startedAtRef.current = Date.now();
-    setIsRunning(true);
-    setPhase("init");
-    setProgress(PHASE_PROGRESS.init.start);
-    setResult(null);
-    setElapsedSeconds(0);
-    const missionId = startMission({
-      agentId: "scout",
-      title: `Analyse de ${playerName || "un talent"}`,
-      detail: "Scout prépare la recherche de partenaires.",
-      progress: PHASE_PROGRESS.init.start,
-    });
-    missionIdRef.current = missionId;
-
-    try {
-      const response = await fetch("/api/agents/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId }),
+      runningRef.current = true;
+      startedAtRef.current = Date.now();
+      setIsRunning(true);
+      setPhase("init");
+      setProgress(PHASE_PROGRESS.init.start);
+      setResult(null);
+      setElapsedSeconds(0);
+      const missionId = startMission({
+        agentId: "scout",
+        title: `Analyse de ${playerName || "un talent"}`,
+        detail: resumeScanId
+          ? "Matchmaker reprend les marques déjà trouvées."
+          : "Scout prépare la recherche de partenaires.",
+        progress: PHASE_PROGRESS.init.start,
       });
+      missionIdRef.current = missionId;
 
-      if (!response.ok || !response.body) {
-        throw new Error("Impossible de démarrer le scan");
-      }
+      try {
+        const response = await fetch("/api/agents/scan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ playerId, resumeScanId }),
+        });
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let receivedTerminalEvent = false;
+        if (!response.ok || !response.body) {
+          const data = await response.json().catch(() => null);
+          throw new Error(data?.error || "Impossible de démarrer le scan");
+        }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let receivedTerminalEvent = false;
 
-        buffer += decoder.decode(value, { stream: true });
-        const events = buffer.split("\n\n");
-        buffer = events.pop() || "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        for (const event of events) {
-          if (!event.startsWith("data: ")) continue;
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() || "";
 
-          try {
-            const data = JSON.parse(event.slice(6)) as {
-              message?: string;
-              type?: string;
-              phase?: ScanPhase;
-              done?: boolean;
-              scanId?: string;
-            };
+          for (const event of events) {
+            if (!event.startsWith("data: ")) continue;
 
-            if (data.phase && isActivePhase(data.phase)) {
-              setPhase(data.phase);
-              const target = PHASE_PROGRESS[data.phase];
-              setProgress((current) =>
-                current < target.start
-                  ? target.start
-                  : Math.min(current + 2, target.cap)
-              );
-              const missionAgent =
-                data.phase === "matchmaker" || data.phase === "save"
-                  ? "matchmaker"
-                  : "scout";
-              updateMission(missionId, {
-                agentId: missionAgent,
-                progress: target.start,
-                detail: getMissionDetail(data.phase),
-              });
-            }
+            try {
+              const data = JSON.parse(event.slice(6)) as {
+                message?: string;
+                type?: string;
+                phase?: ScanPhase;
+                done?: boolean;
+                scanId?: string;
+                resumable?: boolean;
+              };
 
-            if (data.done) {
-              receivedTerminalEvent = true;
-              const success = data.type !== "error";
-              setPhase(success ? "done" : "error");
-              if (success) setProgress(100);
-              setResult({
-                scanId: data.scanId,
-                success,
-                message:
-                  data.message ||
-                  (success ? "Scan terminé" : "Le scan a rencontré une erreur"),
-              });
-
-              if (success) onSuccessRef.current?.();
-              if (success) {
-                finishMission(
-                  missionId,
-                  data.message || "Les opportunités sont prêtes à être consultées.",
-                  {
-                    status: "waiting",
-                    nextAgentId: "enrichisseur",
-                    actionLabel: "Choisir les opportunités",
-                    actionHref: `/prospection?player=${playerId}`,
-                  },
+              if (data.phase && isActivePhase(data.phase)) {
+                setPhase(data.phase);
+                const target = PHASE_PROGRESS[data.phase];
+                setProgress((current) =>
+                  current < target.start
+                    ? target.start
+                    : Math.min(current + 2, target.cap),
                 );
-              } else {
-                failMission(
-                  missionId,
-                  data.message || "Le scan a rencontré une erreur.",
-                );
+                const missionAgent =
+                  data.phase === "matchmaker" || data.phase === "save"
+                    ? "matchmaker"
+                    : "scout";
+                updateMission(missionId, {
+                  agentId: missionAgent,
+                  progress: target.start,
+                  detail: getMissionDetail(data.phase),
+                });
               }
+
+              if (data.done) {
+                receivedTerminalEvent = true;
+                const success = data.type !== "error";
+                if (!success && data.resumable && data.scanId) {
+                  retryRef.current = { playerId, scanId: data.scanId };
+                }
+                setPhase(success ? "done" : "error");
+                if (success) setProgress(100);
+                setResult({
+                  scanId: data.scanId,
+                  resumable: data.resumable,
+                  success,
+                  message:
+                    data.message ||
+                    (success
+                      ? "Scan terminé"
+                      : "Le scan a rencontré une erreur"),
+                });
+
+                if (success) onSuccessRef.current?.();
+                if (success) {
+                  finishMission(
+                    missionId,
+                    data.message ||
+                      "Les opportunités sont prêtes à être consultées.",
+                    {
+                      status: "waiting",
+                      nextAgentId: "enrichisseur",
+                      actionLabel: "Choisir les opportunités",
+                      actionHref: `/prospection?player=${playerId}`,
+                    },
+                  );
+                } else {
+                  failMission(
+                    missionId,
+                    data.message || "Le scan a rencontré une erreur.",
+                  );
+                }
+              }
+            } catch {
+              // Ignore malformed SSE events while keeping the scan alive.
             }
-          } catch {
-            // Ignore malformed SSE events while keeping the scan alive.
           }
         }
-      }
 
-      if (!receivedTerminalEvent) {
-        throw new Error(
-          "Le scan a été interrompu avant la fin. Vous pouvez le relancer."
-        );
+        if (!receivedTerminalEvent) {
+          throw new Error(
+            "Le scan a été interrompu avant la fin. Vous pouvez le relancer.",
+          );
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Erreur inconnue";
+        setPhase("error");
+        setResult({ success: false, message });
+        if (missionIdRef.current) failMission(missionIdRef.current, message);
+      } finally {
+        runningRef.current = false;
+        setIsRunning(false);
       }
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Erreur inconnue";
-      setPhase("error");
-      setResult({ success: false, message });
-      if (missionIdRef.current) failMission(missionIdRef.current, message);
-    } finally {
-      runningRef.current = false;
-      setIsRunning(false);
-    }
-  }, [failMission, finishMission, startMission, updateMission]);
+    },
+    [failMission, finishMission, startMission, updateMission],
+  );
 
   return {
     isRunning,
@@ -228,9 +247,6 @@ function getMissionDetail(
     scout: "Scout détecte et vérifie de nouvelles marques.",
     matchmaker: "Matchmaker compare les opportunités sur huit critères.",
     save: "Matchmaker consolide le classement et crée les opportunités.",
-  } satisfies Record<
-    Exclude<ScanPhase, "idle" | "done" | "error">,
-    string
-  >;
+  } satisfies Record<Exclude<ScanPhase, "idle" | "done" | "error">, string>;
   return details[phase];
 }

@@ -10,7 +10,7 @@ export const SCAN_STAGE_TIMEOUT_MS = {
   // A single complementary search is allowed when fewer than 12 unique brands
   // remain. Its shorter ceiling preserves a full minute for persistence.
   scoutRecovery: 45_000,
-  // Matchmaker now scores at most 15 brands instead of up to 30.
+  // One shared wall-clock deadline for small Claude batches (three in parallel).
   matchmaker: 65_000,
 } as const;
 

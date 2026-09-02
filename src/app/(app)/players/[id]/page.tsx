@@ -5,6 +5,7 @@ import { getPlayer } from "@/lib/actions/players";
 import { PlayerStats } from "@/components/players/PlayerStats";
 import { ArchiveButton } from "@/components/players/ArchiveButton";
 import { PlayerScanButton } from "@/components/players/PlayerScanButton";
+import { getScanRecovery } from "@/lib/agents/scan-recovery";
 
 export default async function PlayerDetailPage({
   params,
@@ -16,6 +17,7 @@ export default async function PlayerDetailPage({
   if (!player) return notFound();
 
   const initials = player.firstName.charAt(0) + player.lastName.charAt(0);
+  const recovery = getScanRecovery(player.scans[0], player.id);
 
   return (
     <div className="min-w-0">
@@ -67,6 +69,7 @@ export default async function PlayerDetailPage({
           <PlayerScanButton
             playerId={player.id}
             playerName={`${player.firstName} ${player.lastName}`}
+            resumeScanId={recovery?.scanId}
           />
           <Link
             href={`/players/${player.id}/edit`}

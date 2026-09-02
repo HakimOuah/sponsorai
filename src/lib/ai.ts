@@ -46,6 +46,8 @@ export interface GenerateClaudeTextOptions {
   effort?: "low" | "medium" | "high";
   thinking?: "disabled" | "adaptive";
   timeoutMs?: number;
+  signal?: AbortSignal;
+  outputSchema?: Record<string, unknown>;
 }
 
 export async function generateAIText({
@@ -76,7 +78,10 @@ export async function generateAIText({
       ...(webSearch ? { tools: [{ type: "web_search" }] } : {}),
     }),
     cache: "no-store",
-    signal: AbortSignal.any([AbortSignal.timeout(timeoutMs), ...(signal ? [signal] : [])]),
+    signal: AbortSignal.any([
+      AbortSignal.timeout(timeoutMs),
+      ...(signal ? [signal] : []),
+    ]),
   });
 
   if (!response.ok) {
@@ -115,6 +120,8 @@ export async function generateClaudeText({
   effort = "low",
   thinking = CLAUDE_SCOUT_THINKING,
   timeoutMs = 120_000,
+  signal,
+  outputSchema,
 }: GenerateClaudeTextOptions): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
@@ -122,13 +129,16 @@ export async function generateClaudeText({
     throw new Error("ANTHROPIC_API_KEY is not configured");
   }
 
-  const tools = [
-    {
-      type: "web_search_20260209",
-      name: "web_search",
-      max_uses: maxWebSearchUses,
-    },
-  ];
+  const tools =
+    maxWebSearchUses > 0
+      ? [
+          {
+            type: "web_search_20260209",
+            name: "web_search",
+            max_uses: maxWebSearchUses,
+          },
+        ]
+      : undefined;
   const messages: Array<{
     role: "user" | "assistant";
     content: string | ClaudeContentBlock[];
@@ -137,9 +147,13 @@ export async function generateClaudeText({
   const deadline = Date.now() + timeoutMs;
 
   for (let continuation = 0; continuation < 2; continuation += 1) {
+    signal?.throwIfAborted();
     const remainingMs = deadline - Date.now();
     if (remainingMs <= 0) {
-      throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+      throw new DOMException(
+        "The operation was aborted due to timeout",
+        "TimeoutError",
+      );
     }
 
     const response = await fetch(ANTHROPIC_MESSAGES_URL, {
@@ -155,10 +169,18 @@ export async function generateClaudeText({
         messages,
         tools,
         thinking: { type: thinking },
-        output_config: { effort },
+        output_config: {
+          effort,
+          ...(outputSchema
+            ? { format: { type: "json_schema", schema: outputSchema } }
+            : {}),
+        },
       }),
       cache: "no-store",
-      signal: AbortSignal.timeout(remainingMs),
+      signal: AbortSignal.any([
+        AbortSignal.timeout(remainingMs),
+        ...(signal ? [signal] : []),
+      ]),
     });
 
     if (!response.ok) {
@@ -167,6 +189,9 @@ export async function generateClaudeText({
     }
 
     const data = (await response.json()) as ClaudeResponse;
+    if (outputSchema && data.stop_reason !== "end_turn") {
+      throw new Error("Claude n'a pas retourné un résultat structuré complet.");
+    }
     responses.push(data);
 
     if (data.stop_reason !== "pause_turn") break;

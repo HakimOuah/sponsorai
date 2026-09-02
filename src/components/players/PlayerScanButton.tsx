@@ -11,11 +11,13 @@ import { useScanRunner } from "@/components/agents/useScanRunner";
 interface PlayerScanButtonProps {
   playerId: string;
   playerName: string;
+  resumeScanId?: string;
 }
 
 export function PlayerScanButton({
   playerId,
   playerName,
+  resumeScanId,
 }: PlayerScanButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
@@ -30,8 +32,8 @@ export function PlayerScanButton({
 
   const launchScan = useCallback(() => {
     setIsOpen(true);
-    startScan(playerId, playerName);
-  }, [playerId, playerName, startScan]);
+    startScan(playerId, playerName, scan.result ? undefined : resumeScanId);
+  }, [playerId, playerName, resumeScanId, scan.result, startScan]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -63,7 +65,11 @@ export function PlayerScanButton({
         ) : (
           <ScanLine className="h-3.5 w-3.5" />
         )}
-        {scan.isRunning ? "Voir la progression" : "Scanner"}
+        {scan.isRunning
+          ? "Voir la progression"
+          : resumeScanId && !scan.result
+            ? "Reprendre le scan"
+            : "Scanner"}
       </button>
 
       {isOpen &&
@@ -149,7 +155,9 @@ export function PlayerScanButton({
                     className="inline-flex items-center justify-center gap-2 rounded-full bg-[#FF6B3D] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F]"
                   >
                     <RotateCcw className="h-4 w-4" />
-                    Réessayer
+                    {scan.result.resumable
+                      ? "Reprendre les marques trouvées"
+                      : "Réessayer"}
                   </button>
                 )}
               </div>

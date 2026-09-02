@@ -14,6 +14,7 @@ import {
   PLAYER_INTELLIGENCE_FRESHNESS_MS,
 } from "@/lib/agents/player-intelligence";
 import { getCurrentUserAccess } from "@/lib/auth/access";
+import { getScanRecovery } from "@/lib/agents/scan-recovery";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,12 +34,25 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { playerId } = await request.json();
-
-  if (!playerId) {
+  const body: unknown = await request.json().catch(() => null);
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !("playerId" in body) ||
+    typeof body.playerId !== "string" ||
+    !body.playerId.trim()
+  ) {
     return new Response(JSON.stringify({ error: "playerId required" }), {
       status: 400,
     });
+  }
+  const playerId = body.playerId;
+  const resumeScanId = "resumeScanId" in body ? body.resumeScanId : undefined;
+  if (
+    resumeScanId !== undefined &&
+    (typeof resumeScanId !== "string" || !resumeScanId)
+  ) {
+    return Response.json({ error: "resumeScanId invalide" }, { status: 400 });
   }
 
   const player = await prisma.player.findUnique({ where: { id: playerId } });
@@ -60,17 +74,60 @@ export async function POST(request: NextRequest) {
     data: { status: "failed" },
   });
 
+  const savedScan = resumeScanId
+    ? await prisma.scan.findUnique({ where: { id: resumeScanId } })
+    : null;
+  const recovery = getScanRecovery(savedScan, player.id);
+  if (resumeScanId && !recovery) {
+    return Response.json(
+      {
+        error:
+          "Ce scan n'est plus reprenable. Rechargez la fiche pour lancer un nouveau scan.",
+      },
+      { status: 409 },
+    );
+  }
+  const runningScan = await prisma.scan.findFirst({
+    where: { playerId, status: "running" },
+    select: { id: true },
+  });
+  if (runningScan) {
+    return Response.json(
+      { error: "Un scan est déjà en cours pour ce talent." },
+      { status: 409 },
+    );
+  }
+  // Claim the existing attempt atomically; concurrent retries cannot charge twice.
+  if (recovery) {
+    const claimed = await prisma.scan.updateMany({
+      where: { id: recovery.scanId, playerId, status: "failed" },
+      data: { status: "running", duration: 0 },
+    });
+    if (claimed.count !== 1) {
+      return Response.json(
+        { error: "La reprise de ce scan a déjà été lancée." },
+        { status: 409 },
+      );
+    }
+  }
+  const scan = recovery
+    ? { id: recovery.scanId }
+    : await prisma.scan.create({ data: { playerId, status: "running" } });
+
   // Create SSE stream
   const encoder = new TextEncoder();
   const stream = new TransformStream();
   const writer = stream.writable.getWriter();
 
-  const sendEvent = async (
-    data: { message: string; type: string; phase?: string; done?: boolean; scanId?: string }
-  ) => {
-    await writer.write(
-      encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
-    );
+  const sendEvent = async (data: {
+    message: string;
+    type: string;
+    phase?: string;
+    done?: boolean;
+    scanId?: string;
+    resumable?: boolean;
+  }) => {
+    await writer.write(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
   };
 
   // Run the pipeline in background
@@ -78,23 +135,21 @@ export async function POST(request: NextRequest) {
     const startTime = Date.now();
     const logs: { time: number; message: string; type: string }[] = [];
 
-    const scan = await prisma.scan.create({
-      data: {
-        playerId: player.id,
-        status: "running",
-      },
-    });
-    let activePhase: "init" | "research" | "scout" | "matchmaker" | "save" = "init";
+    let activePhase: "init" | "research" | "scout" | "matchmaker" | "save" =
+      "init";
+    let canResume = Boolean(recovery);
 
     console.info("[scan] started", {
       scanId: scan.id,
       playerId: player.id,
+      resumed: Boolean(recovery),
+      savedBrands: recovery?.brands.length,
     });
 
     const runWithHeartbeat = async <T>(
       phase: "research" | "scout" | "matchmaker",
       messages: string[],
-      task: () => Promise<T>
+      task: () => Promise<T>,
     ): Promise<T> => {
       const stageStartedAt = Date.now();
       activePhase = phase;
@@ -134,7 +189,9 @@ export async function POST(request: NextRequest) {
 
     try {
       await sendEvent({
-        message: "Démarrage du scan v2...",
+        message: recovery
+          ? `Reprise de ${recovery.brands.length} marques déjà trouvées, sans relancer Scout.`
+          : "Démarrage du scan v2...",
         type: "info",
         phase: "init",
         scanId: scan.id,
@@ -143,7 +200,7 @@ export async function POST(request: NextRequest) {
       // A brand can be relevant to several athletes. Only exclude brands that
       // have already been evaluated for the current player.
       const evaluatedBrands = await prisma.prospect.findMany(
-        buildEvaluatedBrandsQuery(player.id)
+        buildEvaluatedBrandsQuery(player.id),
       );
       const excludedBrands = getExcludedBrandNames(evaluatedBrands);
 
@@ -162,104 +219,137 @@ export async function POST(request: NextRequest) {
         sendEvent({ message, type, phase: "research" }).catch(() => {});
       };
 
-      let playerIntelligence: PlayerIntelligence | undefined;
-      try {
-        const recentSnapshot = await prisma.athleteIntelligenceSnapshot.findFirst({
-          where: {
-            playerId: player.id,
-            capturedAt: {
-              gte: new Date(Date.now() - PLAYER_INTELLIGENCE_FRESHNESS_MS),
-            },
-          },
-          orderBy: { capturedAt: "desc" },
-          select: { snapshot: true, capturedAt: true },
-        });
+      let playerIntelligence: PlayerIntelligence | undefined =
+        recovery?.playerIntelligence;
+      if (!recovery) {
+        try {
+          const recentSnapshot =
+            await prisma.athleteIntelligenceSnapshot.findFirst({
+              where: {
+                playerId: player.id,
+                capturedAt: {
+                  gte: new Date(Date.now() - PLAYER_INTELLIGENCE_FRESHNESS_MS),
+                },
+              },
+              orderBy: { capturedAt: "desc" },
+              select: { snapshot: true, capturedAt: true },
+            });
 
-        if (recentSnapshot && isPlayerIntelligence(recentSnapshot.snapshot)) {
-          playerIntelligence = recentSnapshot.snapshot;
-          researchLog(
-            `Dossier d'intelligence récent réutilisé (mis à jour le ${recentSnapshot.capturedAt.toLocaleDateString("fr-FR")})`,
-            "success"
-          );
-        } else {
-          playerIntelligence = await runWithHeartbeat(
-            "research",
-            [
-              "Scout rassemble les signaux publics du profil...",
-              "Scout vérifie l'image, l'audience et l'actualité du profil...",
-            ],
-            () => runPlayerResearch(player, researchLog)
-          );
+          if (recentSnapshot && isPlayerIntelligence(recentSnapshot.snapshot)) {
+            playerIntelligence = recentSnapshot.snapshot;
+            researchLog(
+              `Dossier d'intelligence récent réutilisé (mis à jour le ${recentSnapshot.capturedAt.toLocaleDateString("fr-FR")})`,
+              "success",
+            );
+          } else {
+            playerIntelligence = await runWithHeartbeat(
+              "research",
+              [
+                "Scout rassemble les signaux publics du profil...",
+                "Scout vérifie l'image, l'audience et l'actualité du profil...",
+              ],
+              () => runPlayerResearch(player, researchLog),
+            );
 
-          await prisma.athleteIntelligenceSnapshot.create({
+            await prisma.athleteIntelligenceSnapshot.create({
+              data: {
+                playerId: player.id,
+                sourceScanId: scan.id,
+                snapshot:
+                  playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
+              },
+            });
+          }
+
+          // Persist intelligence in scan
+          await prisma.scan.update({
+            where: { id: scan.id },
             data: {
-              playerId: player.id,
-              sourceScanId: scan.id,
-              snapshot: playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
+              playerIntelligence:
+                playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
             },
           });
-        }
 
-        // Persist intelligence in scan
-        await prisma.scan.update({
-          where: { id: scan.id },
-          data: {
-            playerIntelligence: playerIntelligence as unknown as import("@prisma/client").Prisma.JsonObject,
-          },
-        });
-
-        for (const value of playerIntelligence.key_values || []) {
-          await prisma.athleteTrait.upsert({
-            where: {
-              playerId_type_value: {
+          for (const value of playerIntelligence.key_values || []) {
+            await prisma.athleteTrait.upsert({
+              where: {
+                playerId_type_value: {
+                  playerId: player.id,
+                  type: "key_value",
+                  value,
+                },
+              },
+              update: {
+                confidence: 0.7,
+                source: `scan:${scan.id}`,
+                active: true,
+              },
+              create: {
                 playerId: player.id,
                 type: "key_value",
                 value,
+                confidence: 0.7,
+                source: `scan:${scan.id}`,
               },
-            },
-            update: { confidence: 0.7, source: `scan:${scan.id}`, active: true },
-            create: {
-              playerId: player.id,
-              type: "key_value",
-              value,
-              confidence: 0.7,
-              source: `scan:${scan.id}`,
-            },
-          });
-        }
+            });
+          }
 
-        const socialAccounts = [
-          { platform: "instagram", handle: player.instagram, followers: player.followersIG },
-          { platform: "tiktok", handle: player.tiktok, followers: player.followersTK },
-          { platform: "x", handle: player.twitter, followers: player.followersX },
-        ].filter((account): account is { platform: string; handle: string; followers: number | null } => Boolean(account.handle));
+          const socialAccounts = [
+            {
+              platform: "instagram",
+              handle: player.instagram,
+              followers: player.followersIG,
+            },
+            {
+              platform: "tiktok",
+              handle: player.tiktok,
+              followers: player.followersTK,
+            },
+            {
+              platform: "x",
+              handle: player.twitter,
+              followers: player.followersX,
+            },
+          ].filter(
+            (
+              account,
+            ): account is {
+              platform: string;
+              handle: string;
+              followers: number | null;
+            } => Boolean(account.handle),
+          );
 
-        for (const account of socialAccounts) {
-          await prisma.athleteSocialAccount.upsert({
-            where: {
-              playerId_platform_handle: {
+          for (const account of socialAccounts) {
+            await prisma.athleteSocialAccount.upsert({
+              where: {
+                playerId_platform_handle: {
+                  playerId: player.id,
+                  platform: account.platform,
+                  handle: account.handle,
+                },
+              },
+              update: {
+                followers: account.followers,
+                engagementRate: player.engagementRate,
+                capturedAt: new Date(),
+              },
+              create: {
                 playerId: player.id,
                 platform: account.platform,
                 handle: account.handle,
+                followers: account.followers,
+                engagementRate: player.engagementRate,
               },
-            },
-            update: {
-              followers: account.followers,
-              engagementRate: player.engagementRate,
-              capturedAt: new Date(),
-            },
-            create: {
-              playerId: player.id,
-              platform: account.platform,
-              handle: account.handle,
-              followers: account.followers,
-              engagementRate: player.engagementRate,
-            },
-          });
+            });
+          }
+        } catch (err) {
+          const errMsg = err instanceof Error ? err.message : "unknown";
+          researchLog(
+            `Erreur recherche profil: ${errMsg} — on continue sans intelligence`,
+            "error",
+          );
         }
-      } catch (err) {
-        const errMsg = err instanceof Error ? err.message : "unknown";
-        researchLog(`Erreur recherche profil: ${errMsg} — on continue sans intelligence`, "error");
       }
 
       // --- Phase 1: Scout ---
@@ -269,26 +359,30 @@ export async function POST(request: NextRequest) {
         sendEvent({ message, type, phase: "scout" }).catch(() => {});
       };
 
-      const brands = await runWithHeartbeat(
-        "scout",
-        [
-          "Scout explore de nouveaux territoires de marque...",
-          "Scout vérifie la cohérence des partenaires détectés...",
-        ],
-        () =>
-          runScout(player, scoutLog, {
-            playerIntelligence,
-            excludedBrands,
-          })
-      );
+      const brands =
+        recovery?.brands ??
+        (await runWithHeartbeat(
+          "scout",
+          [
+            "Scout explore de nouveaux territoires de marque...",
+            "Scout vérifie la cohérence des partenaires détectés...",
+          ],
+          () =>
+            runScout(player, scoutLog, {
+              playerIntelligence,
+              excludedBrands,
+            }),
+        ));
 
       await prisma.scan.update({
         where: { id: scan.id },
         data: {
           brandsFound: brands.length,
-          rawData: brands as unknown as import("@prisma/client").Prisma.JsonArray,
+          rawData:
+            brands as unknown as import("@prisma/client").Prisma.JsonArray,
         },
       });
+      canResume = true;
 
       // --- Phase 2: Matchmaker ---
       const matchLog = (message: string, type: string = "info") => {
@@ -297,51 +391,63 @@ export async function POST(request: NextRequest) {
         sendEvent({ message, type, phase: "matchmaker" }).catch(() => {});
       };
 
-      const baseScoredBrands = await runWithHeartbeat(
-        "matchmaker",
-        [
-          "Matchmaker compare les opportunités sur huit critères...",
-          "Matchmaker priorise les marques les plus accessibles...",
-          "Matchmaker consolide le classement final...",
-        ],
-        () => runMatchmaker(player, brands, matchLog, playerIntelligence)
-      );
-      const historicalCompanies = baseScoredBrands.length > 0
-        ? await prisma.company.findMany({
-            where: {
-              OR: baseScoredBrands.map((brand) => ({
-                name: { equals: brand.name, mode: "insensitive" },
-              })),
-            },
-            select: {
-              name: true,
-              prospects: {
-                select: {
-                  feedback: { select: { brandRating: true } },
+      const baseScoredBrands =
+        recovery?.scoredBrands ??
+        (await runWithHeartbeat(
+          "matchmaker",
+          [
+            "Matchmaker compare les opportunités sur huit critères...",
+            "Matchmaker priorise les marques les plus accessibles...",
+            "Matchmaker consolide le classement final...",
+          ],
+          () => runMatchmaker(player, brands, matchLog, playerIntelligence),
+        ));
+      const historicalCompanies =
+        !recovery?.scoredBrands && baseScoredBrands.length > 0
+          ? await prisma.company.findMany({
+              where: {
+                OR: baseScoredBrands.map((brand) => ({
+                  name: { equals: brand.name, mode: "insensitive" },
+                })),
+              },
+              select: {
+                name: true,
+                prospects: {
+                  select: {
+                    feedback: { select: { brandRating: true } },
+                  },
+                },
+                opportunitySignals: {
+                  where: { status: { in: ["unreviewed", "active"] } },
+                  select: { strength: true },
                 },
               },
-              opportunitySignals: {
-                where: { status: { in: ["unreviewed", "active"] } },
-                select: { strength: true },
-              },
-            },
-          })
-        : [];
-      const scoredBrands = applyMatchmakerLearning(
-        baseScoredBrands,
-        historicalCompanies.map((company) => ({
-          name: company.name,
-          brandRatings: company.prospects.flatMap((prospect) =>
-            prospect.feedback
-              .map((feedback) => feedback.brandRating)
-              .filter((rating): rating is string => Boolean(rating))
-          ),
-          opportunityStrengths: company.opportunitySignals.map((signal) => signal.strength),
-        }))
-      );
-      const adjustedCount = scoredBrands.filter((brand) => brand.learning_adjustment).length;
+            })
+          : [];
+      const scoredBrands =
+        recovery?.scoredBrands ??
+        applyMatchmakerLearning(
+          baseScoredBrands,
+          historicalCompanies.map((company) => ({
+            name: company.name,
+            brandRatings: company.prospects.flatMap((prospect) =>
+              prospect.feedback
+                .map((feedback) => feedback.brandRating)
+                .filter((rating): rating is string => Boolean(rating)),
+            ),
+            opportunityStrengths: company.opportunitySignals.map(
+              (signal) => signal.strength,
+            ),
+          })),
+        );
+      const adjustedCount = scoredBrands.filter(
+        (brand) => brand.learning_adjustment,
+      ).length;
       if (adjustedCount > 0) {
-        matchLog(`${adjustedCount} score(s) ajusté(s) par les retours et signaux historiques`, "success");
+        matchLog(
+          `${adjustedCount} score(s) ajusté(s) par les retours et signaux historiques`,
+          "success",
+        );
       }
 
       // Save scored data
@@ -349,9 +455,9 @@ export async function POST(request: NextRequest) {
         where: { id: scan.id },
         data: {
           brandsScored: scoredBrands.length,
-          scoredData: scoredBrands as unknown as import("@prisma/client").Prisma.JsonArray,
+          scoredData:
+            scoredBrands as unknown as import("@prisma/client").Prisma.JsonArray,
           logs: logs as unknown as import("@prisma/client").Prisma.JsonArray,
-          status: "completed",
           duration: Math.round((Date.now() - startTime) / 1000),
         },
       });
@@ -366,7 +472,11 @@ export async function POST(request: NextRequest) {
       activePhase = "save";
       for (const brand of scoredBrands) {
         try {
-          const prospect = await createProspectFromBrand(player.id, scan.id, brand);
+          const prospect = await createProspectFromBrand(
+            player.id,
+            scan.id,
+            brand,
+          );
           await recordLearningEvent({
             type: "BRAND_MATCHED",
             idempotencyKey: `scan:${scan.id}:prospect:${prospect.id}:matched`,
@@ -382,21 +492,36 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      if (created !== scoredBrands.length) {
+        throw new Error(
+          "Certaines opportunités n'ont pas pu être enregistrées. Reprenez le scan : les marques et les scores sont conservés.",
+        );
+      }
+      await prisma.activityLog.create({
+        data: {
+          type: "scan_completed",
+          message: `Scan v2 terminé pour ${player.firstName} ${player.lastName} — ${scoredBrands.length} marques, ${created} prospects (intelligence: ${playerIntelligence ? "oui" : "non"})`,
+          metadata: {
+            scanId: scan.id,
+            playerId: player.id,
+            resumed: Boolean(recovery),
+          },
+        },
+      });
+      await prisma.scan.update({
+        where: { id: scan.id },
+        data: {
+          status: "completed",
+          duration: Math.round((Date.now() - startTime) / 1000),
+        },
+      });
+
       await sendEvent({
         message: `Scan v2 terminé — ${scoredBrands.length} marques scorées (8 critères), ${created} prospects créés en ${Math.round((Date.now() - startTime) / 1000)}s`,
         type: "success",
         phase: "done",
         done: true,
         scanId: scan.id,
-      });
-
-      // Log activity
-      await prisma.activityLog.create({
-        data: {
-          type: "scan_completed",
-          message: `Scan v2 terminé pour ${player.firstName} ${player.lastName} — ${scoredBrands.length} marques, ${created} prospects (intelligence: ${playerIntelligence ? "oui" : "non"})`,
-          metadata: { scanId: scan.id, playerId: player.id },
-        },
       });
     } catch (error) {
       const errorMessage = getScanErrorMessage(error, activePhase);
@@ -424,6 +549,8 @@ export async function POST(request: NextRequest) {
         type: "error",
         phase: "error",
         done: true,
+        scanId: scan.id,
+        resumable: canResume,
       });
     } finally {
       await writer.close();
@@ -441,7 +568,7 @@ export async function POST(request: NextRequest) {
 
 function getScanErrorMessage(
   error: unknown,
-  phase: "init" | "research" | "scout" | "matchmaker" | "save"
+  phase: "init" | "research" | "scout" | "matchmaker" | "save",
 ): string {
   if (error instanceof Error) {
     if (
@@ -449,7 +576,12 @@ function getScanErrorMessage(
       error.name === "AbortError" ||
       error.message.toLowerCase().includes("timeout")
     ) {
-      const agent = phase === "matchmaker" ? "Matchmaker" : phase === "scout" ? "Scout" : "Un agent";
+      const agent =
+        phase === "matchmaker"
+          ? "Matchmaker"
+          : phase === "scout"
+            ? "Scout"
+            : "Un agent";
       return `${agent} n'a pas répondu dans le délai prévu. Le scan peut être relancé sans risque.`;
     }
     return error.message;
@@ -460,7 +592,7 @@ function getScanErrorMessage(
 async function createProspectFromBrand(
   playerId: string,
   scanId: string,
-  brand: ScoredBrand
+  brand: ScoredBrand,
 ) {
   // Upsert company
   let company = await prisma.company.findFirst({
@@ -492,7 +624,8 @@ async function createProspectFromBrand(
     },
     update: {
       score: brand.score,
-      scoreDetails: brand.score_details as unknown as import("@prisma/client").Prisma.JsonObject,
+      scoreDetails:
+        brand.score_details as unknown as import("@prisma/client").Prisma.JsonObject,
       rationale: brand.rationale,
       recommendedApproach: brand.recommended_approach,
       partnershipType: brand.partnership_type,
@@ -505,7 +638,8 @@ async function createProspectFromBrand(
       playerId,
       companyId: company.id,
       score: brand.score,
-      scoreDetails: brand.score_details as unknown as import("@prisma/client").Prisma.JsonObject,
+      scoreDetails:
+        brand.score_details as unknown as import("@prisma/client").Prisma.JsonObject,
       rationale: brand.rationale,
       recommendedApproach: brand.recommended_approach,
       partnershipType: brand.partnership_type,
