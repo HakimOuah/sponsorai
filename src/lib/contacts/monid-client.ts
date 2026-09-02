@@ -6,11 +6,14 @@ const ENDPOINTS = {
   employees: { provider: "apify", endpoint: "/harvestapi/linkedin-company-employees" },
   findEmail: { provider: "hunterio", endpoint: "/email-finder" },
   verifyEmail: { provider: "hunterio", endpoint: "/email-verifier" },
+  apolloSearch: { provider: "apollo", endpoint: "/mixed_people/api_search" },
+  apolloMatch: { provider: "apollo", endpoint: "/people/match" },
 } as const;
 
 type Operation = keyof typeof ENDPOINTS;
 type JsonObject = Record<string, unknown>;
-type Price = { type?: string; amount?: unknown; flatFee?: unknown };
+type Price = { type?: string; amount?: unknown; flatFee?: unknown; default?: unknown; tiers?: unknown };
+const APOLLO_EMAIL_ONLY = { reveal_personal_emails: false, reveal_phone_number: false } as const;
 
 export class MonidError extends Error {
   constructor(readonly code: "configuration" | "budget" | "timeout" | "provider" | "response") {
@@ -49,6 +52,7 @@ export class MonidClient {
   private readonly prices = new Map<Operation, Promise<Price>>();
   private reservedUsd = 0;
   private unavailable = false;
+  private readonly failedOperations = new Set<Operation>();
   readonly receipts: MonidReceipt[] = [];
 
   constructor(options: ContactSearchOptions & { apiKey?: string; maxCostUsd?: number } = {}) {
@@ -95,22 +99,52 @@ export class MonidClient {
     return this.execute("verifyEmail", { queryParams: { email } }, 1);
   }
 
-  private assertAvailable() {
-    if (this.signal?.aborted || Date.now() >= this.deadline) throw new MonidError("timeout");
-    if (this.unavailable) throw new MonidError("provider");
+  async searchApolloPeople(domain: string, titles: readonly string[]): Promise<MonidRunResult> {
+    return this.execute("apolloSearch", {
+      queryParams: {
+        "person_titles[]": titles,
+        "person_seniorities[]": ["head", "director", "manager", "vp", "c_suite"],
+        "q_organization_domains_list[]": [domain],
+        "contact_email_status[]": ["verified"],
+        include_similar_titles: false,
+        page: 1,
+        per_page: 10,
+      },
+    }, 10);
   }
 
-  private async execute(operation: Operation, input: JsonObject, limit: number): Promise<MonidRunResult> {
-    this.assertAvailable();
+  async matchApolloPerson(id: string): Promise<MonidRunResult> {
+    return this.execute("apolloMatch", { queryParams: { id, ...APOLLO_EMAIL_ONLY } }, 1);
+  }
+
+  /** Free catalog/auth check. Does not execute a search or reveal a contact. */
+  async checkApolloAccess(): Promise<void> {
+    const [search, match] = await Promise.all([this.inspectPrice("apolloSearch"), this.inspectPrice("apolloMatch")]);
+    estimateMonidCost(search, 10);
+    estimateMonidCost(match, 1, { queryParams: APOLLO_EMAIL_ONLY });
+  }
+
+  private assertAvailable(operation?: Operation) {
+    if (this.signal?.aborted || Date.now() >= this.deadline) throw new MonidError("timeout");
+    if (this.unavailable || (operation && this.failedOperations.has(operation))) throw new MonidError("provider");
+  }
+
+  private inspectPrice(operation: Operation): Promise<Price> {
+    this.assertAvailable(operation);
     let price = this.prices.get(operation);
     if (!price) {
       price = this.request("POST", "/v1/inspect", ENDPOINTS[operation])
         .then((response) => response.price as Price);
       this.prices.set(operation, price);
     }
+    return price;
+  }
+
+  private async execute(operation: Operation, input: JsonObject, limit: number): Promise<MonidRunResult> {
+    this.assertAvailable(operation);
     // Inspect is free. Fail closed if the price model changes or cannot be bounded.
-    const reservation = estimateMonidCost(await price, limit);
-    this.assertAvailable();
+    const reservation = estimateMonidCost(await this.inspectPrice(operation), limit, operation === "apolloMatch" ? input : undefined);
+    this.assertAvailable(operation);
     if (this.reservedUsd + reservation > this.maxCostUsd + 0.000001) throw new MonidError("budget");
     // No await between checking and reserving: parallel contact lookups share one cap.
     this.reservedUsd += reservation;
@@ -133,6 +167,8 @@ export class MonidClient {
       }
       terminal = true;
       receipt.costUsd = readMonidCost(run);
+      // Preserve this result, but do not start another call if its charge is unknown.
+      if (receipt.costUsd === null) this.unavailable = true;
       if (run.status !== "COMPLETED") throw new MonidError("provider");
       const providerStatus = asObject(run.providerResponse).httpStatus;
       if (providerStatus === 404) return { output: null, runId, costUsd: receipt.costUsd, notFound: true };
@@ -141,10 +177,10 @@ export class MonidClient {
       }
       return { output: run.output, runId, costUsd: receipt.costUsd, notFound: false };
     } catch (error) {
-      // Do not multiply an uncertain charge across another contact/domain.
-      if (!(error instanceof MonidError) || error.code === "provider" || error.code === "response") {
-        this.unavailable = true;
-      }
+      // A definitive provider failure may fall back to another operation. An
+      // ambiguous charge must stop the entire shared client, including Apollo.
+      this.failedOperations.add(operation);
+      if (!terminal || receipt.costUsd === null) this.unavailable = true;
       if (runId && !terminal) await this.stop(runId);
       if (error instanceof MonidError) throw error;
       throw new MonidError(this.signal?.aborted || Date.now() >= this.deadline ? "timeout" : "provider");
@@ -204,7 +240,22 @@ function dollars(value: unknown): number | null {
   return money.value;
 }
 
-export function estimateMonidCost(price: Price | undefined, limit: number): number {
+export function estimateMonidCost(price: Price | undefined, limit: number, apolloInput?: JsonObject): number {
+  if (price?.type === "TIERED") {
+    const flags = asObject(apolloInput?.queryParams);
+    // Only Apollo's inspected, explicitly disabled add-ons are supported. Never
+    // assume a new tier, output-dependent fee or unspecified flag is free.
+    if (flags.reveal_personal_emails !== false || flags.reveal_phone_number !== false ||
+        !Array.isArray(price.tiers) || price.tiers.length === 0 || price.flatFee !== undefined) throw new MonidError("budget");
+    for (const raw of price.tiers) {
+      const conditions = Object.entries(asObject(asObject(raw).when));
+      if (conditions.length !== 1 || !Object.hasOwn(APOLLO_EMAIL_ONLY, conditions[0][0]) ||
+          ![true, "true"].includes(conditions[0][1] as boolean | string)) throw new MonidError("budget");
+    }
+    const base = asObject(price.default);
+    if (base.type !== "PER_CALL") throw new MonidError("budget");
+    return estimateMonidCost(base as Price, 1);
+  }
   if (!price || !["PER_RESULT", "PER_CALL"].includes(price.type || "")) throw new MonidError("budget");
   const amount = dollars(price.amount);
   const flatFee = price.flatFee === undefined ? 0 : dollars(price.flatFee);

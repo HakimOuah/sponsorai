@@ -64,6 +64,8 @@ test("admin HTTP flow runs LinkedIn discovery and verification, persists then em
           employees: async () => { calls.push("linkedin"); return value([{ firstName: "Jane", lastName: "Rivers", linkedinUrl: "https://linkedin.com/in/jane-rivers", currentPosition: [{ position: "Responsable sponsoring", companyLinkedinUrl: companyUrl }] }]); },
           findEmail: async () => { calls.push("finder"); return value({ data: { email: "jane@acme.fr", first_name: "Jane", last_name: "Rivers", accept_all: false } }); },
           verifyEmail: async () => { calls.push("verifier"); return value({ data: { email: "jane@acme.fr", status: "valid", result: "deliverable", score: 100, accept_all: false, smtp_check: true, mx_records: true, smtp_server: true } }); },
+          searchApolloPeople: async () => assert.fail("LinkedIn/Hunter already returned a usable email"),
+          matchApolloPerson: async () => assert.fail("no unnecessary Apollo reveal"),
           usage: { costUsd: 0.03, reservedUsd: 0.10 },
         },
       });
@@ -107,6 +109,47 @@ test("client HTTP/SSE payload excludes identities, email evidence, profile URLs 
   assert.equal(done.result.canViewContactDetails, false);
   assert.equal(done.result.contacts[0].id, contact.id);
   assert.equal(done.result.contacts[0].contactability, "verified");
+});
+
+test("Apollo via Monid reaches persistence and the agent result without exposing contacts to client roles", async () => {
+  for (const isAdmin of [true, false]) {
+    const calls: string[] = [];
+    const value = (output: unknown) => ({ output, notFound: false, runId: "test-apollo-run", costUsd: 0.01 });
+    const deps = dependencies({
+      enrich: async (target, log, options) => ({
+        ...await searchMonidContacts(target, log, options, {
+          resolveContext: async () => ({ companyLinkedinUrl: null, linkedinSource: null, emailDomains: [], mailboxes: [] }),
+          client: {
+            employees: async () => assert.fail("unconfirmed LinkedIn company"),
+            findEmail: async () => assert.fail("no LinkedIn identity to enrich"),
+            searchApolloPeople: async () => { calls.push("search"); return value({ people: [{ id: "apollo-jane", title: "Head of Partnerships", has_email: true, organization: { name: company.name } }] }); },
+            matchApolloPerson: async (id) => { calls.push("reveal"); assert.equal(id, "apollo-jane"); return value({ person: { id, name: "Jane Rivers", title: "Head of Partnerships", email: "jane@acme.fr", email_status: "verified", organization: { primary_domain: "acme.fr" } } }); },
+            verifyEmail: async (email) => { calls.push("verify"); return value({ data: { email, status: "valid", result: "deliverable", score: 100, accept_all: false, smtp_check: true, mx_records: true, smtp_server: true } }); },
+            usage: { costUsd: 0.06196, reservedUsd: 0.06196 },
+          },
+        }),
+        company_insights: "Apollo via Monid",
+      }),
+      persist: async (_id, candidates) => {
+        calls.push("persist");
+        assert.equal(candidates[0].provider, "apollo");
+        assert.equal(candidates[0].providerExternalId, "apollo-jane");
+        assert.equal(candidates[0].email, "jane@acme.fr");
+        return [{ ...contact, source: candidates[0].source, emailSource: candidates[0].email_source }];
+      },
+      updateCompany: async (_id, data) => { calls.push("company"); assert.ok("contactEmail" in data && data.contactEmail === "jane@acme.fr"); },
+    });
+    const access = await deps.getAccess();
+    deps.getAccess = async () => ({ ...access, isAdmin, role: isAdmin ? "admin" : "client" });
+    const body = await (await createEnrichmentHandler(deps)(request())).text();
+    const done = events(body).at(-1);
+    assert.equal(done.type, "done");
+    assert.equal(done.result.contacts[0].contactability, "verified");
+    assert.equal(done.result.canViewContactDetails, isAdmin);
+    assert.deepEqual(calls, ["search", "reveal", "verify", "persist", "company"]);
+    if (isAdmin) assert.equal(done.result.contacts[0].email, "jane@acme.fr");
+    else for (const privateValue of ["Jane", "jane@", "jane-rivers", "costUsd"]) assert.ok(!body.includes(privateValue));
+  }
 });
 
 test("upstream failures are redacted and never trigger a second paid request", async () => {

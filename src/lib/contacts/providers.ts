@@ -1,5 +1,4 @@
 import type { Company } from "@prisma/client";
-import { searchApolloContacts } from "@/lib/agents/apollo";
 import { searchMonidContacts } from "./monid";
 import type {
   ContactDiscoveryDiagnostic,
@@ -27,24 +26,10 @@ class MonidContactProvider implements ContactProvider {
   }
 }
 
-class ApolloContactProvider implements ContactProvider {
-  readonly id = "apollo";
-
-  isConfigured(): boolean {
-    return Boolean(process.env.APOLLO_API_KEY);
-  }
-
-  async search(
-    company: Company,
-    log?: (message: string) => void,
-    options?: ContactSearchOptions,
-  ): Promise<ContactProviderSearchResult> {
-    return searchApolloContacts(company, log, options);
-  }
-}
-
 export function getContactProviders(): ContactProvider[] {
-  return [new MonidContactProvider(), new ApolloContactProvider()];
+  // Apollo is executed inside Monid so all paid operations share one budget.
+  // An old APOLLO_API_KEY must never silently reactivate the direct subscription.
+  return [new MonidContactProvider()];
 }
 
 export async function searchStructuredContactProviders(

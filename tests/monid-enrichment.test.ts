@@ -27,6 +27,8 @@ const emptyClient = () => ({
   employees: async () => receipt([profile()]),
   findEmail: async (_name: string, _domain: string) => receipt({ data: {} }),
   verifyEmail: async (email: string) => receipt(verified(email)),
+  searchApolloPeople: async () => receipt({ people: [] }),
+  matchApolloPerson: async (_id: string) => receipt({ person: null }),
   usage: { costUsd: 0.05, reservedUsd: 0.10 },
 });
 
@@ -51,6 +53,7 @@ test("email lookup uses the evidenced corporate domain, verifies delivery separa
   const client = emptyClient();
   client.findEmail = async (_name, domain) => { calls.push(domain); return receipt({ data: { first_name: "Jane", last_name: "Rivers", email: "jane.rivers@acme-group.com", accept_all: false, verification: { status: "valid" } } }); };
   client.verifyEmail = async (email) => { calls.push(email); return receipt(verified(email)); };
+  client.searchApolloPeople = async () => assert.fail("no Apollo call when LinkedIn/Hunter already found an email");
   const result = await searchMonidContacts(company, undefined, {}, { client, resolveContext: async () => context });
   assert.deepEqual(calls, ["acme-group.com", "jane.rivers@acme-group.com"]);
   assert.equal(result.contacts[0].email_status, "verified");
@@ -58,6 +61,49 @@ test("email lookup uses the evidenced corporate domain, verifies delivery separa
   assert.match(result.contacts[0].email_evidence!, /n’est pas une preuve de publication/);
   assert.equal(result.contacts[0].source, "Monid · LinkedIn (HarvestAPI)");
   assert.equal(result.emailDiscoveryComplete, true);
+});
+
+test("Apollo via the same Monid client works without a LinkedIn page and before a generic mailbox", async () => {
+  const calls: string[] = [];
+  const client = emptyClient();
+  client.employees = async () => assert.fail("no unverified LinkedIn company lookup");
+  client.searchApolloPeople = async () => {
+    calls.push("apollo-search");
+    return receipt({ people: [{ id: "person-1", first_name: "Jane", last_name_obfuscated: "R***", title: "Head of Partnerships", has_email: true, organization: { name: "Acme France" } }] });
+  };
+  client.matchApolloPerson = async (id) => {
+    calls.push(id);
+    return receipt({ person: { id, name: "Jane Rivers", title: "Head of Partnerships", email: "jane@acme.fr", email_status: "verified", organization: { primary_domain: "acme.fr" } } });
+  };
+  client.verifyEmail = async (email) => { calls.push(email); return receipt(verified(email)); };
+  const result = await searchMonidContacts(company, undefined, {}, { client, resolveContext: async () => ({ ...context, companyLinkedinUrl: null }) });
+  assert.deepEqual(calls, ["apollo-search", "person-1", "jane@acme.fr"]);
+  assert.equal(result.contacts[0].provider, "apollo");
+  assert.equal(result.contacts[0].email, "jane@acme.fr");
+  assert.ok(result.diagnostics.some((entry) => entry.provider === "apollo" && entry.status === "success"));
+  assert.equal(result.diagnostics.find((entry) => entry.stage === "budget")?.costUsd, client.usage.costUsd);
+});
+
+test("Apollo stays available if official context resolution fails, with no invented alternate domain", async () => {
+  let calls = 0;
+  const client = emptyClient();
+  client.searchApolloPeople = async () => { calls += 1; return receipt({ people: [] }); };
+  const result = await searchMonidContacts(company, undefined, {}, { client, resolveContext: async () => { throw new Error("private upstream body"); } });
+  assert.equal(calls, 1);
+  assert.equal(result.contacts.length, 0);
+  assert.ok(!JSON.stringify(result).includes("private upstream body"));
+});
+
+test("Apollo cannot resurrect a rejected Hunter email and duplicate a LinkedIn identity", async () => {
+  const client = emptyClient();
+  client.findEmail = async () => receipt({ data: { first_name: "Jane", last_name: "Rivers", email: "jane@acme.fr", accept_all: true } });
+  client.searchApolloPeople = async () => receipt({ people: [{ id: "person-1", name: "Jane Rivers", title: "Head of Partnerships", has_email: true, organization: { name: company.name } }] });
+  client.matchApolloPerson = async (id) => receipt({ person: { id, name: "Jane Rivers", title: "Head of Partnerships", email: "jane@acme.fr", email_status: "verified", organization: { primary_domain: "acme.fr" } } });
+  client.verifyEmail = async () => assert.fail("previously rejected email must not be retried");
+  const result = await searchMonidContacts(company, undefined, {}, { client, resolveContext: async () => ({ ...context, mailboxes: [] }) });
+  assert.equal(result.contacts.length, 1);
+  assert.equal(result.contacts[0].email, null);
+  assert.ok(result.rejectedEmails?.includes("jane@acme.fr"));
 });
 
 test("the LinkedIn shortlist prioritizes sponsorship owners and senior brand leaders over generic roles", () => {
@@ -92,6 +138,15 @@ test("catch-all or inconclusive results are not promoted by another fallback", a
   assert.equal(result.contacts.length, 1);
   assert.equal(result.contacts[0].email, null);
   assert.deepEqual(result.rejectedEmails?.sort(), ["contact@acme.fr", "jane@acme-group.com", "jane@acme.fr"]);
+});
+
+test("the official mailbox fallback never retries an address already rejected in this enrichment", async () => {
+  const client = emptyClient();
+  client.findEmail = async () => receipt({ data: { first_name: "Jane", last_name: "Rivers", email: "contact@acme.fr", accept_all: true } });
+  client.verifyEmail = async () => assert.fail("do not resurrect or pay twice for a rejected address");
+  const result = await searchMonidContacts(company, undefined, {}, { client, resolveContext: async () => context });
+  assert.ok(result.contacts.every((contact) => !contact.email));
+  assert.deepEqual(result.rejectedEmails, ["contact@acme.fr"]);
 });
 
 test("Hunter rejects invalid, mismatched, unknown, low-score, SMTP-failed and accept-all records", () => {

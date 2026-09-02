@@ -4,6 +4,14 @@ import { MonidClient, MonidError, estimateMonidCost, readMonidCost } from "../sr
 
 const price = { type: "PER_RESULT", amount: { value: 0.02, currency: "USD" } };
 const completed = (output: unknown = {}, httpStatus = 200) => ({ runId: "TEST_RUN", status: "COMPLETED", output, providerResponse: { httpStatus }, cost: { value: httpStatus === 404 ? 0 : 0.02, currency: "USD" } });
+const apolloPrice = {
+  type: "TIERED", amount: { value: 0.05, currency: "USD" },
+  default: { type: "PER_CALL", amount: { value: 0.05, currency: "USD" } },
+  tiers: [
+    { when: { reveal_personal_emails: "true" }, price: { type: "PER_CALL", amount: { value: 0.05, currency: "USD" } } },
+    { when: { reveal_phone_number: "true" }, selector: { key: "phone_units", in: "output" }, price: { type: "PER_CALL", amount: { value: 0.4, currency: "USD" } } },
+  ],
+};
 
 test("Monid HTTP adapter", async (t) => {
   const originalFetch = globalThis.fetch;
@@ -66,6 +74,69 @@ test("Monid HTTP adapter", async (t) => {
     assert.equal(calls, 1);
   });
 
+  await t.test("Apollo tiered pricing is bounded only with both paid extras explicitly disabled", async () => {
+    const bodies: Array<Record<string, unknown>> = [];
+    globalThis.fetch = async (input, init) => {
+      const body = JSON.parse(String(init?.body));
+      if (String(input).endsWith("/inspect")) return Response.json({ price: apolloPrice });
+      bodies.push(body);
+      return Response.json({ ...completed(), cost: { value: 0.05, currency: "USD" } });
+    };
+    const client = new MonidClient({ apiKey: "test", maxCostUsd: 0.05 });
+    await client.matchApolloPerson("person-1");
+    assert.deepEqual(bodies[0].input, { queryParams: { id: "person-1", reveal_personal_emails: false, reveal_phone_number: false } });
+    assert.equal(client.usage.reservedUsd, 0.05);
+    await assert.rejects(client.matchApolloPerson("person-2"), (error: unknown) => error instanceof MonidError && error.code === "budget");
+    assert.equal(bodies.length, 1);
+  });
+
+  await t.test("Apollo fallback shares the amount already reserved by LinkedIn and Hunter", async () => {
+    const paid: string[] = [];
+    globalThis.fetch = async (input, init) => {
+      const body = JSON.parse(String(init?.body));
+      if (String(input).endsWith("/inspect")) return Response.json({ price: body.provider === "apollo" ? apolloPrice : price });
+      paid.push(body.endpoint);
+      return Response.json(completed());
+    };
+    const client = new MonidClient({ apiKey: "test", maxCostUsd: 0.16 });
+    await client.employees("https://www.linkedin.com/company/acme-france"); // reserves 0.10
+    await client.findEmail("Jane Rivers", "acme.fr"); // reserves 0.02
+    await assert.rejects(client.matchApolloPerson("person-1"), (error: unknown) => error instanceof MonidError && error.code === "budget");
+    assert.equal(paid.length, 2);
+    assert.equal(client.usage.reservedUsd, 0.12);
+  });
+
+  await t.test("a definitive provider failure can use a different source, but never retry the failed operation", async () => {
+    const calls: string[] = [];
+    globalThis.fetch = async (input, init) => {
+      const body = JSON.parse(String(init?.body));
+      if (String(input).endsWith("/inspect")) return Response.json({ price });
+      calls.push(body.endpoint);
+      return Response.json(body.provider === "apify"
+        ? { ...completed(null, 503), cost: { value: 0, currency: "USD" } }
+        : completed({ people: [] }));
+    };
+    const client = new MonidClient({ apiKey: "test" });
+    await assert.rejects(client.employees("https://www.linkedin.com/company/acme-france"));
+    await client.searchApolloPeople("acme.fr", ["Head of Partnerships"]);
+    await assert.rejects(client.employees("https://www.linkedin.com/company/acme-france"));
+    assert.deepEqual(calls, ["/harvestapi/linkedin-company-employees", "/mixed_people/api_search"]);
+  });
+
+  await t.test("an uncertain charge blocks Apollo as well as every other provider", async () => {
+    let runs = 0;
+    globalThis.fetch = async (input) => {
+      if (String(input).endsWith("/inspect")) return Response.json({ price });
+      runs += 1;
+      throw new Error("lost response after provider may have charged");
+    };
+    const client = new MonidClient({ apiKey: "test" });
+    await assert.rejects(client.findEmail("Jane Rivers", "acme.fr"));
+    await assert.rejects(client.matchApolloPerson("person-1"));
+    assert.equal(runs, 1);
+    assert.equal(client.usage.costUsd, null);
+  });
+
   await t.test("treats COMPLETED with provider 404 as no result, not a valid email", async () => {
     globalThis.fetch = async (input) => Response.json(String(input).endsWith("/inspect") ? { price } : completed(null, 404));
     const result = await new MonidClient({ apiKey: "test" }).findEmail("Jane Rivers", "acme.fr");
@@ -110,4 +181,13 @@ test("Monid prices include flat fees and normalize dollar vs micro-dollar receip
   assert.equal(readMonidCost({ cost: { value: 0.02392, currency: "USD" } }), 0.02392);
   assert.equal(readMonidCost({ cost: { value: 5000, unit: "UNKNOWN", currency: "USD" } }), null);
   assert.throws(() => estimateMonidCost({ ...price, amount: { value: 1, currency: "EUR" } }, 1));
+  assert.equal(estimateMonidCost({ type: "PER_CALL", amount: { value: 0, currency: "USD" } }, 10), 0);
+  const safe = { queryParams: { reveal_personal_emails: false, reveal_phone_number: false } };
+  assert.equal(estimateMonidCost(apolloPrice, 1, safe), 0.05);
+  assert.throws(() => estimateMonidCost(apolloPrice, 1));
+  assert.throws(() => estimateMonidCost(apolloPrice, 1, { queryParams: { reveal_personal_emails: false, reveal_phone_number: true } }));
+  assert.throws(() => estimateMonidCost({ ...apolloPrice, tiers: [{ when: { unknown_addon: "true" } }] }, 1, safe));
+  assert.throws(() => estimateMonidCost({ ...apolloPrice, tiers: [{ selector: { key: "results", in: "output" } }] }, 1, safe));
+  assert.throws(() => estimateMonidCost({ ...apolloPrice, tiers: [{ when: { reveal_phone_number: "false" } }] }, 1, safe));
+  assert.throws(() => estimateMonidCost({ ...apolloPrice, default: { type: "PER_RESULT", amount: { value: 0.05, currency: "USD" } } }, 1, safe));
 });

@@ -8,8 +8,8 @@ const candidate: ContactCandidate = { name: "Jane Rivers", role: "Head of Partne
 const company = { id: "test-acme", name: "Acme France" } as Company;
 const provider = (id: ContactProvider["id"], search: ContactProvider["search"], configured = true): ContactProvider => ({ id, isConfigured: () => configured, search });
 
-test("Monid is first and a usable result avoids unnecessary Apollo spend", async () => {
-  assert.deepEqual(getContactProviders().map((item) => item.id), ["monid", "apollo"]);
+test("Monid is the only configured transport and a usable result stops the provider chain", async () => {
+  assert.deepEqual(getContactProviders().map((item) => item.id), ["monid"]);
   const result = await searchStructuredContactProviders(company, undefined, {}, [
     provider("monid", async () => ({ contacts: [candidate], diagnostics: [], emailDiscoveryComplete: true })),
     provider("apollo", async () => { assert.fail("unnecessary Apollo spend"); }),
@@ -17,7 +17,7 @@ test("Monid is first and a usable result avoids unnecessary Apollo spend", async
   assert.equal(result.contacts[0].email, candidate.email);
 });
 
-test("missing or failed Monid falls back to Apollo without retrying or leaking an upstream error", async () => {
+test("a failed structured provider allows the next explicitly supplied provider without leaking its error", async () => {
   for (const configured of [false, true]) {
     let attempts = 0;
     const result = await searchStructuredContactProviders(company, undefined, {}, [
@@ -28,6 +28,26 @@ test("missing or failed Monid falls back to Apollo without retrying or leaking a
     assert.equal(result.contacts[0].email, candidate.email);
     assert.ok(!JSON.stringify(result).includes("API_SECRET"));
   }
+});
+
+test("a leftover direct Apollo key cannot trigger a fallback when Monid is missing", async (t) => {
+  const originalMonid = process.env.MONID_API_KEY;
+  const originalApollo = process.env.APOLLO_API_KEY;
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+    if (originalMonid === undefined) delete process.env.MONID_API_KEY;
+    else process.env.MONID_API_KEY = originalMonid;
+    if (originalApollo === undefined) delete process.env.APOLLO_API_KEY;
+    else process.env.APOLLO_API_KEY = originalApollo;
+  });
+  delete process.env.MONID_API_KEY;
+  process.env.APOLLO_API_KEY = "old-subscription-must-not-be-used";
+  globalThis.fetch = async () => assert.fail("no direct Apollo request");
+  const result = await searchStructuredContactProviders(company);
+  assert.equal(result.contacts.length, 0);
+  assert.equal(result.diagnostics[0].provider, "monid");
+  assert.equal(result.diagnostics[0].status, "failed");
 });
 
 test("Apollo cannot promote an address Monid rejected as catch-all or inconclusive", async () => {

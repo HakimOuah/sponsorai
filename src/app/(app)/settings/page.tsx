@@ -99,17 +99,19 @@ export default async function SettingsPage() {
               value={process.env.ANTHROPIC_API_KEY ? "Configurée" : undefined}
             />
             <EnvField
-              label="Monid · LinkedIn et emails"
+              label="Monid · LinkedIn, Hunter et Apollo"
               value={process.env.MONID_API_KEY?.trim() ? "Configurée — source prioritaire" : undefined}
               placeholder="Définir MONID_API_KEY sur le serveur"
             />
             <EnvField
-              label="Apollo.io API Key"
-              value={process.env.APOLLO_API_KEY ? "Configurée" : undefined}
+              label="Apollo · via Monid"
+              value={process.env.MONID_API_KEY?.trim() ? "Inclus — aucune clé Apollo nécessaire" : undefined}
+              placeholder="Configurer Monid pour activer cette source"
             />
           </div>
           <p className="mt-3 text-xs text-[#969BA8]/55">
-            Monid donne accès aux fournisseurs LinkedIn et Hunter sans clé Hunter séparée.
+            LinkedIn, Hunter et Apollo passent par Monid et partagent le même plafond par enrichissement.
+            Aucune clé ni aucun abonnement Apollo séparé n&apos;est nécessaire pour ce parcours.
             Configuration dans les variables d&apos;environnement du serveur ; les clés ne sont jamais affichées ici.
           </p>
         </Section> : null}

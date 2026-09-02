@@ -1,485 +1,193 @@
 import type { Company } from "@prisma/client";
-import {
-  getCompanyDomain,
-  getContactRelevance,
-  getRoleRelevanceLabel,
-  isBusinessEmailForCompany,
-} from "./contact-quality";
-import type {
-  ContactDiscoveryDiagnostic,
-  ContactProviderSearchResult,
-  ContactSearchOptions,
-} from "@/lib/contacts/types";
+import { getCompanyDomain, getContactRelevance, getRoleRelevanceLabel, isBusinessEmailForCompany } from "./contact-quality";
+import { asObject, MonidClient, MonidError } from "@/lib/contacts/monid-client";
+import { canonicalLinkedinUrl, mailboxPriority } from "@/lib/contacts/company-context";
+import { isDeliverableHunterEmail } from "@/lib/contacts/email-verification";
+import type { ContactCandidate, ContactDiscoveryDiagnostic, ContactProviderSearchResult, ContactSearchOptions } from "@/lib/contacts/types";
 
 type ApolloPerson = {
-  id?: string;
-  person_id?: string;
-  first_name?: string;
-  last_name?: string;
-  name?: string;
-  last_name_obfuscated?: string;
-  title?: string;
-  headline?: string;
-  has_email?: boolean;
-  email?: string;
-  email_status?: string;
-  contact_email_status?: string;
-  linkedin_url?: string;
-  organization?: { name?: string; primary_domain?: string };
-  organization_name?: string;
-};
-
-export type ApolloContact = {
+  id: string;
   name: string;
-  role: string;
-  email: string | null;
-  email_status: "verified" | "missing";
-  email_evidence?: string | null;
-  email_source?: string | null;
-  email_kind?: "personal_professional" | "unknown";
-  email_pattern?: string | null;
-  email_candidates?: string[];
+  title: string;
+  hasEmail: boolean;
+  email: string;
+  emailStatus: string;
   linkedin: string | null;
-  confidence: "high" | "medium";
-  verification_status: "verified_current";
-  current_at_company: true;
-  role_relevance: "high" | "medium";
-  evidence: string;
-  source: string;
-  providerExternalId: string | null;
+  organizationDomain: string;
+  organizationName: string;
 };
 
-type ApolloBulkResult = {
-  people: ApolloPerson[];
-  requested: number;
-  matched: number;
-  missing: number;
-  creditsConsumed: number | null;
+type ApolloClient = Pick<MonidClient, "searchApolloPeople" | "matchApolloPerson" | "verifyEmail">;
+type Dependencies = {
+  client?: ApolloClient;
+  trustedDomains?: string[];
+  rejectedEmails?: Set<string>;
 };
 
 const TARGET_TITLES = [
-  "partnerships manager",
-  "brand partnerships manager",
-  "sponsorship manager",
-  "sports marketing manager",
-  "community partnerships manager",
-  "local marketing manager",
-  "field marketing manager",
-  "events manager",
-  "brand marketing manager",
-  "influencer marketing manager",
-  "creator partnerships manager",
-  "communications director",
-  "marketing director",
-  "head of partnerships",
-  "head of brand",
-  "head of marketing",
-  "vp marketing",
+  "partnerships manager", "brand partnerships manager", "sponsorship manager",
+  "sports marketing manager", "community partnerships manager", "local marketing manager",
+  "field marketing manager", "events manager", "brand marketing manager",
+  "influencer marketing manager", "creator partnerships manager", "communications director",
+  "marketing director", "head of partnerships", "head of brand", "head of marketing", "vp marketing",
 ];
 
-export async function checkApolloConnection(): Promise<{
-  configured: boolean;
-  ok: boolean;
-  status: number | null;
-}> {
-  const apiKey = process.env.APOLLO_API_KEY;
-
-  if (!apiKey) {
-    return { configured: false, ok: false, status: null };
+/** Legacy health-check URL now inspects Apollo through Monid, without a paid run. */
+export async function checkApolloConnection() {
+  const configured = Boolean(process.env.MONID_API_KEY?.trim());
+  if (!configured) return { configured, ok: false, status: null, transport: "monid" as const };
+  try {
+    await new MonidClient({ deadline: Date.now() + 15_000 }).checkApolloAccess();
+    return { configured, ok: true, status: 200, transport: "monid" as const, check: "catalog" as const };
+  } catch {
+    return { configured, ok: false, status: null, transport: "monid" as const };
   }
-
-  const searchParams = new URLSearchParams({ page: "1", per_page: "1" });
-  searchParams.append("q_organization_domains_list[]", "apollo.io");
-
-  const response = await fetch(
-    `https://api.apollo.io/api/v1/mixed_people/api_search?${searchParams.toString()}`,
-    {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
-      cache: "no-store",
-    }
-  );
-
-  return {
-    configured: true,
-    ok: response.ok,
-    status: response.status,
-  };
 }
 
+/** Apollo is a Monid data source, never a separate subscription or budget. */
 export async function searchApolloContacts(
   company: Company,
   log?: (message: string) => void,
   options: ContactSearchOptions = {},
+  dependencies: Dependencies = {},
 ): Promise<ContactProviderSearchResult> {
-  const apiKey = process.env.APOLLO_API_KEY;
-  const domain = getCompanyDomain(company.website);
   const diagnostics: ContactDiscoveryDiagnostic[] = [];
-
-  if (!apiKey || !domain) {
-    return {
-      contacts: [],
-      diagnostics: [
-        {
-          provider: "apollo",
-          stage: "people_search",
-          status: "failed",
-          message: !apiKey
-            ? "Clé Apollo absente."
-            : "Domaine entreprise manquant pour la recherche Apollo.",
-        },
-      ],
-    };
+  const contacts: ContactCandidate[] = [];
+  const rejectedEmails = dependencies.rejectedEmails || new Set<string>();
+  const domain = getCompanyDomain(company.website)?.toLowerCase();
+  const result = () => ({ contacts, diagnostics, emailDiscoveryComplete: true, rejectedEmails: Array.from(rejectedEmails) });
+  if (!domain) {
+    diagnostics.push({ provider: "apollo", stage: "people_search", status: "no_result", message: "Apollo via Monid : domaine de l’entreprise manquant." });
+    return result();
   }
+  if (options.signal?.aborted || Date.now() >= (options.deadline ?? Infinity)) return result();
 
-  const searchParams = new URLSearchParams();
-  TARGET_TITLES.forEach((title) => searchParams.append("person_titles[]", title));
-  ["head", "director", "manager", "vp", "c_suite"].forEach((seniority) =>
-    searchParams.append("person_seniorities[]", seniority)
-  );
-  searchParams.append("q_organization_domains_list[]", domain);
-  searchParams.append("contact_email_status[]", "verified");
-  searchParams.append("include_similar_titles", "false");
-  searchParams.append("page", "1");
-  searchParams.append("per_page", "10");
-
-  const searchResponse = await fetch(
-    `https://api.apollo.io/api/v1/mixed_people/api_search?${searchParams.toString()}`,
-    {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
-      cache: "no-store",
-      signal: apolloSignal(options),
-    }
-  );
-
-  if (!searchResponse.ok) {
-    throw new Error(`Apollo search failed (${searchResponse.status})`);
+  let client: ApolloClient;
+  let people: ApolloPerson[];
+  try {
+    client = dependencies.client || new MonidClient(options);
+    log?.("Apollo via Monid recherche les rôles partenariats et marketing dans l’entreprise...");
+    const searched = await client.searchApolloPeople(domain, TARGET_TITLES);
+    const rawPeople = asObject(searched.output).people;
+    people = Array.isArray(rawPeople) ? rawPeople.slice(0, 10).map(normalizePerson) : [];
+    people = Array.from(new Map(people.filter((person) => person.id && getContactRelevance(person.title) >= 2 &&
+      isCurrentApolloEmployment(person, company.name, domain)).map((person) => [person.id, person])).values());
+    people.sort((a, b) => getContactRelevance(b.title) - getContactRelevance(a.title));
+  } catch (error) {
+    diagnostics.push(failure("people_search", error));
+    return result();
   }
-
-  const searchData = await searchResponse.json();
-  const people = normalizePeople(searchData)
-    .filter((person) => getContactRelevance(person.title || person.headline) >= 2)
-    .slice(0, 5);
 
   diagnostics.push({
-    provider: "apollo",
-    stage: "people_search",
-    status: people.length > 0 ? "success" : "no_result",
-    message:
-      people.length > 0
-        ? `${people.length} profil${people.length > 1 ? "s" : ""} pertinent${people.length > 1 ? "s" : ""} trouvé${people.length > 1 ? "s" : ""} dans Apollo.`
-        : "Apollo n’a trouvé aucun profil pertinent pour ce domaine.",
-    matched: people.length,
+    provider: "apollo", stage: "people_search", status: people.length ? "success" : "no_result", matched: people.length,
+    message: `Apollo via Monid : ${people.length} profil(s) pertinent(s) trouvé(s). La recherche seule ne révèle pas les emails.`,
   });
-
-  if (people.length === 0) return { contacts: [], diagnostics };
-
-  const peopleWithPotentialEmail = people.filter(
-    (person) => person.has_email !== false,
-  );
-  if (peopleWithPotentialEmail.length === 0) {
-    const message =
-      "Apollo indique qu’aucun de ces profils ne possède d’email disponible. Recherche publique de secours activée.";
-    diagnostics.push({
-      provider: "apollo",
-      stage: "email_enrichment",
-      status: "no_result",
-      message,
-      requested: 0,
-      matched: 0,
-      usableEmails: 0,
-      creditsConsumed: 0,
-    });
-    log?.(message);
-    return { contacts: [], diagnostics };
-  }
-
-  let bulkResult: ApolloBulkResult | null = null;
-  try {
-    bulkResult = await enrichApolloPeople(
-      apiKey,
-      peopleWithPotentialEmail,
-      domain,
-      options,
-    );
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Erreur Apollo inconnue.";
-    log?.(`${message} Recherche publique de secours activée.`);
-    diagnostics.push({
-      provider: "apollo",
-      stage: "email_enrichment",
-      status: "failed",
-      message,
-      requested: peopleWithPotentialEmail.length,
-      usableEmails: 0,
-    });
-  }
-
-  const candidates = mergeApolloPeople(
-    peopleWithPotentialEmail,
-    bulkResult?.people || [],
-  );
-  const contacts = candidates
-    .map((person) => toApolloContact(person, company.name, domain))
-    .filter((contact): contact is ApolloContact => Boolean(contact))
-    .sort((a, b) => getContactRelevance(b.role) - getContactRelevance(a.role))
-    .slice(0, 3);
-  const usableEmails = contacts.filter((contact) => contact.email).length;
-
-  if (bulkResult) {
-    const status = usableEmails > 0
-      ? "success"
-      : bulkResult.matched > 0
-        ? "no_result"
-        : "partial";
-    const message = usableEmails > 0
-      ? `Apollo a révélé ${usableEmails} email${usableEmails > 1 ? "s" : ""} professionnel${usableEmails > 1 ? "s" : ""} vérifié${usableEmails > 1 ? "s" : ""}.`
-      : `Apollo a enrichi ${bulkResult.matched}/${bulkResult.requested} profil${bulkResult.requested > 1 ? "s" : ""}, sans email professionnel exploitable.`;
-
-    diagnostics.push({
-      provider: "apollo",
-      stage: "email_enrichment",
-      status,
-      message,
-      requested: bulkResult.requested,
-      matched: bulkResult.matched,
-      usableEmails,
-      creditsConsumed: bulkResult.creditsConsumed,
-    });
-    log?.(message);
-  }
-
-  return { contacts, diagnostics };
-}
-
-async function enrichApolloPeople(
-  apiKey: string,
-  people: ApolloPerson[],
-  domain: string,
-  options: ContactSearchOptions,
-): Promise<ApolloBulkResult> {
-  const details = people.map((person) => ({
-    id: person.id || person.person_id,
-    first_name: person.first_name,
-    last_name: person.last_name,
-    name: person.name,
-    organization_domain: domain,
-    linkedin_url: person.linkedin_url,
-  }));
-
-  const response = await fetch(
-    "https://api.apollo.io/api/v1/people/bulk_match?reveal_personal_emails=false",
-    {
-      method: "POST",
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
-      body: JSON.stringify({ details }),
-      cache: "no-store",
-      signal: apolloSignal(options),
+  const selected = people.filter((person) => person.hasEmail).slice(0, 3);
+  const domains = Array.from(new Set([domain, ...(dependencies.trustedDomains || [])]));
+  let requested = 0;
+  let matched = 0;
+  for (const preview of selected) {
+    if (options.signal?.aborted || Date.now() >= (options.deadline ?? Infinity)) break;
+    try {
+      requested += 1;
+      // Match by the stable Apollo id, not an obfuscated name from search.
+      const enriched = await client.matchApolloPerson(preview.id);
+      if (enriched.notFound) continue;
+      const person = normalizePerson(asObject(enriched.output).person);
+      if (person.id !== preview.id) continue;
+      const contact = toApolloContact(person, company.name, domain);
+      if (!contact) continue;
+      matched += 1;
+      contacts.push(contact);
+      const email = person.email;
+      if (!email || rejectedEmails.has(email)) continue;
+      // A provider's verified label is insufficient: require an official domain,
+      // a named work address, and an independent deliverability check.
+      if (!isNamedBusinessEmail(email, domains) || person.emailStatus !== "verified") {
+        // Missing attribution is not a negative deliverability result. Do not
+        // invalidate an existing contact or an independently sourced mailbox.
+        continue;
+      }
+      rejectedEmails.add(email);
+      const checked = await client.verifyEmail(email);
+      if (!isDeliverableHunterEmail(checked.output, email)) continue;
+      rejectedEmails.delete(email);
+      Object.assign(contact, {
+        email, email_status: "verified", email_kind: "personal_professional", confidence: "high",
+        email_source: "Apollo via Monid · vérification Hunter via Monid",
+        email_evidence: `Adresse professionnelle déclarée vérifiée par Apollo puis contrôlée par Hunter le ${new Date().toISOString().slice(0, 10)} : SMTP positif et domaine non catch-all. La pertinence du destinataire et l’envoi restent soumis à votre approbation.`,
+      });
+    } catch (error) {
+      diagnostics.push(failure("email_enrichment", error));
+      break; // Keep prior results; do not multiply failed or uncertain paid calls.
     }
-  );
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null) as {
-      error_code?: string;
-      error_message?: string;
-      message?: string;
-    } | null;
-    const errorCode = errorData?.error_code
-      ? ` · ${errorData.error_code}`
-      : "";
-    throw new Error(
-      `Apollo bulk_match a échoué (${response.status}${errorCode}). Vérifiez les permissions de la clé et les crédits disponibles.`,
-    );
   }
-
-  const data = await response.json() as Record<string, unknown>;
-  const matchedPeople = normalizePeople(data);
-
-  return {
-    people: matchedPeople,
-    requested: toSafeNumber(data.total_requested_enrichments, people.length),
-    matched: toSafeNumber(data.unique_enriched_records, matchedPeople.length),
-    missing: toSafeNumber(
-      data.missing_records,
-      Math.max(0, people.length - matchedPeople.length),
-    ),
-    creditsConsumed: toNullableNumber(data.credits_consumed),
-  };
-}
-
-function apolloSignal(options: ContactSearchOptions): AbortSignal {
-  return AbortSignal.any([
-    AbortSignal.timeout(Math.max(1, Math.min(25_000, (options.deadline ?? Infinity) - Date.now()))),
-    ...(options.signal ? [options.signal] : []),
-  ]);
-}
-
-function mergeApolloPeople(
-  searchedPeople: ApolloPerson[],
-  enrichedPeople: ApolloPerson[],
-): ApolloPerson[] {
-  const enrichedById = new Map(
-    enrichedPeople
-      .map((person) => [getApolloPersonId(person), person] as const)
-      .filter((entry): entry is [string, ApolloPerson] => Boolean(entry[0])),
-  );
-
-  return searchedPeople.map((person) => {
-    const enriched = enrichedById.get(getApolloPersonId(person) || "");
-    return enriched ? { ...person, ...enriched } : person;
+  const usableEmails = contacts.filter((contact) => contact.email).length;
+  diagnostics.push({
+    provider: "apollo", stage: "email_enrichment", status: usableEmails ? "success" : "no_result",
+    requested, matched, usableEmails,
+    message: `Apollo via Monid : ${matched} identité(s) complète(s), ${usableEmails} email(s) professionnel(s) confirmé(s) après vérification. Les coûts sont inclus dans le budget Monid commun.`,
   });
+  return result();
 }
 
-function getApolloPersonId(person: ApolloPerson): string | null {
-  return person.id || person.person_id || null;
-}
-
-function toSafeNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
-}
-
-function toNullableNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-function normalizePeople(data: unknown): ApolloPerson[] {
-  if (!data || typeof data !== "object") return [];
-  const record = data as Record<string, unknown>;
-  const people =
-    record.people ||
-    record.contacts ||
-    record.matches ||
-    record.persons ||
-    record.details ||
-    [];
-
-  return Array.isArray(people) ? (people as ApolloPerson[]) : [];
-}
-
-function toApolloContact(
-  person: ApolloPerson,
-  companyName: string,
-  companyDomain: string
-): ApolloContact | null {
-  const role = person.title || person.headline || "";
-  const relevance = getRoleRelevanceLabel(role);
-  const name =
-    person.name ||
-    [person.first_name, person.last_name].filter(Boolean).join(" ").trim();
-  const rawEmailStatus = person.email_status || person.contact_email_status;
-  const trustedDomains = [
-    companyDomain,
-    person.organization?.primary_domain,
-  ].filter((domain): domain is string => Boolean(domain));
-  const hasVerifiedEmail =
-    rawEmailStatus === "verified" &&
-    trustedDomains.some((domain) =>
-      isBusinessEmailForCompany(person.email, domain),
-    );
-  const currentEmploymentVerified = isCurrentApolloEmployment(
-    person,
-    companyName,
-    companyDomain,
-  );
-
-  if (
-    !name.includes(" ") ||
-    !role ||
-    relevance === "low" ||
-    !currentEmploymentVerified
-  ) {
-    return null;
-  }
-
+function normalizePerson(raw: unknown): ApolloPerson {
+  const person = asObject(raw);
+  const organization = asObject(person.organization);
   return {
-    name,
-    role,
-    email: hasVerifiedEmail ? person.email || null : null,
-    email_status: hasVerifiedEmail ? "verified" : "missing",
-    email_evidence: hasVerifiedEmail
-      ? "Apollo indique un email professionnel vérifié pour ce contact."
-      : null,
-    email_source: hasVerifiedEmail ? "Apollo People API" : null,
-    email_kind: hasVerifiedEmail ? "personal_professional" : "unknown",
-    email_pattern: null,
-    email_candidates: [],
-    linkedin: person.linkedin_url || null,
-    confidence: hasVerifiedEmail ? "high" : "medium",
-    verification_status: "verified_current",
-    current_at_company: true,
-    role_relevance: relevance,
-    evidence: `Apollo: profil actuel associé à ${companyName} (${companyDomain}) avec rôle ${role}`,
-    source: "Apollo People API",
-    providerExternalId: getApolloPersonId(person),
+    id: text(person.id) || text(person.person_id),
+    name: text(person.name) || [text(person.first_name), text(person.last_name)].filter(Boolean).join(" "),
+    title: text(person.title) || text(person.headline),
+    hasEmail: person.has_email !== false,
+    email: text(person.email).toLowerCase(),
+    emailStatus: text(person.email_status) || text(person.contact_email_status),
+    linkedin: canonicalLinkedinUrl(person.linkedin_url, "in"),
+    organizationDomain: text(organization.primary_domain).toLowerCase().replace(/^www\./, ""),
+    organizationName: text(organization.name) || text(person.organization_name),
   };
 }
 
-function isCurrentApolloEmployment(
-  person: ApolloPerson,
-  companyName: string,
-  companyDomain: string,
-): boolean {
-  const organizationDomain = person.organization?.primary_domain
-    ?.toLowerCase()
-    .replace(/^www\./, "");
-  if (
-    organizationDomain &&
-    (organizationDomain === companyDomain ||
-      organizationDomain.endsWith(`.${companyDomain}`) ||
-      companyDomain.endsWith(`.${organizationDomain}`))
-  ) {
-    return true;
-  }
-
-  const organizationName =
-    person.organization?.name || person.organization_name || "";
-  const companyTokens = normalizeOrganizationTokens(companyName);
-  const organizationTokens = normalizeOrganizationTokens(organizationName);
-  if (companyTokens.length === 0 || organizationTokens.length === 0) {
-    return false;
-  }
-
-  const overlap = companyTokens.filter((token) =>
-    organizationTokens.includes(token),
-  ).length;
-  return overlap / Math.min(companyTokens.length, organizationTokens.length) >= 0.75;
+function toApolloContact(person: ApolloPerson, companyName: string, companyDomain: string): ContactCandidate | null {
+  const relevance = getRoleRelevanceLabel(person.title);
+  if (person.name.split(/\s+/).length < 2 || /\*|\.\.\.|…|linkedin member|anonymous|inconnu/i.test(person.name) ||
+      relevance === "low" || !isCurrentApolloEmployment(person, companyName, companyDomain)) return null;
+  return {
+    name: person.name, role: person.title, kind: "person", email: null, email_status: "missing", email_kind: "unknown",
+    linkedin: person.linkedin, confidence: "medium", verification_status: "verified_current", current_at_company: true,
+    role_relevance: relevance,
+    evidence: `Apollo via Monid : profil actuel associé à ${companyName} (${companyDomain}), rôle ${person.title}.`,
+    source: "Apollo People API via Monid",
+    // Keep the original provider/id pair so existing Apollo contacts are updated, not duplicated.
+    provider: "apollo", providerExternalId: person.id,
+  };
 }
 
-function normalizeOrganizationTokens(value: string): string[] {
-  const ignored = new Set([
-    "company",
-    "corp",
-    "corporation",
-    "group",
-    "groupe",
-    "international",
-    "global",
-    "inc",
-    "llc",
-    "ltd",
-    "sa",
-    "sas",
-  ]);
-
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .split(/\s+/)
-    .filter((token) => token.length > 1 && !ignored.has(token));
+function isNamedBusinessEmail(email: string, trustedDomains: string[]): boolean {
+  const local = email.split("@")[0];
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+    trustedDomains.some((domain) => isBusinessEmailForCompany(email, domain)) && mailboxPriority(email) === 0 &&
+    !/^(?:support|sales|service|help|hr|recruitment|jobs|careers|noreply|no-reply|admin|office)(?:[._-]|$)/i.test(local);
 }
+
+function isCurrentApolloEmployment(person: ApolloPerson, companyName: string, companyDomain: string): boolean {
+  if (person.organizationDomain && (person.organizationDomain === companyDomain ||
+      person.organizationDomain.endsWith(`.${companyDomain}`) || companyDomain.endsWith(`.${person.organizationDomain}`))) return true;
+  const expected = organizationTokens(companyName);
+  const actual = organizationTokens(person.organizationName);
+  if (!expected.length || !actual.length) return false;
+  // Do not accept a parent/group or a namesake merely because one token overlaps.
+  const overlap = expected.filter((token) => actual.includes(token)).length;
+  return overlap / Math.max(expected.length, actual.length) >= 0.75;
+}
+
+function organizationTokens(value: string): string[] {
+  const ignored = new Set(["company", "corp", "corporation", "group", "groupe", "international", "global", "inc", "llc", "ltd", "sa", "sas"]);
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ")
+    .split(/\s+/).filter((token) => token.length > 1 && !ignored.has(token));
+}
+
+function failure(stage: ContactDiscoveryDiagnostic["stage"], error: unknown): ContactDiscoveryDiagnostic {
+  return { provider: "apollo", stage, status: "failed", message: `Apollo via Monid : ${error instanceof MonidError ? error.message : "recherche indisponible ; les résultats déjà vérifiés sont conservés."}` };
+}
+
+function text(value: unknown): string { return typeof value === "string" ? value.trim() : ""; }

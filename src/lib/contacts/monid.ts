@@ -3,9 +3,12 @@ import type { Company } from "@prisma/client";
 import { getContactRelevance, getRoleRelevanceLabel, isBusinessEmailForCompany } from "@/lib/agents/contact-quality";
 import { canonicalLinkedinUrl, resolveCompanyContactContext, type CompanyContactContext } from "./company-context";
 import { asObject, MonidClient, MonidError } from "./monid-client";
+import { searchApolloContacts } from "@/lib/agents/apollo";
+import { isDeliverableHunterEmail } from "./email-verification";
+export { isDeliverableHunterEmail } from "./email-verification";
 import type { ContactCandidate, ContactDiscoveryDiagnostic, ContactProviderSearchResult, ContactSearchOptions } from "./types";
 
-type Client = Pick<MonidClient, "employees" | "findEmail" | "verifyEmail" | "usage">;
+type Client = Pick<MonidClient, "employees" | "findEmail" | "verifyEmail" | "searchApolloPeople" | "matchApolloPerson" | "usage">;
 type Dependencies = {
   client?: Client;
   resolveContext?: typeof resolveCompanyContactContext;
@@ -21,7 +24,9 @@ export async function searchMonidContacts(
   const diagnostics: ContactDiscoveryDiagnostic[] = [];
   const rejectedEmails = new Set<string>();
   log?.("Monid vérifie la page LinkedIn et les domaines email de l’entreprise sur ses sources officielles...");
-  const context = await (dependencies.resolveContext || resolveCompanyContactContext)(company, options);
+  const context = await (dependencies.resolveContext || resolveCompanyContactContext)(company, options).catch(() => ({
+    companyLinkedinUrl: null, linkedinSource: null, emailDomains: [], mailboxes: [],
+  } as CompanyContactContext));
   diagnostics.push({
     provider: "monid", stage: "company_resolution", status: context.companyLinkedinUrl ? "success" : "partial",
     message: context.companyLinkedinUrl
@@ -60,9 +65,26 @@ export async function searchMonidContacts(
   }
 
   if (!contacts.some((contact) => contact.email)) {
+    const apollo = await searchApolloContacts(company, log, options, {
+      client, trustedDomains: context.emailDomains.map((domain) => domain.domain), rejectedEmails,
+    });
+    diagnostics.push(...apollo.diagnostics);
+    // Prefer usable addresses, then fill with verified identities. A fallback
+    // must not discard existing people, duplicate them, or resurrect a rejection.
+    const merged: ContactCandidate[] = [];
+    for (const contact of [...contacts, ...apollo.contacts].sort((a, b) => Number(Boolean(b.email)) - Number(Boolean(a.email)))) {
+      if (contact.email && rejectedEmails.has(contact.email.toLowerCase())) continue;
+      if (merged.some((existing) => (existing.linkedin && existing.linkedin === contact.linkedin) || normalizeName(existing.name) === normalizeName(contact.name))) continue;
+      merged.push(contact);
+    }
+    contacts = merged.slice(0, 3);
+  }
+
+  if (!contacts.some((contact) => contact.email)) {
     log?.("Vérification d’une boîte fonctionnelle publiée sur le site officiel, en dernier recours...");
     let mailbox: ContactCandidate | null = null;
     for (const candidate of context.mailboxes) {
+      if (rejectedEmails.has(candidate.email.toLowerCase())) continue;
       try {
         rejectedEmails.add(candidate.email);
         const verified = await client.verifyEmail(candidate.email);
@@ -101,7 +123,7 @@ export async function searchMonidContacts(
   diagnostics.push({
     provider: "monid", stage: "budget", status: "success",
     ...client.usage,
-    message: "Recherches Monid bornées : 5 profils, 3 interlocuteurs et 2 domaines maximum ; aucune relance automatique d’appel payant.",
+    message: "Budget Monid commun à LinkedIn, Hunter et Apollo : 5 profils LinkedIn, 3 révélations Apollo et 2 domaines email maximum ; aucune relance automatique d’appel payant.",
   });
   return { contacts, diagnostics: deduplicateDiagnostics(diagnostics), emailDiscoveryComplete: true, rejectedEmails: Array.from(rejectedEmails) };
 }
@@ -170,15 +192,6 @@ async function findVerifiedEmail(client: Client, contact: ContactCandidate, cont
     };
   }
   return contact;
-}
-
-export function isDeliverableHunterEmail(output: unknown, expectedEmail: string): boolean {
-  const data = asObject(asObject(output).data);
-  return stringValue(data.email).toLowerCase() === expectedEmail.toLowerCase() &&
-    data.status === "valid" && data.result === "deliverable" &&
-    data.accept_all === false && data.smtp_check === true &&
-    data.mx_records === true && data.smtp_server === true && data.block !== true &&
-    typeof data.score === "number" && data.score >= 80;
 }
 
 function failure(stage: ContactDiscoveryDiagnostic["stage"], error: unknown): ContactDiscoveryDiagnostic {
