@@ -47,3 +47,8 @@ La première reprise réelle a confirmé la conservation des 13 marques et l'abs
 de nouvel appel Scout, mais a révélé qu'un tableau JSON valide pouvait encore
 omettre des scores. Le contrat impose donc chaque clé au niveau du schéma Claude,
 en complément de la validation serveur. Le test de non-régression couvre 13 marques.
+
+La reprise après ce correctif (`ff08a92`) a terminé en 30 secondes : 13 marques
+scorées, 13 prospects persistés, même identifiant de scan. Les logs mesurent
+16,186 secondes pour Matchmaker. Après rechargement, les 13 prospects restent
+visibles et aucun scan supplémentaire n'a été créé. Aucun email n'a été généré.

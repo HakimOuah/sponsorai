@@ -55,12 +55,27 @@ npm run build
 
 Les lectures de sources officielles sont limitées à HTTPS, au domaine de l’entreprise et à ses sous-domaines. Les IP privées et redirections externes sont refusées, le DNS est épinglé, les documents sont limités à 2 Mo et les PDF à 20 pages.
 
-### Contrôles effectués le 2 septembre 2026
+### Contrôles initiaux du 2 septembre 2026, avant activation
 
 - 92 tests automatisés réussis ; TypeScript, ESLint et compilation de production réussis.
 - Test réel isolé du nouveau parcours sur MAR by MARoco : boîte officielle retrouvée et vérifiée en 6,4 secondes, coût Monid retourné **0,01196 USD**, sous le plafond de test de 0,05 USD. Aucun envoi d’email, aucune écriture en base. Les coordonnées et la clé ne sont pas enregistrées dans ce document.
-- Les scénarios de persistance et d’accès administrateur/client ont été exécutés avec une base et des sessions simulées. La recette navigateur avec une vraie session et une base configurée reste à effectuer avant activation.
-- Cette modification n’a pas été déployée et ne configure pas les secrets du serveur de production.
+- À ce stade initial, les scénarios de persistance et d’accès administrateur/client avaient été exécutés avec une base et des sessions simulées ; la recette navigateur restait à effectuer.
+- À ce stade initial, la modification n'était pas déployée. L'ajout de la clé de production et la recette réelle sont décrits ci-dessous.
 - `npm audit` signale 21 vulnérabilités dans les dépendances déjà présentes (13 élevées, 4 modérées, 4 faibles). Les versions existantes n’ont pas été changées ; l’ajout `unpdf` n’apparaît pas dans ce relevé. Prévoir leur traitement dans un chantier de mise à jour distinct avant publication.
 
 Sources techniques : [Monid Run API](https://docs.monid.ai/api/run.html), [suivi des runs](https://docs.monid.ai/api/runs.html), [inspection des endpoints](https://docs.monid.ai/api/inspect.html). Le payload natif utilise `input.body`, `input.queryParams` et `input.pathParams` selon l’opération. Le statut Monid `COMPLETED` est contrôlé séparément du statut HTTP du fournisseur.
+
+### Activation et pilote de production du 2 septembre 2026
+
+- Intégration activée en production avec la clé serveur configurée, sans migration ni activation des changements Gmail/Outlook.
+- Version testée : `ff08a92`, incluant le scoring Claude et la reprise décrits dans `SCAN_RECOVERY.md`. 101 tests, TypeScript et build de production réussis.
+- Le scan interrompu a repris ses 13 marques sauvegardées : 13 prospects persistés en 30 secondes, dont 16,186 secondes de scoring. Aucun nouvel appel Scout ; compteur de scans inchangé après rechargement.
+- Pilote autorisé sur **10 entreprises**, plafond **0,50 USD par enrichissement**, enveloppe **5 USD Monid**, sans rédaction ni envoi d'email.
+- **10 traitements terminés**, **5 entreprises avec au moins un email exploitable**, **8 adresses nominatives et 1 boîte officielle**. Monid a apporté 4 adresses nominatives et 1 boîte officielle ; Apollo a fourni les 4 autres adresses nominatives. Les cinq entreprises sans email restent bloquées pour l'envoi.
+- Relevé fournisseur final : **21 opérations terminées**, coût total **0,739 USD**, aucune facturation inconnue ni opération en cours. Les prix Claude/Grok et crédits Apollo ne sont pas inclus.
+- Moyenne sur les 10 entreprises : **0,0739 USD**, incluant 6 cas sans appel Monid payant. Moyenne des 4 cas ayant utilisé Monid : **0,18475 USD** ; maximum observé **0,19372 USD**. Aucun plafond de coût atteint dans ce pilote.
+- Contacts nominatifs et boîte officielle retrouvés après rechargement sur les cas contrôlés ; bouton Rédacteur disponible, aucun email créé. La séparation nominatif/boîte fonctionnelle est conservée.
+- Limites observées : page LinkedIn non attestée depuis le site officiel sur 6 cas ; certains intitulés « partnerships » relèvent du business/innovation plutôt que du sponsoring. Le plafond de coût n'explique pas ces limites de couverture et de pertinence.
+- Échantillon réduit et principalement fintech : cette moyenne ne constitue pas une garantie de prix ou de couverture future. Aucun test d'envoi ou de délivrabilité réelle réalisé. Les contrôles de rôles non-admin restent automatisés, pas testés avec un vrai compte client pendant ce pilote.
+
+Les détails des entreprises, coordonnées, sessions et identifiants des opérations restent hors du dépôt.
