@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { Building2, Plus } from "lucide-react";
 import { getCompanies, getCompanyFilters } from "@/lib/actions/companies";
 import { CompanyCard } from "@/components/companies/CompanyCard";

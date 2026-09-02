@@ -20,7 +20,13 @@ export default async function AgentsPage({
     prisma.scan.findMany({
       take: 10,
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        brandsFound: true,
+        brandsScored: true,
+        duration: true,
+        createdAt: true,
         player: { select: { firstName: true, lastName: true } },
       },
     }),

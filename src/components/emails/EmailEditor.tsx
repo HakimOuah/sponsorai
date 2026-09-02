@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { ExternalLink, Send, Save, Trash2, Loader2 } from "lucide-react";
 import { updateEmail, deleteEmail, sendEmail } from "@/lib/actions/emails";
-import { useRouter } from "next/navigation";
+import { useNavigationRouter as useRouter } from "@/components/layout/NavigationProvider";
 
 interface EmailEditorProps {
   email: {

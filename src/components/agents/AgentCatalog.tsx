@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import {
   ArrowRight,
   Bot,

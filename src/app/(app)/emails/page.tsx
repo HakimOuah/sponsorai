@@ -17,9 +17,9 @@ export default async function EmailsPage({ searchParams }: Props) {
   const filters = searchParams.status
     ? { status: searchParams.status }
     : undefined;
-  const [emails, allEmails, draftEmails, access] = await Promise.all([
+  const [emails, statusCounts, draftEmails, access] = await Promise.all([
     getEmails(filters),
-    getEmails(),
+    prisma.email.groupBy({ by: ["status"], _count: { _all: true } }),
     prisma.email.findMany({
       where: { status: "draft" },
       select: {
@@ -38,10 +38,10 @@ export default async function EmailsPage({ searchParams }: Props) {
     getCurrentUserAccess(),
   ]);
   const stats = {
-    total: allEmails.length,
-    drafts: allEmails.filter((e) => e.status === "draft").length,
-    sent: allEmails.filter((e) => e.status === "sent").length,
-    replied: allEmails.filter((e) => e.status === "replied").length,
+    total: statusCounts.reduce((total, row) => total + row._count._all, 0),
+    drafts: statusCounts.find((row) => row.status === "draft")?._count._all || 0,
+    sent: statusCounts.find((row) => row.status === "sent")?._count._all || 0,
+    replied: statusCounts.find((row) => row.status === "replied")?._count._all || 0,
   };
 
   return (

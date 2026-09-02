@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useNavigationRouter as useRouter } from "@/components/layout/NavigationProvider";
 
 const STATUSES = [
   { value: "", label: "Tous" },

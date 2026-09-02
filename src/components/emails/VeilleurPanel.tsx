@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Clock,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
 import { AgentExecutionCard } from "@/components/agents/experience/AgentExecutionCard";
 import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";

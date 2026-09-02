@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { RefreshCw, Loader2, Newspaper, Mail, Clock, Zap } from "lucide-react";
 import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
 import { AgentExecutionCard } from "@/components/agents/experience/AgentExecutionCard";

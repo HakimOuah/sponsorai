@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { ArrowLeft, Mail } from "lucide-react";
 import { getEmail } from "@/lib/actions/emails";
 import { EmailEditor } from "@/components/emails/EmailEditor";

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { Pencil, ArrowLeft, Globe, MapPin } from "lucide-react";
 import { getPlayer } from "@/lib/actions/players";
 import { PlayerStats } from "@/components/players/PlayerStats";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { Users, Plus } from "lucide-react";
 import { getPlayers } from "@/lib/actions/players";
 import { PlayerCard } from "@/components/players/PlayerCard";

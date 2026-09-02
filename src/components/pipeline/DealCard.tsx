@@ -1,7 +1,7 @@
 "use client";
 
 import { Calendar, ArrowRight } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 
 export interface DealData {
   id: string;

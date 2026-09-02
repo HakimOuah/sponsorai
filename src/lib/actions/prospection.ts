@@ -177,8 +177,12 @@ export async function getScansForPlayer(playerId: string) {
   return prisma.scan.findMany({
     where: { playerId },
     orderBy: { createdAt: "desc" },
-    include: {
-      _count: { select: { prospects: true } },
+    select: {
+      id: true,
+      status: true,
+      brandsScored: true,
+      duration: true,
+      createdAt: true,
     },
   });
 }

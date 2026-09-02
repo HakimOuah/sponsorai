@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import { cache } from "react";
 import { authOptions } from "@/lib/auth";
 import {
   canOperateWorkspace,
@@ -16,7 +17,8 @@ export type UserAccess = {
   userName: string | null;
 };
 
-export async function getCurrentUserAccess(): Promise<UserAccess> {
+// Deduplicate within a single server render only. Never cache roles across requests/users.
+export const getCurrentUserAccess = cache(async (): Promise<UserAccess> => {
   const session = await getServerSession(authOptions);
   const role = normalizeAppRole(session?.user?.role);
 
@@ -29,7 +31,7 @@ export async function getCurrentUserAccess(): Promise<UserAccess> {
     userId: session?.user?.id || null,
     userName: session?.user?.name || null,
   };
-}
+});
 
 export async function requireOperationalAccess(): Promise<UserAccess> {
   const access = await getCurrentUserAccess();

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { EmailGenerator } from "@/components/emails/EmailGenerator";
 import { EnrichButton } from "@/components/companies/EnrichButton";
 import { OutreachApproval } from "./OutreachApproval";

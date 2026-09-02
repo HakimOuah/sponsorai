@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { Search, ScanLine } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getProspects, getScansForPlayer } from "@/lib/actions/prospection";
@@ -12,17 +12,16 @@ export default async function ProspectionPage({
 }: {
   searchParams: { player?: string };
 }) {
-  const players = await prisma.player.findMany({
-    where: { active: true },
-    select: { id: true, firstName: true, lastName: true, club: true },
-    orderBy: { lastName: "asc" },
-  });
-
   const selectedPlayerId = searchParams.player || "";
-  const prospects = await getProspects(selectedPlayerId || undefined);
-  const scans = selectedPlayerId
-    ? await getScansForPlayer(selectedPlayerId)
-    : [];
+  const [players, prospects, scans] = await Promise.all([
+    prisma.player.findMany({
+      where: { active: true },
+      select: { id: true, firstName: true, lastName: true, club: true },
+      orderBy: { lastName: "asc" },
+    }),
+    getProspects(selectedPlayerId || undefined),
+    selectedPlayerId ? getScansForPlayer(selectedPlayerId) : Promise.resolve([]),
+  ]);
 
   return (
     <div className="min-w-0">

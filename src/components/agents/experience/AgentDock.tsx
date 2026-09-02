@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { usePathname } from "next/navigation";
 import {
   ArrowRight,
@@ -397,4 +397,3 @@ function MissionCard({ mission }: { mission: AgentMission }) {
     </article>
   );
 }
-

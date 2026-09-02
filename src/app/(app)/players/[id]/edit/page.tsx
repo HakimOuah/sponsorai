@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { Users, ArrowLeft } from "lucide-react";
 import { getPlayer, updatePlayer } from "@/lib/actions/players";
 import { PlayerForm } from "@/components/players/PlayerForm";

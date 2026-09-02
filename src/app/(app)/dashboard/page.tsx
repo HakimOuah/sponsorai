@@ -12,7 +12,7 @@ import {
   Target,
   RefreshCw,
 } from "lucide-react";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { getDashboardData } from "@/lib/actions/dashboard";
 
 export const dynamic = "force-dynamic";

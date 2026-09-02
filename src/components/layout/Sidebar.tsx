@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -18,9 +18,11 @@ import {
   X,
   Zap,
   UserCog,
+  LoaderCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigation } from "./NavigationProvider";
 
 interface NavigationItem {
   label: string;
@@ -89,6 +91,8 @@ export function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const pathname = usePathname();
+  const navigation = useNavigation();
+  const pendingPath = navigation?.pendingHref?.split(/[?#]/)[0];
   const showExpanded = !collapsed || mobileOpen;
 
   return (
@@ -148,6 +152,11 @@ export function Sidebar({
                 ) : null}
                 <ul className="space-y-1">
                   {visibleItems.map((item) => {
+                    const isPending = Boolean(
+                      pendingPath &&
+                        (pendingPath === item.href ||
+                          pendingPath.startsWith(`${item.href}/`)),
+                    );
                     const isActive =
                       pathname === item.href ||
                       (item.href !== "/dashboard" &&
@@ -157,22 +166,29 @@ export function Sidebar({
                       <li key={item.href}>
                         <Link
                           href={item.href}
+                          aria-label={item.label}
+                          aria-current={isActive ? "page" : undefined}
+                          aria-busy={isPending || undefined}
                           onClick={onMobileClose}
                           className={cn(
                             "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                            isActive
+                            isPending || (!pendingPath && isActive)
                               ? "border-[#FF6B3D]/25 bg-[#FF6B3D]/10 text-[#F6F4EF] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_0_28px_rgba(255,107,61,0.06)]"
                               : "border-transparent text-[#969BA8] hover:border-white/[0.10] hover:bg-white/[0.045] hover:text-[#F6F4EF]",
                           )}
                         >
-                          <Icon
-                            className={cn(
-                              "h-4 w-4 shrink-0",
-                              isActive
-                                ? "text-[#FF6B3D]"
-                                : "text-[#969BA8]/70",
-                            )}
-                          />
+                          {isPending ? (
+                            <LoaderCircle className="h-4 w-4 shrink-0 text-[#FF6B3D] motion-safe:animate-spin" />
+                          ) : (
+                            <Icon
+                              className={cn(
+                                "h-4 w-4 shrink-0",
+                                isActive
+                                  ? "text-[#FF6B3D]"
+                                  : "text-[#969BA8]/70",
+                              )}
+                            />
+                          )}
                           {showExpanded ? <span>{item.label}</span> : null}
                         </Link>
                       </li>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LoaderCircle, RotateCcw, ScanLine, X } from "lucide-react";
 import { ScanProgress } from "@/components/agents/ScanProgress";

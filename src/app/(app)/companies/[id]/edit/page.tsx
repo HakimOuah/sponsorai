@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { Building2, ArrowLeft } from "lucide-react";
 import { getCompany, updateCompany } from "@/lib/actions/companies";
 import { CompanyForm } from "@/components/companies/CompanyForm";

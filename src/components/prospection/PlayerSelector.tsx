@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useNavigationRouter as useRouter } from "@/components/layout/NavigationProvider";
 
 interface PlayerSelectorProps {
   players: { id: string; firstName: string; lastName: string; club: string }[];

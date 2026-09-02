@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/layout/NavigationLink";
 import { Camera, AtSign } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import type { Player } from "@prisma/client";
