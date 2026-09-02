@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import type { DealData } from "./DealCard";
 
@@ -21,6 +21,11 @@ interface KanbanBoardProps {
 export function KanbanBoard({ initialDeals }: KanbanBoardProps) {
   const [deals, setDeals] = useState(initialDeals);
   const [isPending, startTransition] = useTransition();
+
+  // Refreshes after sends/revalidation must replace the optimistic local snapshot.
+  useEffect(() => {
+    setDeals(initialDeals);
+  }, [initialDeals]);
 
   const handleDrop = (dealId: string, newStage: string) => {
     // Optimistic update

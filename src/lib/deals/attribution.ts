@@ -1,16 +1,20 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
-export async function ensureSponsorAIAttribution(dealId: string) {
-  const existing = await prisma.attributionRecord.findUnique({ where: { dealId } });
+export async function ensureSponsorAIAttribution(
+  dealId: string,
+  db: Pick<Prisma.TransactionClient, "attributionRecord" | "deal"> = prisma,
+) {
+  const existing = await db.attributionRecord.findUnique({ where: { dealId } });
   if (existing) return existing;
 
-  const deal = await prisma.deal.findUnique({
+  const deal = await db.deal.findUnique({
     where: { id: dealId },
     include: { prospect: true },
   });
   if (!deal) throw new Error("Deal not found");
 
-  return prisma.attributionRecord.create({
+  return db.attributionRecord.create({
     data: {
       dealId,
       prospectId: deal.prospectId,

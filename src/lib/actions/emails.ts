@@ -2,13 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { canSendOutreach } from "@/lib/agents/contact-quality";
-import { getSendingProvider } from "@/lib/email/providers";
-import {
-  formatSendingIdentity,
-  resolveOutreachSendingIdentity,
-} from "@/lib/email/identities";
-import { recordLearningEvent } from "@/lib/learning/events";
+import { sendOutreachEmail } from "@/lib/email/send-outreach";
 import {
   getCurrentUserAccess,
   requireOperationalAccess,
@@ -223,134 +217,16 @@ export async function deleteEmailTemplate(id: string) {
 
 export async function sendEmail(emailId: string) {
   await requireOperationalAccess();
-  const email = await prisma.email.findUnique({
-    where: { id: emailId },
-    include: {
-      company: true,
-      prospect: {
-        include: {
-          player: true,
-          selectedContact: {
-            include: {
-              contactEmails: {
-                where: { status: { in: ["verified", "public_source"] } },
-                orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
-                take: 1,
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!email) throw new Error("Email not found");
-  const selectedContactReady = Boolean(
-    email.prospect?.selectedContact &&
-      email.prospect.selectedContact.active &&
-      email.prospect.selectedContact.employmentStatus === "verified_current" &&
-      email.prospect.selectedContact.contactEmails[0]
-  );
-  if (!selectedContactReady && !canSendOutreach(email.company)) {
-    throw new Error(
-      "Contact email is not verified enough for outreach. Run the enricher first."
-    );
-  }
-
-  if (
-    email.type === "first_contact" &&
-    !email.prospect?.outreachApprovedAt
-  ) {
-    throw new Error("Human approval is required before first outreach");
-  }
-
-  const privateContactEmail =
-    email.prospect?.selectedContact?.contactEmails[0]?.email ||
-    email.company.contactEmail;
-
-  if (!privateContactEmail) {
-    throw new Error("No qualified contact email is available");
-  }
-
-  const identity = await resolveOutreachSendingIdentity(email.sendingIdentityId);
-  const provider = getSendingProvider(identity.provider);
-
-  const result = await provider.send({
-    from: formatSendingIdentity(identity),
-    replyTo: process.env.SMTP_REPLY_TO || process.env.SMTP_FROM || process.env.SMTP_USER,
-    to: privateContactEmail,
-    subject: email.subject,
-    text: email.body,
-  });
-
-  const thread = email.mailThreadId
-    ? await prisma.mailThread.findUnique({ where: { id: email.mailThreadId } })
-    : await prisma.mailThread.create({
-        data: {
-          prospectId: email.prospectId,
-          companyId: email.companyId,
-          contactId: email.prospect?.selectedContactId || null,
-          sendingIdentityId: identity.id,
-          subject: email.subject,
-          lastMessageAt: new Date(),
-        },
-      });
-
-  await prisma.email.update({
-    where: { id: emailId },
-    data: {
-      status: "sent",
-      sentAt: new Date(),
-      messageId: result.messageId,
-      provider: result.provider,
-      sendingIdentityId: identity.id,
-      contactId: email.prospect?.selectedContactId || null,
-      mailThreadId: thread?.id || null,
-    },
-  });
-
-  await prisma.outreachEvent.create({
-    data: {
-      emailId,
-      type: "EMAIL_SENT",
-      provider: result.provider,
-      providerEventId: result.messageId,
-      metadata: { accepted: result.accepted },
-    },
-  });
-
-  await recordLearningEvent({
-    type: "EMAIL_SENT",
-    idempotencyKey: `email:${emailId}:sent`,
-    prospectId: email.prospectId,
-    emailId,
-    contactId: email.prospect?.selectedContactId,
-  });
-
-  // Update prospect status if still "new"
-  if (email.prospectId) {
-    const prospect = await prisma.prospect.findUnique({
-      where: { id: email.prospectId },
-    });
-    if (prospect && prospect.status === "new") {
-      await prisma.prospect.update({
-        where: { id: email.prospectId },
-        data: { status: "contacted" },
-      });
-    }
-  }
-
-  await prisma.activityLog.create({
-    data: {
-      type: "email_sent",
-      message: `Email envoyé à ${email.company.name}`,
-      metadata: { emailId, provider: result.provider },
-    },
-  });
-
+  const pipeline = await sendOutreachEmail(emailId);
   revalidatePath("/emails");
+  revalidatePath(`/emails/${emailId}`);
   revalidatePath("/prospection");
   revalidatePath("/pipeline");
+  revalidatePath("/dashboard");
+  revalidatePath("/analytics");
+  revalidatePath(`/companies/${pipeline.companyId}`);
+  if (pipeline.playerId) revalidatePath(`/players/${pipeline.playerId}`);
+  if (pipeline.dealId) revalidatePath(`/pipeline/${pipeline.dealId}`);
 }
 
 export async function bulkGenerateEmails(prospectIds: string[], emailType: string) {
