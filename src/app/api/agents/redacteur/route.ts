@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runRedacteur } from "@/lib/agents/redacteur";
 import { runEnrichisseur } from "@/lib/agents/enrichisseur";
+import { companyContactUpdate } from "@/lib/contacts/company-primary";
 import {
   canDraftForContact,
   canSendOutreach,
@@ -91,34 +92,22 @@ export async function POST(request: NextRequest) {
     }
 
     if (!selectedContact && !canSendOutreach(company)) {
-      const enrichment = await runEnrichisseur(company, () => undefined);
+      const enrichment = await runEnrichisseur(company, () => undefined, {
+        signal: request.signal,
+        deadline: Date.now() + 120_000,
+      });
       const bestContact =
         enrichment.contacts.find(
           (contact) =>
             contact.email && isUsableEmailStatus(contact.email_status),
         ) || enrichment.contacts[0];
-      await persistContactCandidates(company.id, enrichment.contacts);
+      await persistContactCandidates(company.id, enrichment.contacts, { rejectedEmails: enrichment.rejectedEmails });
 
-      if (bestContact) {
+      const contactUpdate = companyContactUpdate(company, bestContact, enrichment.rejectedEmails);
+      if (contactUpdate) {
         await prisma.company.update({
           where: { id: company.id },
-          data: {
-            contactName: bestContact.name || company.contactName,
-            contactRole: bestContact.role || company.contactRole,
-            contactEmail:
-              bestContact.email && isUsableEmailStatus(bestContact.email_status)
-                ? bestContact.email
-                : company.contactEmail,
-            contactLinkedin: bestContact.linkedin || company.contactLinkedin,
-            contactVerificationStatus: bestContact.verification_status,
-            contactEmailStatus: bestContact.email ? bestContact.email_status : "missing",
-            contactRoleRelevance: bestContact.role_relevance || "medium",
-            contactEvidence: bestContact.evidence,
-            contactSource: bestContact.source,
-            outreachReady: Boolean(
-              bestContact.email && isUsableEmailStatus(bestContact.email_status)
-            ),
-          },
+          data: contactUpdate,
         });
 
         const refreshedCompany = await prisma.company.findUnique({
@@ -162,8 +151,8 @@ export async function POST(request: NextRequest) {
         language: selectedLanguage,
         representativeName: access.userName,
         recipientEmailKind: classifyRecipientEmail(
-          selectedContact?.contactEmails[0]?.email,
-          selectedContact?.contactEmails[0]?.evidence,
+          selectedContact ? selectedContact.contactEmails[0]?.email : company.contactEmail,
+          selectedContact ? selectedContact.contactEmails[0]?.evidence : company.contactEvidence,
         ),
       },
     );

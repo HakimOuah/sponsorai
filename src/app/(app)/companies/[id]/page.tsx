@@ -171,11 +171,16 @@ export default async function CompanyDetailPage({
                     {company.canViewContactDetails && contact.fullName
                       ? `${contact.roleRaw} · `
                       : ""}
-                    {contact.employmentStatus === "verified_current"
+                    {contact.roleNormalized === "COMPANY_MAILBOX" ? "Boîte officielle de l’entreprise" : contact.employmentStatus === "verified_current"
                       ? "Poste actuel vérifié"
                       : "Poste à vérifier"}{" "}
-                    · contactabilité {contact.contactability}
+                    · {contact.contactability === "verified" ? "email vérifié techniquement" : contact.contactability === "public_source" ? "email publié sur une source officielle" : "email à confirmer"}
                   </p>
+                  {company.canViewContactDetails && contact.roleNormalized !== "COMPANY_MAILBOX" && isHttpUrl(contact.sourceUrl) ? (
+                    <a href={contact.sourceUrl} target="_blank" rel="noreferrer" className="mt-1.5 inline-flex items-center gap-1 text-[11px] text-[#C8CEFF] hover:underline">
+                      Vérifier le profil professionnel <ExternalLink className="h-3 w-3" />
+                    </a>
+                  ) : null}
                   {company.canViewContactDetails ? (
                     contact.contactEmails[0] ? (
                       <div className="mt-2 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.04] px-3 py-2">

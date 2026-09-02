@@ -116,10 +116,10 @@ const AGENTS: AgentDefinition[] = [
     shortDescription:
       "Identifie les décideurs et recherche un email réellement exploitable.",
     longDescription:
-      "Enrichisseur croise Apollo et les sources web publiques pour retrouver les fonctions marketing, communication, partenariat ou sponsoring actuellement en poste. Il privilégie les emails vérifiés et les boîtes fonctionnelles officielles.",
+      "Enrichisseur utilise Monid pour identifier les interlocuteurs actuels sur LinkedIn, retrouver les domaines email de l’entreprise et vérifier les adresses professionnelles avec Hunter. Apollo et les sources publiques restent disponibles en secours. Une boîte fonctionnelle officielle peut être proposée si aucun email nominatif n’est confirmé.",
     capabilities: [
       "Identification des bons interlocuteurs",
-      "Recherche et qualification des emails",
+      "Recherche multi-domaines et vérification des emails",
       "Sources et niveau de confiance visibles par l’administrateur",
     ],
     icon: Database,

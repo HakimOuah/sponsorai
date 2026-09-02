@@ -7,7 +7,7 @@ This repository keeps `Company` as the canonical brand/company node instead of d
 The V2 flow now supports:
 
 1. Scout and Matchmaker with per-athlete deduplication.
-2. Apollo-first contact discovery behind `ContactProvider`.
+2. Monid-first contact discovery (LinkedIn company employees + Hunter email finding/verification), with Apollo and public-web fallbacks behind `ContactProvider`. See [Monid setup](MONID_ENRICHMENT_SETUP.md).
 3. Private server-side contact coordinates and public role/contactability summaries.
 4. Mandatory human approval before a first outreach.
 5. Outreach through a purpose-scoped `SendingIdentity` and `SendingProvider`.
@@ -20,8 +20,8 @@ The V2 flow now supports:
 
 ## Deliberate boundaries
 
-- No LinkedIn scraping. A LinkedIn URL may only be stored as source evidence when a legitimate provider or public web result supplies it.
-- No raw contact email, phone or direct LinkedIn URL is returned by the enrichment UI, prospect list, dispatcher or company detail page.
+- No browser-based LinkedIn automation, session cookies or private-message access. Monid calls a public-profile provider only after the company LinkedIn URL is linked from an official company source. Former employees, ambiguous entities and incomplete identities are excluded.
+- Non-admin contact summaries exclude names, email addresses, evidence containing coordinates and direct profile URLs at the server boundary. Administrators can inspect email and profile sources in the enrichment result and company detail page.
 - Company CSV export contains only a role/contactability summary, never raw decision-maker coordinates.
 - No automatic mailbox creation. Google Workspace, Microsoft 365 and IMAP remain future `MailboxProvider` implementations.
 - SMTP remains the MVP sending provider. A sending identity becomes active only when its address matches the server SMTP configuration.

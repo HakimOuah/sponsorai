@@ -8,6 +8,7 @@ import {
 import type {
   ContactDiscoveryDiagnostic,
   ContactProviderSearchResult,
+  ContactSearchOptions,
 } from "@/lib/contacts/types";
 
 type ApolloPerson = {
@@ -113,6 +114,7 @@ export async function checkApolloConnection(): Promise<{
 export async function searchApolloContacts(
   company: Company,
   log?: (message: string) => void,
+  options: ContactSearchOptions = {},
 ): Promise<ContactProviderSearchResult> {
   const apiKey = process.env.APOLLO_API_KEY;
   const domain = getCompanyDomain(company.website);
@@ -155,6 +157,7 @@ export async function searchApolloContacts(
         "x-api-key": apiKey,
       },
       cache: "no-store",
+      signal: apolloSignal(options),
     }
   );
 
@@ -206,6 +209,7 @@ export async function searchApolloContacts(
       apiKey,
       peopleWithPotentialEmail,
       domain,
+      options,
     );
   } catch (error) {
     const message =
@@ -261,7 +265,8 @@ export async function searchApolloContacts(
 async function enrichApolloPeople(
   apiKey: string,
   people: ApolloPerson[],
-  domain: string
+  domain: string,
+  options: ContactSearchOptions,
 ): Promise<ApolloBulkResult> {
   const details = people.map((person) => ({
     id: person.id || person.person_id,
@@ -283,6 +288,7 @@ async function enrichApolloPeople(
       },
       body: JSON.stringify({ details }),
       cache: "no-store",
+      signal: apolloSignal(options),
     }
   );
 
@@ -313,6 +319,13 @@ async function enrichApolloPeople(
     ),
     creditsConsumed: toNullableNumber(data.credits_consumed),
   };
+}
+
+function apolloSignal(options: ContactSearchOptions): AbortSignal {
+  return AbortSignal.any([
+    AbortSignal.timeout(Math.max(1, Math.min(25_000, (options.deadline ?? Infinity) - Date.now()))),
+    ...(options.signal ? [options.signal] : []),
+  ]);
 }
 
 function mergeApolloPeople(

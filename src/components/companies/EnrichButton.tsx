@@ -16,35 +16,11 @@ import { AgentExecutionCard } from "@/components/agents/experience/AgentExecutio
 import { AgentAvatar } from "@/components/agents/experience/AgentAvatar";
 import { useAgentExperience } from "@/components/agents/experience/AgentExperienceProvider";
 import { WriterHandoffModal } from "@/components/agents/experience/WriterHandoffModal";
+import type { ContactDiscoveryDiagnostic, PublicContactSummary } from "@/lib/contacts/types";
+import { enrichmentProgress } from "@/lib/contacts/progress";
 
-interface EnrichContact {
-  id: string;
-  role: string;
-  roleNormalized: string;
-  currentRoleVerified: boolean;
-  contactability: "verified" | "public_source" | "guessed" | "missing";
-  relevance: number;
-  score: number | null;
-  scoreVersion: string;
-  source: string | null;
-  name?: string | null;
-  email?: string | null;
-  emailStatus?: "verified" | "public_source" | "guessed" | "missing" | null;
-  emailSource?: string | null;
-  emailEvidence?: string | null;
-  emailKind?: "personal_professional" | "functional_generic" | "unknown";
-}
-
-interface EnrichmentDiagnostic {
-  provider: "apollo" | "web_search";
-  stage: "people_search" | "email_enrichment" | "public_web_search";
-  status: "success" | "partial" | "no_result" | "failed";
-  message: string;
-  requested?: number;
-  matched?: number;
-  usableEmails?: number;
-  creditsConsumed?: number | null;
-}
+type EnrichContact = PublicContactSummary;
+type EnrichmentDiagnostic = ContactDiscoveryDiagnostic;
 
 interface CompanyProspect {
   id: string;
@@ -128,6 +104,7 @@ export function EnrichButton({
       const decoder = new TextDecoder();
       let buffer = "";
       let terminalEventReceived = false;
+      let lastProgress = 8;
 
       while (true) {
         const { done: streamDone, value } = await reader.read();
@@ -142,14 +119,12 @@ export function EnrichButton({
           try {
             const data = JSON.parse(line.slice(6));
             if (data.type === "log") {
-              setProgress((current) => {
-                const next = Math.min(88, current + 11);
-                updateMission(missionId, { progress: next });
-                return next;
-              });
-              const nextDetail = getEnrichmentDetail(data.message);
+              const stage = enrichmentProgress(String(data.message || ""));
+              lastProgress = Math.max(lastProgress, Math.min(98, typeof data.progress === "number" ? data.progress : stage.progress));
+              setProgress(lastProgress);
+              const nextDetail = typeof data.progress === "number" ? data.message : stage.detail;
               setDetail(nextDetail);
-              updateMission(missionId, { detail: nextDetail });
+              updateMission(missionId, { progress: lastProgress, detail: nextDetail });
             } else if (data.type === "done") {
               terminalEventReceived = true;
               const enrichedContacts = data.result.contacts as EnrichContact[];
@@ -181,19 +156,21 @@ export function EnrichButton({
               setDone(true);
               setProgress(100);
               setDetail(
-                `${enrichedContacts.length} décideur${enrichedContacts.length > 1 ? "s" : ""} identifié${enrichedContacts.length > 1 ? "s" : ""} · ${usableEmailCount} email${usableEmailCount > 1 ? "s" : ""} exploitable${usableEmailCount > 1 ? "s" : ""}.`,
+                `${enrichedContacts.length} contact${enrichedContacts.length > 1 ? "s" : ""} identifié${enrichedContacts.length > 1 ? "s" : ""} · ${usableEmailCount} email${usableEmailCount > 1 ? "s" : ""} exploitable${usableEmailCount > 1 ? "s" : ""}.`,
               );
               finishMission(
                 missionId,
                 usableEmailCount > 0
                   ? `${usableEmailCount} destinataire${usableEmailCount > 1 ? "s" : ""} joignable${usableEmailCount > 1 ? "s" : ""}. Choisissez maintenant à qui écrire avec Rédacteur.`
-                  : `${enrichedContacts.length} décideur${enrichedContacts.length > 1 ? "s" : ""} identifié${enrichedContacts.length > 1 ? "s" : ""}, mais aucun email exploitable. Vous pouvez préparer le brouillon ; l’envoi restera bloqué.`,
-                {
+                  : enrichedContacts.length
+                    ? "Interlocuteurs identifiés, mais aucun email exploitable. Vous pouvez préparer le brouillon ; l’envoi restera bloqué."
+                    : "Aucun contact confirmé avec les sources disponibles. Aucun email ne sera envoyé.",
+                enrichedContacts.length ? {
                   status: "waiting",
                   nextAgentId: "redacteur",
                   actionLabel: "Choisir le destinataire",
                   actionHref: `/companies/${companyId}`,
-                },
+                } : undefined,
               );
             } else if (data.type === "error") {
               terminalEventReceived = true;
@@ -242,6 +219,7 @@ export function EnrichButton({
   const usableEmailCount = contacts.filter((contact) =>
     isUsableContactability(contact.contactability),
   ).length;
+  const selectedContactHasEmail = contacts.some((contact) => contact.id === selectedContactId && isUsableContactability(contact.contactability));
 
   return (
     <>
@@ -271,7 +249,7 @@ export function EnrichButton({
                 <span>
                   {usableEmailCount > 0
                     ? `${usableEmailCount} email${usableEmailCount > 1 ? "s" : ""} professionnel${usableEmailCount > 1 ? "s" : ""} exploitable${usableEmailCount > 1 ? "s" : ""}. L’envoi restera soumis à votre validation.`
-                    : "Apollo et la recherche web publique n’ont confirmé aucun email. Les décideurs peuvent être sélectionnés pour préparer un brouillon, mais l’envoi reste bloqué."}
+                    : "Les sources consultées n’ont confirmé aucun email. Les interlocuteurs peuvent être sélectionnés pour préparer un brouillon, mais l’envoi reste bloqué."}
                 </span>
               </span>
             </div>
@@ -321,7 +299,7 @@ export function EnrichButton({
                         {canViewPrivateDetails && contact.name
                           ? `${contact.role} · `
                           : ""}
-                        {contact.currentRoleVerified
+                        {contact.kind === "company_mailbox" ? "Boîte officielle · orientation vers le service concerné" : contact.currentRoleVerified
                           ? "Poste actuel vérifié"
                           : "Poste à confirmer"}{" "}
                         · {getContactabilityLabel(contact.contactability)}
@@ -361,6 +339,11 @@ export function EnrichButton({
                         Vérifier la source de l’adresse
                       </a>
                     ) : null}
+                    {canViewPrivateDetails && contact.kind !== "company_mailbox" && isHttpUrl(contact.profileSource) ? (
+                      <a href={contact.profileSource} target="_blank" rel="noreferrer" className="ml-3 inline-flex text-[11px] text-[#C8CEFF] hover:underline">
+                        Vérifier le profil professionnel
+                      </a>
+                    ) : null}
                   </div>
                 );
               })}
@@ -382,13 +365,20 @@ export function EnrichButton({
                     key={`${diagnostic.provider}-${diagnostic.stage}-${index}`}
                     className="flex items-start gap-2 text-[11px] leading-relaxed text-white/55"
                   >
-                    {diagnostic.provider === "apollo" ? (
+                    {diagnostic.provider !== "web_search" ? (
                       <Database className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#F59E0B]" />
                     ) : (
                       <Globe2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#C8CEFF]" />
                     )}
                     <span className="min-w-0 flex-1">
                       {diagnostic.message}
+                      {canViewPrivateDetails && diagnostic.stage === "budget" ? (
+                        <span className="mt-1 block font-mono text-[10px] text-white/40">
+                          {typeof diagnostic.costUsd === "number"
+                            ? `Coût Monid : ${diagnostic.costUsd.toFixed(3)} $ (hors recherche IA)`
+                            : "Coût Monid à confirmer auprès du fournisseur"}
+                        </span>
+                      ) : null}
                     </span>
                     <span
                       className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${
@@ -413,12 +403,12 @@ export function EnrichButton({
             >
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold text-[#D9DDFF]">
-                  {usableEmailCount > 0
+                  {selectedContactHasEmail
                     ? "Passer le relais à Rédacteur"
                     : "Préparer le brouillon sans email"}
                 </span>
                 <span className="mt-1 block text-[11px] leading-relaxed text-[#969BA8]">
-                  {usableEmailCount > 0
+                  {selectedContactHasEmail
                     ? "Le décideur sélectionné et la langue seront transmis à Rédacteur pour préparer le brouillon."
                     : "Rédacteur peut préparer le message pour le décideur sélectionné. Dispatcher ne pourra pas l’envoyer tant qu’un email n’aura pas été confirmé."}
                 </span>
@@ -436,9 +426,9 @@ export function EnrichButton({
         ) : null}
 
         {done && contacts.length === 0 ? (
-          <div className="rounded-2xl border border-[#F59E0B]/20 bg-[#F59E0B]/5 px-3 py-2 text-xs leading-relaxed text-[#F59E0B]">
-            Aucun contact actuel n’a pu être vérifié avec assez de fiabilité.
-            La fiche entreprise n’a pas été modifiée.
+          <div className="space-y-2 rounded-2xl border border-[#F59E0B]/20 bg-[#F59E0B]/5 px-3 py-2 text-xs leading-relaxed text-[#F59E0B]">
+            <p>Aucun contact actuel ni boîte officielle n’a pu être confirmé. Aucune adresse supposée ne sera utilisée.</p>
+            {diagnostics.map((diagnostic, index) => <p key={index} className="text-[11px] text-white/55">{diagnostic.message}</p>)}
           </div>
         ) : null}
 
@@ -494,31 +484,4 @@ function isHttpUrl(value?: string | null): value is string {
   } catch {
     return false;
   }
-}
-
-function getEnrichmentDetail(message: string) {
-  const normalized = message.toLowerCase();
-  if (
-    normalized.includes("bulk_match") ||
-    normalized.includes("a échoué") ||
-    normalized.includes("aucun email")
-  ) {
-    return "Apollo n’a pas confirmé d’email ; Enrichisseur active la recherche publique de secours.";
-  }
-  if (normalized.includes("recherche publique")) {
-    return "Enrichisseur cherche une coordonnée publique avec une source vérifiable.";
-  }
-  if (normalized.includes("apollo")) {
-    return "Enrichisseur interroge les sources structurées disponibles.";
-  }
-  if (normalized.includes("pattern email")) {
-    return "Enrichisseur vérifie les coordonnées professionnelles.";
-  }
-  if (normalized.includes("web search") || normalized.includes("recherche")) {
-    return "Enrichisseur vérifie les fonctions et les postes actuels.";
-  }
-  if (normalized.includes("vérifié") || normalized.includes("qualifié")) {
-    return "Enrichisseur classe les décideurs selon leur fiabilité.";
-  }
-  return "Enrichisseur consolide les contacts trouvés.";
 }

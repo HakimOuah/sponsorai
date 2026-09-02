@@ -48,6 +48,7 @@ export async function getCompanies(filters?: {
 
 export async function getCompany(id: string) {
   const access = await getCurrentUserAccess();
+  if (!access.authenticated) return null;
   const company = await prisma.company.findUnique({
     where: { id },
     include: {
@@ -89,6 +90,7 @@ export async function getCompany(id: string) {
           contactScore: true,
           contactScoreVersion: true,
           source: true,
+          sourceUrl: true,
           contactEmails: {
             where: { status: { in: ["verified", "public_source"] } },
             orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
@@ -137,6 +139,9 @@ export async function getCompany(id: string) {
     contacts: company.contacts.map((contact) => ({
       ...contact,
       fullName: access.isAdmin ? contact.fullName : null,
+      source: access.isAdmin ? contact.source : null,
+      sourceUrl: access.isAdmin ? contact.sourceUrl : null,
+      contactability: contact.contactEmails[0]?.status || "missing",
       contactEmails: access.isAdmin ? contact.contactEmails : [],
     })),
   };

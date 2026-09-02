@@ -1,17 +1,30 @@
 import type { Company } from "@prisma/client";
 import { searchApolloContacts } from "@/lib/agents/apollo";
+import { searchMonidContacts } from "./monid";
 import type {
   ContactDiscoveryDiagnostic,
   ContactProviderSearchResult,
+  ContactSearchOptions,
 } from "./types";
 
 export interface ContactProvider {
-  readonly id: string;
+  readonly id: "monid" | "apollo";
   isConfigured(): boolean;
   search(
     company: Company,
     log?: (message: string) => void,
+    options?: ContactSearchOptions,
   ): Promise<ContactProviderSearchResult>;
+}
+
+class MonidContactProvider implements ContactProvider {
+  readonly id = "monid";
+
+  isConfigured(): boolean { return Boolean(process.env.MONID_API_KEY?.trim()); }
+
+  search(company: Company, log?: (message: string) => void, options?: ContactSearchOptions) {
+    return searchMonidContacts(company, log, options);
+  }
 }
 
 class ApolloContactProvider implements ContactProvider {
@@ -24,44 +37,57 @@ class ApolloContactProvider implements ContactProvider {
   async search(
     company: Company,
     log?: (message: string) => void,
+    options?: ContactSearchOptions,
   ): Promise<ContactProviderSearchResult> {
-    return searchApolloContacts(company, log);
+    return searchApolloContacts(company, log, options);
   }
 }
 
 export function getContactProviders(): ContactProvider[] {
-  return [new ApolloContactProvider()];
+  return [new MonidContactProvider(), new ApolloContactProvider()];
 }
 
 export async function searchStructuredContactProviders(
   company: Company,
-  log?: (message: string) => void
+  log?: (message: string) => void,
+  options: ContactSearchOptions = {},
+  providers: ContactProvider[] = getContactProviders(),
 ): Promise<ContactProviderSearchResult> {
   const diagnostics: ContactDiscoveryDiagnostic[] = [];
+  let partial: ContactProviderSearchResult | null = null;
+  const rejectedEmails = new Set<string>();
 
-  for (const provider of getContactProviders()) {
+  for (const provider of providers) {
     if (!provider.isConfigured()) {
       diagnostics.push({
-        provider: "apollo",
+        provider: provider.id,
         stage: "people_search",
         status: "failed",
-        message: "Apollo n’est pas configuré ; recherche publique utilisée.",
+        message: `${provider.id === "monid" ? "Monid" : "Apollo"} n’est pas configuré ; la source suivante est utilisée.`,
       });
       continue;
     }
 
     try {
+      if (options.signal?.aborted || Date.now() >= (options.deadline ?? Infinity)) break;
       log?.(`Recherche ${provider.id} sur les rôles partenariats/marketing...`);
-      const result = await provider.search(company, log);
+      const result = await provider.search(company, log, options);
+      result.rejectedEmails?.forEach((email) => rejectedEmails.add(email));
+      result.contacts = result.contacts.map((contact) => contact.email && rejectedEmails.has(contact.email.toLowerCase())
+        ? { ...contact, email: null, email_status: "missing" }
+        : contact);
       diagnostics.push(...result.diagnostics);
       if (result.contacts.length > 0) {
-        return { contacts: result.contacts, diagnostics };
+        if (result.contacts.some((contact) => contact.email && ["verified", "public_source"].includes(contact.email_status))) {
+          return { ...result, diagnostics, rejectedEmails: Array.from(rejectedEmails) };
+        }
+        partial ??= result;
       }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "erreur inconnue";
+    } catch {
+      const message = `${provider.id === "monid" ? "Monid" : "Apollo"} est indisponible ; recherche de secours utilisée.`;
       log?.(`${provider.id}: ${message} — provider suivant`);
       diagnostics.push({
-        provider: "apollo",
+        provider: provider.id,
         stage: "people_search",
         status: "failed",
         message,
@@ -69,5 +95,5 @@ export async function searchStructuredContactProviders(
     }
   }
 
-  return { contacts: [], diagnostics };
+  return { ...(partial || { contacts: [] }), diagnostics, rejectedEmails: Array.from(rejectedEmails) };
 }

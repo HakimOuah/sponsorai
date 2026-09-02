@@ -8,8 +8,10 @@ import {
 } from "@/lib/agents/contact-quality";
 import { calculateContextualContactScore } from "@/lib/learning/stats";
 import type { ContactCandidate, PublicContactSummary } from "./types";
+import { visibleContact } from "./visibility";
 
 function providerFromSource(source: string): string {
+  if (source.toLowerCase().includes("monid")) return "monid";
   return source.toLowerCase().includes("apollo") ? "apollo" : "web_search";
 }
 
@@ -39,19 +41,63 @@ function candidateSourceUrl(candidate: ContactCandidate): string | null {
 export async function persistContactCandidates(
   companyId: string,
   candidates: ContactCandidate[],
-  options: { includePrivate?: boolean } = {},
+  options: { includePrivate?: boolean; rejectedEmails?: string[] } = {},
 ): Promise<PublicContactSummary[]> {
   const summaries: PublicContactSummary[] = [];
   const company = await prisma.company.findUnique({ where: { id: companyId } });
   if (!company) throw new Error("Company not found");
 
+  if (options.rejectedEmails?.length) {
+    await prisma.contactEmail.updateMany({
+      where: { contact: { companyId }, email: { in: options.rejectedEmails } },
+      data: { status: "unverified", isPrimary: false },
+    });
+    await prisma.contact.updateMany({
+      where: {
+        companyId,
+        contactEmails: { none: { status: { in: ["verified", "public_source"] } } },
+      },
+      data: { contactability: "missing" },
+    });
+  }
+
   for (const candidate of candidates.slice(0, 3)) {
-    const provider = providerFromSource(candidate.source);
-    const roleNormalized = normalizeContactRole(candidate.role);
+    const provider = candidate.provider || providerFromSource(candidate.source);
+    const roleNormalized = candidate.kind === "company_mailbox" ? "COMPANY_MAILBOX" : normalizeContactRole(candidate.role);
+    const externalId = candidate.providerExternalId
+      ? candidate.providerExternalId.startsWith(`${companyId}:`)
+        ? candidate.providerExternalId
+        : `${companyId}:${candidate.providerExternalId}`
+      : null;
+    const existing = await prisma.contact.findFirst({
+      where: {
+        companyId,
+        OR: [
+          ...(externalId ? [{ provider, providerExternalId: { in: [externalId, candidate.providerExternalId!] } }] : []),
+          ...(candidate.linkedin ? [{ sourceUrl: candidate.linkedin }] : []),
+          { fullName: { equals: candidate.name, mode: "insensitive" } },
+        ],
+      },
+      include: {
+        contactEmails: {
+          where: { status: { in: ["verified", "public_source"] } },
+          orderBy: [{ isPrimary: "desc" }, { verifiedAt: "desc" }],
+          take: 1,
+        },
+      },
+    });
+    // A lookup without a result must not erase an already qualified address.
+    // Explicitly rejected addresses were invalidated above, before this read.
+    const primaryEmail = candidate.email && isUsableEmailStatus(candidate.email_status)
+      ? {
+          email: candidate.email.trim().toLowerCase(),
+          status: candidate.email_status,
+          source: candidate.email_source || candidate.source,
+          evidence: candidate.email_evidence || null,
+        }
+      : existing?.contactEmails[0];
     const relevance = Math.min(100, getContactRelevance(candidate.role) * 30 + 10);
-    const contactability = candidate.email && isUsableEmailStatus(candidate.email_status)
-      ? candidate.email_status
-      : "missing";
+    const contactability = primaryEmail?.status || "missing";
     const staticScore = calculateStaticContactScore({
       role: candidate.role,
       contactability,
@@ -72,28 +118,17 @@ export async function persistContactCandidates(
       historicalStat?.contextualUtility || 0
     );
 
-    const existing = await prisma.contact.findFirst({
-      where: candidate.providerExternalId
-        ? {
-            provider,
-            providerExternalId: candidate.providerExternalId,
-          }
-        : {
-            companyId,
-            provider,
-            fullName: { equals: candidate.name, mode: "insensitive" },
-          },
-    });
-
     const contact = existing
       ? await prisma.contact.update({
           where: { id: existing.id },
           data: {
             companyId,
+            fullName: candidate.name,
+            provider,
             roleRaw: candidate.role,
             roleNormalized,
             providerExternalId:
-              candidate.providerExternalId || existing.providerExternalId,
+              externalId || (provider === existing.provider ? existing.providerExternalId : null),
             employmentStatus: candidate.verification_status,
             employmentConfidence: employmentConfidence(candidate.confidence),
             relevanceScore: relevance,
@@ -112,7 +147,7 @@ export async function persistContactCandidates(
             roleRaw: candidate.role,
             roleNormalized,
             provider,
-            providerExternalId: candidate.providerExternalId || null,
+            providerExternalId: externalId,
             employmentStatus: candidate.verification_status,
             employmentConfidence: employmentConfidence(candidate.confidence),
             relevanceScore: relevance,
@@ -134,7 +169,7 @@ export async function persistContactCandidates(
       },
     });
 
-    if (!currentEmployment) {
+    if (!currentEmployment && candidate.kind !== "company_mailbox") {
       await prisma.employment.create({
         data: {
           contactId: contact.id,
@@ -150,35 +185,41 @@ export async function persistContactCandidates(
 
     if (candidate.email && isUsableEmailStatus(candidate.email_status)) {
       const hash = emailHash(candidate.email);
-      await prisma.contactEmail.upsert({
-        where: {
-          contactId_emailHash: { contactId: contact.id, emailHash: hash },
-        },
-        update: {
-          status: candidate.email_status,
-          source: candidate.email_source || candidate.source,
-          evidence: candidate.email_evidence || null,
-          isPrimary: true,
-          verifiedAt: candidate.email_status === "verified" ? new Date() : null,
-        },
-        create: {
-          contactId: contact.id,
-          email: candidate.email.trim().toLowerCase(),
-          emailHash: hash,
-          status: candidate.email_status,
-          source: candidate.email_source || candidate.source,
-          evidence: candidate.email_evidence || null,
-          isPrimary: true,
-          verifiedAt: candidate.email_status === "verified" ? new Date() : null,
-        },
-      });
+      await prisma.$transaction([
+        prisma.contactEmail.updateMany({
+          where: { contactId: contact.id, emailHash: { not: hash }, isPrimary: true },
+          data: { isPrimary: false },
+        }),
+        prisma.contactEmail.upsert({
+          where: {
+            contactId_emailHash: { contactId: contact.id, emailHash: hash },
+          },
+          update: {
+            status: candidate.email_status,
+            source: candidate.email_source || candidate.source,
+            evidence: candidate.email_evidence || null,
+            isPrimary: true,
+            verifiedAt: candidate.email_status === "verified" ? new Date() : null,
+          },
+          create: {
+            contactId: contact.id,
+            email: candidate.email.trim().toLowerCase(),
+            emailHash: hash,
+            status: candidate.email_status,
+            source: candidate.email_source || candidate.source,
+            evidence: candidate.email_evidence || null,
+            isPrimary: true,
+            verifiedAt: candidate.email_status === "verified" ? new Date() : null,
+          },
+        }),
+      ]);
     }
 
     await prisma.evidence.create({
       data: {
         companyId,
         contactId: contact.id,
-        evidenceType: "employment",
+        evidenceType: candidate.kind === "company_mailbox" ? "company_mailbox" : "employment",
         claim: candidate.evidence,
         sourceName: candidate.source,
         sourceUrl: candidateSourceUrl(candidate),
@@ -186,8 +227,9 @@ export async function persistContactCandidates(
       },
     });
 
-    summaries.push({
+    summaries.push(visibleContact({
       id: contact.id,
+      kind: candidate.kind || "person",
       name: options.includePrivate ? contact.fullName : null,
       role: contact.roleRaw,
       roleNormalized: contact.roleNormalized,
@@ -197,18 +239,19 @@ export async function persistContactCandidates(
       score: contact.contactScore,
       scoreVersion: contact.contactScoreVersion,
       source: contact.source,
-      email: options.includePrivate && candidate.email ? candidate.email : null,
-      emailStatus: options.includePrivate ? candidate.email_status : null,
+      profileSource: contact.sourceUrl,
+      email: options.includePrivate ? primaryEmail?.email || null : null,
+      emailStatus: options.includePrivate ? (primaryEmail?.status as PublicContactSummary["emailStatus"]) || null : null,
       emailSource: options.includePrivate
-        ? candidate.email_source || null
+        ? primaryEmail?.source || null
         : null,
       emailEvidence: options.includePrivate
-        ? candidate.email_evidence || null
+        ? primaryEmail?.evidence || null
         : null,
       emailKind: options.includePrivate
-        ? candidate.email_kind || classifyEmailKind(candidate.email)
+        ? classifyEmailKind(primaryEmail?.email, primaryEmail?.evidence)
         : undefined,
-    });
+    }, options.includePrivate === true));
   }
 
   return summaries.sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -233,18 +276,21 @@ export async function getPublicContactsForCompany(
   return contacts.map((contact) => {
     const primaryEmail = contact.contactEmails[0];
 
-    return {
+    return visibleContact({
       id: contact.id,
+      kind: contact.roleNormalized === "COMPANY_MAILBOX" ? "company_mailbox" : "person",
       name: options.includePrivate ? contact.fullName : null,
       role: contact.roleRaw,
       roleNormalized: contact.roleNormalized,
       currentRoleVerified: contact.employmentStatus === "verified_current",
-      contactability:
-        contact.contactability as PublicContactSummary["contactability"],
+      contactability: primaryEmail
+        ? primaryEmail.status as PublicContactSummary["contactability"]
+        : "missing",
       relevance: contact.relevanceScore,
       score: contact.contactScore,
       scoreVersion: contact.contactScoreVersion,
       source: contact.source,
+      profileSource: contact.sourceUrl,
       email: options.includePrivate ? primaryEmail?.email || null : null,
       emailStatus: options.includePrivate
         ? (primaryEmail?.status as PublicContactSummary["emailStatus"]) || null
@@ -256,7 +302,7 @@ export async function getPublicContactsForCompany(
       emailKind: options.includePrivate
         ? classifyEmailKind(primaryEmail?.email, primaryEmail?.evidence)
         : undefined,
-    };
+    }, options.includePrivate === true);
   });
 }
 

@@ -17,11 +17,11 @@ export function getCompanyDomain(website?: string | null): string | null {
 }
 
 export function getContactRelevance(role?: string | null): number {
-  const normalizedRole = (role || "").toLowerCase();
+  const normalizedRole = (role || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   const highSignal =
-    /\b(partnerships?|sponsorship|sports marketing|brand partnerships?|strategic partnerships?|alliances?|community partnerships?|local marketing|field marketing|events?|csr|rse)\b/i;
+    /\b(partnerships?|partenariats?|sponsoring|sponsorship|sports marketing|brand partnerships?|strategic partnerships?|alliances?|community partnerships?|local marketing|field marketing|events?|evenementiel|csr|rse)\b/i;
   const goodSignal =
-    /\b(marketing|brand|communications?|comms|pr|public relations|growth|influencer|creator|talent|community)\b/i;
+    /\b(marketing|brand|marque|communications?|comms|pr|public relations|relations publiques|growth|influencer|creator|talent|community)\b/i;
   const weakSignal =
     /\b(ceo|chief executive|founder|co-founder|president|owner|general manager|operations|finance|hr|people|customer|sales associate|cashier|support|engineering|product|legal)\b/i;
 
@@ -38,10 +38,10 @@ export function getRoleRelevanceLabel(role?: string | null): "high" | "medium" |
 }
 
 export function normalizeContactRole(role?: string | null): string {
-  const value = (role || "").toLowerCase();
+  const value = (role || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  if (/sports? partnerships?|sponsorship/.test(value)) return "SPORTS_PARTNERSHIPS";
-  if (/brand partnerships?|strategic partnerships?|alliances?/.test(value)) {
+  if (/sports? partnerships?|sponsorship|sponsoring/.test(value)) return "SPORTS_PARTNERSHIPS";
+  if (/brand partnerships?|strategic partnerships?|alliances?|partenariats?/.test(value)) {
     return "BRAND_PARTNERSHIPS";
   }
   if (/sports? marketing/.test(value)) return "SPORTS_MARKETING";

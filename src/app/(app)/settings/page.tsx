@@ -82,12 +82,12 @@ export default async function SettingsPage() {
         </Section>
 
         {/* API Keys */}
-        <Section icon={Key} title="Clés API">
+        {isAdmin ? <Section icon={Key} title="Clés API">
           <div className="space-y-3 max-w-lg">
             <EnvField
               label="Grok API Key"
               value={
-                process.env.GROK_API_KEY
+                (process.env.GROK_API_KEY || process.env.XAI_API_KEY)
                   ? "Configurée"
                   : undefined
               }
@@ -97,20 +97,20 @@ export default async function SettingsPage() {
               value={process.env.ANTHROPIC_API_KEY ? "Configurée" : undefined}
             />
             <EnvField
+              label="Monid · LinkedIn et emails"
+              value={process.env.MONID_API_KEY?.trim() ? "Configurée — source prioritaire" : undefined}
+              placeholder="Définir MONID_API_KEY sur le serveur"
+            />
+            <EnvField
               label="Apollo.io API Key"
               value={process.env.APOLLO_API_KEY ? "Configurée" : undefined}
             />
-            <EnvField
-              label="Hunter.io API Key"
-              value={undefined}
-              placeholder="Phase 2"
-            />
           </div>
           <p className="mt-3 text-xs text-[#969BA8]/55">
-            Modifiable dans le fichier .env. Ne jamais exposer les clés en
-            front-end.
+            Monid donne accès aux fournisseurs LinkedIn et Hunter sans clé Hunter séparée.
+            Configuration dans les variables d&apos;environnement du serveur ; les clés ne sont jamais affichées ici.
           </p>
-        </Section>
+        </Section> : null}
 
         {/* Agent config */}
         <Section icon={Bot} title="Configuration Agents">
