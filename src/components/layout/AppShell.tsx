@@ -8,6 +8,7 @@ import { AgentDock } from "@/components/agents/experience/AgentDock";
 import { AgentExperienceProvider } from "@/components/agents/experience/AgentExperienceProvider";
 import { MailboxSyncPulse } from "@/components/emails/MailboxSyncPulse";
 import { NavigationProvider } from "@/components/layout/NavigationProvider";
+import { ScanContactCoordinator } from "@/components/agents/experience/ScanContactCoordinator";
 
 export function AppShell({
   children,
@@ -24,6 +25,7 @@ export function AppShell({
   return (
     <NavigationProvider>
       <AgentExperienceProvider>
+        {isReadOnly ? null : <ScanContactCoordinator />}
         {isReadOnly ? null : <MailboxSyncPulse />}
         <div className="app-workspace relative flex min-h-screen overflow-x-hidden bg-[#0B0D12] text-[#F6F4EF]">
           <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_24%_0%,rgba(255,107,61,0.13),transparent_28%),radial-gradient(circle_at_92%_18%,rgba(130,140,255,0.11),transparent_34%),linear-gradient(180deg,#0B0D12_0%,#11141D_100%)]" />

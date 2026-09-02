@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { INTERNAL_CONTACT_ACTIVITY_TYPES } from "@/lib/contacts/enrichment-lease";
 
 export async function getDashboardData() {
   const now = new Date();
@@ -101,6 +102,7 @@ export async function getDashboardData() {
 
     // Activité récente
     prisma.activityLog.findMany({
+      where: { type: { notIn: [...INTERNAL_CONTACT_ACTIVITY_TYPES] } },
       orderBy: { createdAt: "desc" },
       take: 10,
     }),

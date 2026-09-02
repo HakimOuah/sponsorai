@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getProspects, getScansForPlayer } from "@/lib/actions/prospection";
 import { ProspectList } from "@/components/prospection/ProspectList";
 import { PlayerSelector } from "@/components/prospection/PlayerSelector";
+import { ProspectionRefresh } from "@/components/prospection/ProspectionRefresh";
+import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export const dynamic = "force-dynamic";
 
@@ -13,18 +15,22 @@ export default async function ProspectionPage({
   searchParams: { player?: string };
 }) {
   const selectedPlayerId = searchParams.player || "";
-  const [players, prospects, scans] = await Promise.all([
+  const [players, prospects, scans, access] = await Promise.all([
     prisma.player.findMany({
       where: { active: true },
       select: { id: true, firstName: true, lastName: true, club: true },
       orderBy: { lastName: "asc" },
     }),
     getProspects(selectedPlayerId || undefined),
-    selectedPlayerId ? getScansForPlayer(selectedPlayerId) : Promise.resolve([]),
+    selectedPlayerId
+      ? getScansForPlayer(selectedPlayerId)
+      : Promise.resolve([]),
+    getCurrentUserAccess(),
   ]);
 
   return (
     <div className="min-w-0">
+      <ProspectionRefresh />
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <Search className="h-6 w-6 text-[#FF6B3D]" />
@@ -35,13 +41,15 @@ export default async function ProspectionPage({
             {prospects.length} prospect{prospects.length !== 1 ? "s" : ""}
           </span>
         </div>
-        <Link
-          href="/agents"
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-[#FF6B3D] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F] sm:w-auto sm:py-2"
-        >
-          <ScanLine className="h-4 w-4" />
-          Nouveau scan
-        </Link>
+        {access.canOperate ? (
+          <Link
+            href="/agents"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#FF6B3D] px-4 py-2.5 text-sm font-semibold text-[#0B0D12] transition-colors hover:bg-[#FF865F] sm:w-auto sm:py-2"
+          >
+            <ScanLine className="h-4 w-4" />
+            Nouveau scan
+          </Link>
+        ) : null}
       </div>
 
       {/* Player selector */}
@@ -93,7 +101,11 @@ export default async function ProspectionPage({
           </p>
         </div>
       ) : (
-        <ProspectList prospects={prospects} />
+        <ProspectList
+          key={selectedPlayerId || "all-players"}
+          prospects={prospects}
+          canOperate={access.canOperate}
+        />
       )}
     </div>
   );

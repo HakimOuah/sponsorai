@@ -15,6 +15,7 @@ import {
 } from "@/lib/agents/player-intelligence";
 import { getCurrentUserAccess } from "@/lib/auth/access";
 import { getScanRecovery } from "@/lib/agents/scan-recovery";
+import { queueScanQualification } from "@/lib/contacts/scan-qualification-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -126,6 +127,7 @@ export async function POST(request: NextRequest) {
     done?: boolean;
     scanId?: string;
     resumable?: boolean;
+    qualificationId?: string;
   }) => {
     await writer.write(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
   };
@@ -516,12 +518,23 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      let qualificationId: string | undefined;
+      try {
+        if (access.userId) qualificationId = await queueScanQualification(scan.id, player.id, access.userId);
+      } catch {
+        // A qualification queue failure must never turn a successful scan into a failure.
+        console.error("[scan] contact qualification could not be queued", { scanId: scan.id });
+      }
       await sendEvent({
-        message: `Scan v2 terminé — ${scoredBrands.length} marques scorées (8 critères), ${created} prospects créés en ${Math.round((Date.now() - startTime) / 1000)}s`,
+        message: `Scan v2 terminé — ${scoredBrands.length} marques scorées (8 critères), ${created} prospects créés en ${Math.round((Date.now() - startTime) / 1000)}s${qualificationId ? ". L’Enrichisseur prend le relais sur les meilleures pistes." : ". Vous pouvez lancer l’enrichissement depuis les opportunités."}`,
         type: "success",
         phase: "done",
         done: true,
         scanId: scan.id,
+        qualificationId,
+      }).catch(() => {
+        // The saved scan and queued qualification remain successful on disconnect.
+        console.info("[scan] terminal notification disconnected", { scanId: scan.id });
       });
     } catch (error) {
       const errorMessage = getScanErrorMessage(error, activePhase);
@@ -553,7 +566,7 @@ export async function POST(request: NextRequest) {
         resumable: canResume,
       });
     } finally {
-      await writer.close();
+      await writer.close().catch(() => undefined);
     }
   })();
 

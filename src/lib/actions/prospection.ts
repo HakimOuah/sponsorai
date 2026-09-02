@@ -6,10 +6,14 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { recordLearningEvent } from "@/lib/learning/events";
 import { ensureSponsorAIAttribution } from "@/lib/deals/attribution";
-import { requireOperationalAccess } from "@/lib/auth/access";
+import { getCurrentUserAccess, requireOperationalAccess } from "@/lib/auth/access";
+import { getProspectionContactView, getProspectionScoreDetails, redactProspectionContext } from "@/lib/contacts/prospection-view";
 
 export async function getProspects(playerId?: string) {
-  return prisma.prospect.findMany({
+  const access = await getCurrentUserAccess();
+  if (!access.authenticated) return [];
+
+  const prospects = await prisma.prospect.findMany({
     where: playerId ? { playerId } : undefined,
     include: {
       player: { select: { firstName: true, lastName: true, club: true } },
@@ -31,19 +35,30 @@ export async function getProspects(playerId?: string) {
               contactability: true,
               relevanceScore: true,
               contactScore: true,
+              fullName: true,
+              active: true,
+              updatedAt: true,
+              sourceUrl: true,
+              emails: {
+                where: { status: "bounced" },
+                orderBy: { updatedAt: "desc" },
+                take: 1,
+                select: { updatedAt: true },
+              },
+              contactEmails: {
+                select: {
+                  id: true,
+                  email: true,
+                  status: true,
+                  source: true,
+                  evidence: true,
+                  isPrimary: true,
+                  verifiedAt: true,
+                  updatedAt: true,
+                },
+              },
             },
           },
-        },
-      },
-      selectedContact: {
-        select: {
-          id: true,
-          roleRaw: true,
-          roleNormalized: true,
-          employmentStatus: true,
-          contactability: true,
-          relevanceScore: true,
-          contactScore: true,
         },
       },
       deal: { select: { id: true, stage: true } },
@@ -55,6 +70,44 @@ export async function getProspects(playerId?: string) {
       },
     },
     orderBy: { score: "desc" },
+  });
+
+  return prospects.map((prospect) => {
+    const names = prospect.company.contacts.map((contact) => contact.fullName);
+    const context = (value: string | null) =>
+      access.isAdmin ? value : redactProspectionContext(value, names);
+
+    // Keep private provider data server-side, including evidence embedded in copy.
+    return {
+      id: prospect.id,
+      score: prospect.score,
+      priority: prospect.priority,
+      rationale: context(prospect.rationale),
+      recommendedApproach: context(prospect.recommendedApproach),
+      partnershipType: context(prospect.partnershipType),
+      estimatedValue: context(prospect.estimatedValue),
+      status: prospect.status,
+      outreachApprovedAt: prospect.outreachApprovedAt?.toISOString() || null,
+      selectedContactId: prospect.selectedContactId,
+      scoreDetails: getProspectionScoreDetails(prospect.scoreDetails),
+      player: prospect.player,
+      company: {
+        id: prospect.company.id,
+        name: prospect.company.name,
+        sector: prospect.company.sector,
+        country: prospect.company.country,
+        outreachReady: prospect.company.outreachReady,
+        ...getProspectionContactView(prospect.company.contacts.map((contact) => ({
+          ...contact,
+          lastBouncedAt: contact.emails[0]?.updatedAt || null,
+        }))),
+      },
+      deal: prospect.deal,
+      emails: prospect.emails.map((email) => ({
+        status: email.status,
+        sentAt: email.sentAt?.toISOString() || null,
+      })),
+    };
   });
 }
 

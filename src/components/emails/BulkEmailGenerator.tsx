@@ -7,11 +7,13 @@ import { useAgentExperience } from "@/components/agents/experience/AgentExperien
 
 interface BulkEmailGeneratorProps {
   prospectIds: string[];
+  contactIds?: Record<string, string>;
   onDone?: () => void;
 }
 
 export function BulkEmailGenerator({
   prospectIds,
+  contactIds,
   onDone,
 }: BulkEmailGeneratorProps) {
   const [loading, setLoading] = useState(false);
@@ -43,6 +45,7 @@ export function BulkEmailGenerator({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prospectId: prospectIds[i],
+            contactId: contactIds?.[prospectIds[i]],
             emailType: "first_contact",
           }),
         });

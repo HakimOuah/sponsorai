@@ -5,6 +5,7 @@ import { isUsableEmailStatus } from "@/lib/agents/contact-quality";
 import { companyContactUpdate } from "./company-primary";
 import { enrichmentProgress } from "./progress";
 import { visibleContact, visibleDiagnostics } from "./visibility";
+import type { CompanyEnrichmentLease } from "./enrichment-lease";
 import type { ContactCandidate, ContactDiscoveryDiagnostic, ContactSearchOptions, PublicContactSummary } from "./types";
 
 export type EnrichmentDependencies = {
@@ -15,6 +16,9 @@ export type EnrichmentDependencies = {
   updateCompany: (companyId: string, data: NonNullable<ReturnType<typeof companyContactUpdate>>) => Promise<unknown>;
   recordActivity: (activity: { companyId: string; message: string; decisionMakers: number; usableEmails: number; diagnostics: ContactDiscoveryDiagnostic[] }) => Promise<unknown>;
   reportError: (context: { companyId: string; aborted: boolean }) => void;
+  acquireLease?: (companyId: string) => Promise<CompanyEnrichmentLease | null>;
+  releaseLease?: (lease: CompanyEnrichmentLease) => Promise<unknown>;
+  isLeaseHeld?: (lease: CompanyEnrichmentLease) => Promise<boolean>;
 };
 
 /** The same HTTP/SSE flow is exercised with isolated providers in contract tests. */
@@ -33,6 +37,16 @@ export function createEnrichmentHandler(
     }
     const company = await deps.findCompany(companyId);
     if (!company) return Response.json({ error: "Company not found" }, { status: 404 });
+
+    let lease: CompanyEnrichmentLease | null = null;
+    if (deps.acquireLease) {
+      try {
+        lease = await deps.acquireLease(companyId);
+      } catch {
+        return Response.json({ error: "La recherche ne peut pas être démarrée pour le moment. Aucun appel fournisseur n’a été lancé." }, { status: 503 });
+      }
+      if (!lease) return Response.json({ error: "Une recherche de contacts est déjà en cours pour cette entreprise. Les résultats seront disponibles dans sa fiche." }, { status: 409 });
+    }
 
     const abort = new AbortController();
     const onDisconnect = () => abort.abort();
@@ -59,6 +73,9 @@ export function createEnrichmentHandler(
           abort.signal.throwIfAborted();
           const result = await deps.enrich(company, log, { signal: abort.signal, deadline: Date.now() + timing.deadlineMs });
           abort.signal.throwIfAborted();
+          if (lease && (lease.expiresAt <= Date.now() || (deps.isLeaseHeld && !await deps.isLeaseHeld(lease)))) {
+            throw new Error("Enrichment lease expired");
+          }
           const stored = await deps.persist(companyId, result.contacts, {
             includePrivate: access.isAdmin,
             rejectedEmails: result.rejectedEmails,
@@ -96,6 +113,12 @@ export function createEnrichmentHandler(
           clearInterval(heartbeat);
           clearTimeout(timer);
           request.signal.removeEventListener("abort", onDisconnect);
+          // A release failure leaves the bounded lease in place rather than
+          // exposing provider errors or allowing duplicate concurrent billing.
+          if (lease && deps.releaseLease) {
+            try { await deps.releaseLease(lease); }
+            catch { deps.reportError({ companyId, aborted: abort.signal.aborted }); }
+          }
           if (!closed) { closed = true; controller.close(); }
         }
       },

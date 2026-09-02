@@ -142,6 +142,7 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
                 done?: boolean;
                 scanId?: string;
                 resumable?: boolean;
+                qualificationId?: string;
               };
 
               if (data.phase && isActivePhase(data.phase)) {
@@ -164,6 +165,9 @@ export function useScanRunner(options?: { onSuccess?: () => void }) {
               }
 
               if (data.done) {
+                if (data.qualificationId && data.type !== "error") {
+                  window.dispatchEvent(new Event("vectis:qualification-queued"));
+                }
                 receivedTerminalEvent = true;
                 const success = data.type !== "error";
                 if (!success && data.resumable && data.scanId) {
