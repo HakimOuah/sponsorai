@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LEGAL_UPDATED_AT, Todo } from "../Todo";
+import { LEGAL_UPDATED_AT } from "../meta";
 
 export const metadata: Metadata = {
   title: "Mentions légales — Vectis Agency",
@@ -25,27 +25,30 @@ export default function MentionsLegalesPage() {
       <h2>Éditeur du site</h2>
       <ul>
         <li>
-          Dénomination : <Todo>raison sociale et forme juridique</Todo>
+          Dénomination : OH Ventures, société par actions simplifiée
+          unipersonnelle (SASU)
         </li>
         <li>
-          Capital social : <Todo>montant</Todo>
+          Capital social : 1 000 €
         </li>
         <li>
-          Siège social : <Todo>adresse complète</Todo>
+          Siège social : 47 rue Vivienne, 75002 Paris, France
         </li>
         <li>
-          Immatriculation : <Todo>numéro SIREN et ville du RCS</Todo>
+          Immatriculation : RCS Paris 103 157 251 (SIRET 103 157 251 00010)
         </li>
         <li>
-          Numéro de TVA intracommunautaire : <Todo>numéro</Todo>
+          Numéro de TVA intracommunautaire : FR55 103157251
         </li>
         <li>
-          Directeur de la publication : <Todo>nom et prénom</Todo>
+          Directeur de la publication : Hakim Ouahabi, président
+          d&apos;OH Ventures
         </li>
         <li>
           Contact :{" "}
           <a href="mailto:contact@vectis.agency">contact@vectis.agency</a>
         </li>
+        <li>Téléphone : +33 7 56 82 80 94</li>
       </ul>
 
       <h2>Hébergement</h2>
@@ -59,7 +62,7 @@ export default function MentionsLegalesPage() {
       <h2>Propriété intellectuelle</h2>
       <p>
         La structure du site, les textes, la marque Vectis, le logo et les
-        éléments graphiques sont la propriété de l&apos;éditeur. Toute
+        éléments graphiques sont la propriété d&apos;OH Ventures. Toute
         reproduction, représentation ou adaptation, totale ou partielle, sans
         autorisation écrite préalable est interdite. Les marques et noms de
         sociétés cités sur la plateforme appartiennent à leurs titulaires

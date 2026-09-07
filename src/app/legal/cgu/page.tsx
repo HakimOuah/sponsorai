@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LEGAL_UPDATED_AT, Todo } from "../Todo";
+import { LEGAL_UPDATED_AT } from "../meta";
 
 export const metadata: Metadata = {
   title: "Conditions générales d'utilisation — Vectis Agency",
@@ -17,7 +17,9 @@ export default function CguPage() {
       <h1 className="mt-4">Conditions générales d&apos;utilisation</h1>
       <p>
         Les présentes conditions régissent l&apos;accès et l&apos;utilisation
-        de la plateforme Vectis, éditée par <Todo>raison sociale</Todo>{" "}
+        de la plateforme Vectis, éditée par OH Ventures, société par actions
+        simplifiée unipersonnelle au capital de 1 000 €, RCS Paris 103 157
+        251, dont le siège est situé 47 rue Vivienne, 75002 Paris, France
         (« Vectis »). En utilisant la plateforme, vous les acceptez sans
         réserve.
       </p>
@@ -122,8 +124,7 @@ export default function CguPage() {
       <h2>9. Droit applicable</h2>
       <p>
         Les présentes conditions sont soumises au droit français. À défaut
-        d&apos;accord amiable, tout litige relève des tribunaux compétents de{" "}
-        <Todo>ville du siège social</Todo>.
+        d&apos;accord amiable, tout litige relève des tribunaux compétents de Paris.
       </p>
 
       <h2>Contact</h2>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { LEGAL_UPDATED_AT, Todo } from "../Todo";
+import { LEGAL_UPDATED_AT } from "../meta";
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité — Vectis Agency",
@@ -25,8 +25,10 @@ export default function ConfidentialitePage() {
 
       <h2>Responsable du traitement</h2>
       <p>
-        <Todo>raison sociale</Todo>, <Todo>adresse du siège</Todo>. Contact
-        pour toute question relative aux données :{" "}
+        OH Ventures, société par actions simplifiée unipersonnelle, 47 rue
+        Vivienne, 75002 Paris, France (RCS Paris 103 157 251). Délégué à la
+        protection des données : Hakim Ouahabi. Contact pour toute question
+        relative aux données :{" "}
         <a href="mailto:contact@vectis.agency">contact@vectis.agency</a>.
       </p>
 
@@ -157,11 +159,11 @@ export default function ConfidentialitePage() {
       <ul>
         <li>
           Compte utilisateur et données du portefeuille : pendant la durée de
-          la relation contractuelle, puis <Todo>durée, par ex. 12 mois</Todo>{" "}
+          la relation contractuelle, puis 12 mois{" "}
           après la clôture du compte.
         </li>
         <li>
-          Contacts professionnels des marques : <Todo>durée, par ex. 3 ans</Todo>{" "}
+          Contacts professionnels des marques : 3 ans{" "}
           à compter du dernier échange, puis suppression ou anonymisation.
         </li>
         <li>Journaux techniques et de sécurité : 12 mois.</li>
