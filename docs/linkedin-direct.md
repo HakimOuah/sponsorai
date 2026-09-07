@@ -41,3 +41,5 @@ python3 -m unittest discover -s scripts/linkedin-worker -p 'test_*.py'
 npm test
 npx tsc --noEmit
 ```
+
+Validation du 7 septembre 2026 : 240 tests TypeScript, 7 tests Python, compilation et build réussis. Un test de file de tâches via le endpoint de production a identifié et validé une responsable actuelle Air Up en 56,4 secondes. Aucun appel Monid, aucune modification de contact et aucun envoi pendant ce test. Le service launchd a fourni le heartbeat, réclamé la tâche et retourné le résultat ; la tâche temporaire a ensuite été supprimée. Cela valide la liaison de production et l’identification LinkedIn, pas la délivrabilité d’un nouvel email.

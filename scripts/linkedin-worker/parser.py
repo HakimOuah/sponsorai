@@ -67,6 +67,10 @@ def extract_profile(data, company_name, company_url, company_urn):
         if not CURRENT.search(line):
             continue
         window = lines[max(0, index-6):index]
+        # Do not borrow an employer label from the previous employment block.
+        boundaries = [i for i, part in enumerate(window) if re.search(r"\b(?:19|20)\d{2}\s*[-–]", part)]
+        if boundaries:
+            window = window[boundaries[-1]+1:]
         if any(re.search(r"\b(stage|stagiaire|intern|internship|apprentice|alternance)\b", part, re.I) for part in window):
             continue
         # A current date, exact company label, relevant job title and company ID

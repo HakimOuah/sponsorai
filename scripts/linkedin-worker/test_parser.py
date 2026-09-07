@@ -22,6 +22,10 @@ class ParserTest(unittest.TestCase):
         data = self.data()
         data["sections"]["experience"] = data["sections"]["experience"].replace("Full-time", "Stage")
         self.assertIsNone(extract_profile(data, "air up", "https://www.linkedin.com/company/air-up", "35649256")[0])
+    def test_does_not_borrow_old_employer(self):
+        data = self.data()
+        data["sections"]["experience"] = "Marketing Manager\nair up\n2020 - 2024\nMarketing Director\nAnother company\n2025 - Present"
+        self.assertIsNone(extract_profile(data, "air up", "https://www.linkedin.com/company/air-up", "35649256")[0])
     def test_company(self):
         self.assertEqual(company_identity({"sections": {"about": "air up\nAbout"}, "references": {"about": [{"kind": "company_urn", "value": "35649256"}]}}), ("air up", "35649256"))
     def test_mutual_connection(self):
