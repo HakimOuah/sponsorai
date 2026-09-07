@@ -83,7 +83,7 @@ async function download(url: string, domain: string, signal: AbortSignal, redire
   const result = await new Promise<{ body: Buffer; type: string; redirect?: string }>((resolve, reject) => {
     const req = httpsRequest(url, {
       signal,
-      headers: { "User-Agent": "SponsorAI/1.0 (public business contact verification)", "Accept-Encoding": "identity" },
+      headers: { "User-Agent": "Vectis/1.0 (public business contact verification)", "Accept-Encoding": "identity" },
       // Node 20+ can request all addresses; both signatures use only the pinned public address.
       lookup: (_hostname, opts, callback) => {
         if (opts.all) callback(null, [address]);

@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import type { CSSProperties, ReactNode } from "react";
 import { LandingMotionController } from "@/components/landing/LandingMotion";
+import { LandingFooter } from "@/components/landing/LandingFooter";
+import { VectisMark, VectisWordmark } from "@/components/brand/VectisLogo";
 import { agentAvatars } from "@/lib/agent-avatars";
 import {
   Activity,
@@ -32,7 +34,6 @@ import {
   TrendingUp,
   Users,
   X,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -225,6 +226,7 @@ export default function LandingPage() {
       <AgentsSection />
       <WorkflowSection />
       <FinalCTA />
+      <LandingFooter />
     </main>
   );
 }
@@ -237,12 +239,8 @@ function SiteNav() {
           href="/"
           className="pointer-events-auto flex items-center gap-3 px-1 text-[#F6F4EF] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D]"
         >
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] backdrop-blur-xl">
-            <Zap className="h-4 w-4 text-[#FF6B3D]" aria-hidden="true" />
-          </span>
-          <span className="text-base font-semibold tracking-[-0.03em]">
-            Vectis<span className="text-[#FF6B3D]">Agency</span>
-          </span>
+          <VectisMark className="h-8 w-8" />
+          <VectisWordmark size="md" />
         </Link>
 
         <div className="pointer-events-auto hidden items-center gap-2 rounded-2xl border border-white/[0.12] bg-[rgba(20,23,32,0.58)] p-2 shadow-[0_18px_70px_rgba(0,0,0,0.26)] backdrop-blur-[18px] md:flex">
@@ -470,8 +468,8 @@ function ProductPreview() {
 
         <div className="grid min-h-[460px] grid-cols-[64px_1fr] sm:grid-cols-[150px_1fr]">
           <div className="border-r border-white/10 bg-[#11131A] p-3 text-white sm:p-4">
-            <div className="mb-7 flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF6B3D] text-[#0B0D12]">
-              <Zap className="h-4 w-4" aria-hidden="true" />
+            <div className="mb-7 flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.08] text-[#F6F4EF]">
+              <VectisMark className="h-5 w-5" />
             </div>
             <div className="space-y-2">
               {[

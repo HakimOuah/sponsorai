@@ -3,6 +3,8 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Link from "next/link";
+import { VectisMark, VectisWordmark } from "@/components/brand/VectisLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,11 +46,11 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(to_right,#F6F4EF_1px,transparent_1px),linear-gradient(to_bottom,#F6F4EF_1px,transparent_1px)] [background-size:84px_84px]" />
       <div className="relative w-full max-w-md rounded-[32px] border border-[#FF6B3D]/15 bg-[#141720]/80 p-8 shadow-[0_32px_120px_rgba(0,0,0,0.46)] backdrop-blur-xl">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-[#FF6B3D]/25 bg-[#FF6B3D]/10 text-[#FF6B3D] shadow-[0_0_34px_rgba(255,107,61,0.12)]">
-            V
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.10] bg-white/[0.05] text-[#F6F4EF] shadow-[0_0_34px_rgba(255,107,61,0.10)]">
+            <VectisMark className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl font-semibold tracking-[-0.03em] text-[#F6F4EF] mb-2">
-            Vectis<span className="text-[#FF6B3D]">Agency</span>
+          <h1 className="mb-2 flex justify-center text-[#F6F4EF]">
+            <VectisWordmark size="lg" />
           </h1>
           <p className="text-[#969BA8] text-sm">
             Prospection sponsoring pour représentants de sportifs
@@ -94,6 +96,13 @@ export default function LoginPage() {
             {loading ? "Connexion..." : "Se connecter"}
           </button>
         </form>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-1 border-t border-white/[0.08] pt-5 text-[11px] text-[#969BA8]">
+          <Link href="/" className="transition hover:text-white">Retour au site</Link>
+          <Link href="/legal/mentions-legales" className="transition hover:text-white">Mentions légales</Link>
+          <Link href="/legal/confidentialite" className="transition hover:text-white">Confidentialité</Link>
+          <Link href="/legal/cgu" className="transition hover:text-white">CGU</Link>
+        </div>
       </div>
     </div>
   );

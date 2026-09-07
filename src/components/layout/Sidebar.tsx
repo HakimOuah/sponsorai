@@ -16,11 +16,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Zap,
   UserCog,
   LoaderCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { VectisMark, VectisWordmark } from "@/components/brand/VectisLogo";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "./NavigationProvider";
 
@@ -115,17 +115,11 @@ export function Sidebar({
       >
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-[#FF6B3D]/10 px-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[#FF6B3D]/25 bg-[#FF6B3D]/10 shadow-[0_0_24px_rgba(255,107,61,0.12)]">
-            <Zap className="h-4 w-4 text-[#FF6B3D]" />
-          </div>
-          <span
-            className={cn(
-              "min-w-0 text-base font-semibold tracking-[-0.03em] text-[#F6F4EF]",
-              !showExpanded && "lg:hidden",
-            )}
-          >
-            Vectis<span className="text-[#FF6B3D]">Agency</span>
-          </span>
+          <VectisMark className="h-8 w-8 shrink-0 text-[#F6F4EF]" />
+          <VectisWordmark
+            size="sm"
+            className={cn("min-w-0 text-[#F6F4EF]", !showExpanded && "lg:hidden")}
+          />
           <button
             type="button"
             onClick={onMobileClose}

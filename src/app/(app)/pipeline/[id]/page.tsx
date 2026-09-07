@@ -44,7 +44,7 @@ export default async function DealWorkspacePage({
           <p className="text-[11px] text-[#969BA8]">Attribution</p>
           <p className="text-xs text-[#FF6B3D]">
             {deal.attribution?.initiatedBySponsorAI
-              ? "SponsorAI vérifiée"
+              ? "Vectis vérifiée"
               : "À établir"}
           </p>
         </div>

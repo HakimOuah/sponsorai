@@ -11,7 +11,7 @@ async function main() {
     update: { role: "admin" },
     create: {
       email: "agent@sponsorai.com",
-      name: "Agent SponsorAI",
+      name: "Agent Vectis",
       password: hashedPassword,
       role: "admin",
     },
