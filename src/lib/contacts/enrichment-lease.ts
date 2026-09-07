@@ -7,6 +7,8 @@ export const COMPANY_ENRICHMENT_LEASE_MS = 330_000;
 export const INTERNAL_CONTACT_ACTIVITY_TYPES = [
   "scan_contact_qualification",
   "contact_enrichment_lease",
+  "linkedin_direct_job",
+  "linkedin_direct_worker",
 ] as const;
 
 export interface CompanyEnrichmentLease {

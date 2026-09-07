@@ -5,6 +5,7 @@ import { canonicalLinkedinUrl, resolveCompanyContactContext, type CompanyContact
 import { asObject, MonidClient, MonidError } from "./monid-client";
 import { searchApolloContacts } from "@/lib/agents/apollo";
 import { isDeliverableHunterEmail } from "./email-verification";
+import { searchLinkedinDirect, selectDirectContacts } from "./linkedin-direct";
 export { isDeliverableHunterEmail } from "./email-verification";
 import type { ContactCandidate, ContactDiscoveryDiagnostic, ContactProviderSearchResult, ContactSearchOptions } from "./types";
 
@@ -12,6 +13,7 @@ type Client = Pick<MonidClient, "employees" | "findEmail" | "verifyEmail" | "sea
 type Dependencies = {
   client?: Client;
   resolveContext?: typeof resolveCompanyContactContext;
+  directSearch?: typeof searchLinkedinDirect;
 };
 
 export async function searchMonidContacts(
@@ -20,6 +22,7 @@ export async function searchMonidContacts(
   options: ContactSearchOptions = {},
   dependencies: Dependencies = {},
 ): Promise<ContactProviderSearchResult> {
+  const providerDeadline = Math.min(options.deadline ?? Infinity, Date.now() + 150_000);
   const client = dependencies.client || new MonidClient(options);
   const diagnostics: ContactDiscoveryDiagnostic[] = [];
   const rejectedEmails = new Set<string>();
@@ -34,11 +37,23 @@ export async function searchMonidContacts(
       : "Aucune page LinkedIn reliée au site officiel avec certitude. Les homonymes ne sont pas interrogés.",
   });
   let contacts: ContactCandidate[] = [];
+  const excludedLinkedin = new Set<string>();
   if (context.companyLinkedinUrl) {
+    const direct = await (dependencies.directSearch || searchLinkedinDirect)(context.companyLinkedinUrl, company.id, { ...options, deadline: providerDeadline })
+      .catch(() => ({ status: "unavailable" as const, profiles: [], excludedProfiles: [] }));
+    direct.excludedProfiles.forEach((url) => { const canonical = canonicalLinkedinUrl(url, "in"); if (canonical) excludedLinkedin.add(canonical); });
+    contacts = selectDirectContacts(direct, context.companyLinkedinUrl, company.id);
+    diagnostics.push({ provider: "linkedin_direct", stage: "people_search", status: contacts.length ? "success" : direct.status === "unavailable" ? "failed" : "no_result",
+      matched: contacts.length, message: contacts.length
+        ? `${contacts.length} profil(s) actuel(s) qualifié(s) par LinkedIn direct ; appel LinkedIn Monid évité.`
+        : "Recherche LinkedIn directe indisponible ou sans profil qualifié ; recours aux sources Monid." });
+  }
+  if (context.companyLinkedinUrl && !contacts.length && !options.signal?.aborted) {
     log?.("Monid recherche les fonctions sponsoring, partenariats et communication sur LinkedIn...");
     try {
       const result = await client.employees(context.companyLinkedinUrl);
-      contacts = selectCurrentLinkedinContacts(result.output, context.companyLinkedinUrl, company.id);
+      contacts = selectCurrentLinkedinContacts(result.output, context.companyLinkedinUrl, company.id)
+        .filter((contact) => !excludedLinkedin.has(contact.linkedin || ""));
       diagnostics.push({
         provider: "monid", stage: "people_search", status: contacts.length ? "success" : "no_result",
         matched: contacts.length,
@@ -66,13 +81,14 @@ export async function searchMonidContacts(
 
   if (!contacts.some((contact) => contact.email)) {
     const apollo = await searchApolloContacts(company, log, options, {
-      client, trustedDomains: context.emailDomains.map((domain) => domain.domain), rejectedEmails,
+      client, trustedDomains: context.emailDomains.map((domain) => domain.domain), rejectedEmails, excludedLinkedin,
     });
     diagnostics.push(...apollo.diagnostics);
     // Prefer usable addresses, then fill with verified identities. A fallback
     // must not discard existing people, duplicate them, or resurrect a rejection.
     const merged: ContactCandidate[] = [];
     for (const contact of [...contacts, ...apollo.contacts].sort((a, b) => Number(Boolean(b.email)) - Number(Boolean(a.email)))) {
+      if (excludedLinkedin.has(canonicalLinkedinUrl(contact.linkedin, "in") || "")) continue;
       if (contact.email && rejectedEmails.has(contact.email.toLowerCase())) continue;
       if (merged.some((existing) => (existing.linkedin && existing.linkedin === contact.linkedin) || normalizeName(existing.name) === normalizeName(contact.name))) continue;
       merged.push(contact);

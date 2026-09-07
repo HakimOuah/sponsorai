@@ -22,6 +22,7 @@ type Dependencies = {
   client?: ApolloClient;
   trustedDomains?: string[];
   rejectedEmails?: Set<string>;
+  excludedLinkedin?: Set<string>;
 };
 
 const TARGET_TITLES = [
@@ -70,7 +71,7 @@ export async function searchApolloContacts(
     const searched = await client.searchApolloPeople(domain, TARGET_TITLES);
     const rawPeople = asObject(searched.output).people;
     people = Array.isArray(rawPeople) ? rawPeople.slice(0, 10).map(normalizePerson) : [];
-    people = Array.from(new Map(people.filter((person) => person.id && getContactRelevance(person.title) >= 2 &&
+    people = Array.from(new Map(people.filter((person) => person.id && !dependencies.excludedLinkedin?.has(person.linkedin || "") && getContactRelevance(person.title) >= 2 &&
       isCurrentApolloEmployment(person, company.name, domain)).map((person) => [person.id, person])).values());
     people.sort((a, b) => getContactRelevance(b.title) - getContactRelevance(a.title));
   } catch (error) {
@@ -94,6 +95,7 @@ export async function searchApolloContacts(
       const enriched = await client.matchApolloPerson(preview.id);
       if (enriched.notFound) continue;
       const person = normalizePerson(asObject(enriched.output).person);
+      if (dependencies.excludedLinkedin?.has(person.linkedin || "")) continue;
       if (person.id !== preview.id) continue;
       const contact = toApolloContact(person, company.name, domain);
       if (!contact) continue;

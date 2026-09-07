@@ -168,7 +168,7 @@ test("free users never acquire enrichment leases; internal activities stay out o
   const deps = dependencies({ acquireLease: async () => assert.fail("read-only user claimed a lease") });
   deps.getAccess = async () => ({ authenticated: true, isAdmin: false, isFreeUser: true, canOperate: false, role: "free_user", userId: "free", userName: "Free" });
   assert.equal((await createEnrichmentHandler(deps)(request())).status, 403);
-  assert.deepEqual([...INTERNAL_CONTACT_ACTIVITY_TYPES], ["scan_contact_qualification", "contact_enrichment_lease"]);
+  assert.deepEqual([...INTERNAL_CONTACT_ACTIVITY_TYPES], ["scan_contact_qualification", "contact_enrichment_lease", "linkedin_direct_job", "linkedin_direct_worker"]);
   const source = readFileSync(new URL("../src/lib/actions/dashboard.ts", import.meta.url), "utf8");
   assert.match(source, /activityLog\.findMany\(\{\s*where: \{ type: \{ notIn: \[\.\.\.INTERNAL_CONTACT_ACTIVITY_TYPES\]/);
 });

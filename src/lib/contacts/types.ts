@@ -27,7 +27,7 @@ export interface ContactCandidate {
   role_relevance?: "high" | "medium" | "low";
   evidence: string;
   source: string;
-  provider?: "monid" | "apollo" | "web_search";
+  provider?: "monid" | "apollo" | "web_search" | "linkedin_direct";
   providerExternalId?: string | null;
   // An official routing mailbox is not a named decision maker.
   kind?: "person" | "company_mailbox";
@@ -48,7 +48,7 @@ export type ContactDiscoveryStatus =
   | "failed";
 
 export interface ContactDiscoveryDiagnostic {
-  provider: "monid" | "apollo" | "web_search";
+  provider: "monid" | "apollo" | "web_search" | "linkedin_direct";
   stage: ContactDiscoveryStage;
   status: ContactDiscoveryStatus;
   message: string;
