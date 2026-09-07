@@ -37,46 +37,46 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Vectis Agency - Sponsorship intelligence V2",
+  title: "Vectis Agency — Trouvez et signez des sponsors pour vos sportifs",
   description:
-    "Une plateforme de sponsorship intelligence qui relie discovery, décideurs, outreach, deals et apprentissage à partir des campagnes réelles.",
+    "Vectis trouve les marques cohérentes avec chaque sportif, identifie le décideur, rédige le premier contact et suit chaque opportunité jusqu'au contrat. Six agents IA, validation humaine avant chaque envoi.",
 };
 
 const navItems = [
   { label: "Plateforme", href: "#overview" },
-  { label: "Intelligence V2", href: "#technology" },
+  { label: "Méthode", href: "#technology" },
   { label: "Agents", href: "#agents" },
-  { label: "Boucle fermée", href: "#resources" },
+  { label: "Comment ça marche", href: "#resources" },
 ];
 
 const heroCards: Array<{ title: string; label: string; icon: LucideIcon }> = [
-  { title: "Analyse profil", label: "Enrichissement", icon: Users },
-  { title: "Graphe marques", label: "Recherche IA", icon: Network },
-  { title: "Prospection sûre", label: "Domaine pro", icon: Lock },
+  { title: "Profil du sportif", label: "Analysé et enrichi", icon: Users },
+  { title: "Marques scorées", label: "Recherche web + IA", icon: Network },
+  { title: "Envoi depuis votre boîte", label: "Gmail, Outlook, SMTP", icon: Lock },
 ];
 
 const dataBreaks = [
-  "Le contexte d'une marque disparaît après le scan",
-  "Le choix du décideur n'est pas relié au résultat",
-  "Les réponses et meetings restent dispersés",
-  "Les deals conclus hors plateforme deviennent invisibles",
-  "Chaque nouvelle campagne repart presque de zéro",
-  "Le taux de réponse masque les vrais outcomes business",
+  "Les sponsors évidents sont saturés, les autres restent introuvables",
+  "Le bon interlocuteur a changé de poste sans que vous le sachiez",
+  "Les mails génériques finissent sans réponse",
+  "Les relances dépendent de votre mémoire",
+  "Réponses, rendez-vous et contrats sont éparpillés entre mails, LinkedIn et tableur",
+  "Ce qui a marché la dernière fois n'est écrit nulle part",
 ];
 
 const solutionPillars = [
   {
-    title: "Sponsorship Graph",
-    text: "Une donnée structurée relie athlètes, marques, signaux, décideurs, preuves, conversations et deals.",
+    title: "Une base qui relie tout",
+    text: "Sportifs, marques, décideurs, échanges et contrats vivent dans une seule base, pas dans trois outils.",
   },
   {
-    title: "Learning Engine",
-    text: "Les réponses, meetings et signatures renforcent progressivement les scores de marque, de rôle et de message.",
+    title: "Des scores qui s'améliorent",
+    text: "Une réponse positive, un rendez-vous ou une signature renforce le score des marques, des rôles et des messages similaires.",
     featured: true,
   },
   {
-    title: "Closed-loop",
-    text: "Chaque opportunité reste visible du premier match jusqu'au WON ou LOST, même lorsque le meeting ou le contrat est externe.",
+    title: "Rien ne sort du radar",
+    text: "Une opportunité reste suivie du premier contact jusqu'au contrat signé ou perdu, même quand le rendez-vous a lieu hors de la plateforme.",
   },
 ];
 
@@ -92,94 +92,94 @@ const agents: Array<{
 }> = [
   {
     name: "Scout",
-    role: "Discovery",
+    role: "Recherche de marques",
     icon: Search,
     avatar: agentAvatars.scout,
-    text: "Découvre des marques pertinentes et réutilise la connaissance déjà acquise au lieu d'exclure toute entreprise connue.",
+    text: "Cherche sur le web les marques cohérentes avec le profil du sportif, en écartant les sponsors évidents que tout le monde sollicite déjà.",
     command:
-      "Trouve 25 marques cohérentes avec ce profil, hors évidences du marché.",
-    result: "25 marques sourcées, 18 nouvelles pistes prêtes à être scorées.",
+      "Trouve 25 marques cohérentes avec ce profil, hors sponsors évidents.",
+    result: "25 marques trouvées, 18 nouvelles pistes prêtes à être scorées.",
     capabilities: [
-      "Recherche web contextualisée",
-      "Déduplication par athlète",
+      "Recherche web ciblée",
+      "Aucun doublon par sportif",
       "Sources conservées",
     ],
   },
   {
     name: "Matchmaker",
-    role: "Brand score",
+    role: "Scoring des marques",
     icon: Target,
     avatar: agentAvatars.matchmaker,
-    text: "Versionne le scoring et combine cohérence de marque, audience, timing et signaux historiques contextualisés.",
+    text: "Note chaque marque sur la cohérence d'image, l'audience, l'historique sponsoring et le timing, puis classe les priorités A, B et C.",
     command:
-      "Priorise les marques qui ont le meilleur potentiel de conversion réel.",
-    result: "7 opportunités A détectées avec un rationnel exploitable.",
+      "Classe ces marques selon leur vraie probabilité de répondre.",
+    result: "7 opportunités en priorité A, chacune avec son argumentaire.",
     capabilities: [
-      "Scoring multi-critères",
-      "Historique des outcomes",
+      "Score sur 6 critères",
+      "Argumentaire par marque",
       "Priorités A, B et C",
     ],
   },
   {
     name: "Enrichisseur",
-    role: "Contact score",
+    role: "Identification du décideur",
     icon: Building2,
     avatar: agentAvatars.enrichisseur,
-    text: "Identifie le bon rôle, vérifie l'emploi et la contactabilité, sans exposer les coordonnées brutes côté client.",
+    text: "Trouve la personne en charge des partenariats, vérifie qu'elle est toujours en poste et que son email est valide, sans jamais exposer ses coordonnées.",
     command:
-      "Identifie le décideur sponsoring actuel pour chaque marque prioritaire.",
+      "Identifie le responsable sponsoring actuel de chaque marque prioritaire.",
     result:
-      "5 décideurs actuels qualifiés, dont 3 contacts prêts pour validation.",
+      "5 décideurs en poste identifiés, dont 3 prêts à contacter.",
     capabilities: [
-      "Rôles normalisés",
-      "Emploi actuel vérifié",
+      "Poste vérifié",
+      "Email vérifié avant envoi",
       "Coordonnées protégées",
     ],
   },
   {
     name: "Rédacteur",
-    role: "Message versionné",
+    role: "Premier contact",
     icon: Mail,
     avatar: agentAvatars.redacteur,
-    text: "Génère un message contextualisé dont la version et l'angle restent associés aux résultats de la campagne.",
+    text: "Rédige un premier mail en votre nom, fondé sur des faits vérifiables, qui ouvre la discussion sans vendre une prestation.",
     command:
-      "Rédige un premier contact crédible à partir du match et du profil.",
-    result: "Un email personnalisé, relu et rattaché à son angle de campagne.",
+      "Rédige un premier contact crédible à partir du profil et du match.",
+    result: "Un mail personnalisé, prêt à relire et à envoyer.",
     capabilities: [
-      "Angles personnalisés",
-      "Templates versionnés",
-      "Validation humaine",
+      "Votre ton, votre signature",
+      "Relances J+4 et J+10",
+      "Relecture avant envoi",
     ],
   },
   {
     name: "Dispatcher",
-    role: "Sending identity",
+    role: "Envoi et relances",
     icon: Send,
     avatar: agentAvatars.dispatcher,
-    text: "Envoie depuis l'identité professionnelle connectée, orchestre les relances et conserve le fil de conversation.",
+    text: "Envoie depuis votre Gmail, Outlook ou SMTP, programme les relances et garde tout le fil dans la fiche de l'opportunité.",
     command:
-      "Envoie les messages approuvés et prépare les relances au bon moment.",
-    result: "Séquence programmée, identité contrôlée et chronologie conservée.",
+      "Envoie les mails validés et relance ceux qui n'ont pas répondu.",
+    result: "Séquence programmée, fil de conversation conservé.",
     capabilities: [
-      "Identité professionnelle",
-      "Relances orchestrées",
-      "Traçabilité complète",
+      "Votre boîte mail, votre nom",
+      "Relance uniquement sans réponse",
+      "Historique complet",
     ],
   },
   {
     name: "Veilleur",
-    role: "Signals & replies",
+    role: "Réponses et signaux",
     icon: Bot,
     avatar: agentAvatars.veilleur,
-    text: "Détecte les réponses et nouveaux signaux utiles afin d'alimenter les opportunités, preuves et prochaines actions.",
+    text: "Lit les réponses, les classe, met à jour le pipeline et repère les nouveaux signaux, comme un changement de sponsor chez une marque.",
     command:
-      "Surveille les réponses et transforme chaque signal en action concrète.",
+      "Surveille les réponses et transforme chaque signal en action.",
     result:
-      "Réponse positive détectée, meeting proposé et pipeline mis à jour.",
+      "Réponse positive détectée, rendez-vous proposé, pipeline mis à jour.",
     capabilities: [
-      "Réponses catégorisées",
-      "Signaux marché suivis",
-      "Outcomes structurés",
+      "Réponses classées automatiquement",
+      "Alertes marché",
+      "Prochaine action proposée",
     ],
   },
 ];
@@ -187,31 +187,31 @@ const agents: Array<{
 const workflow = [
   {
     number: "01",
-    title: "Discover & Match",
-    text: "Le profil athlète et les signaux marché produisent une shortlist resserrée de marques expliquées et scorées.",
+    title: "Trouver et scorer",
+    text: "Le profil du sportif et l'actualité des marques produisent une shortlist courte, notée et argumentée.",
   },
   {
     number: "02",
-    title: "Decision maker",
-    text: "Le meilleur rôle est identifié, normalisé et qualifié avant toute validation humaine du premier outreach.",
+    title: "Identifier le décideur",
+    text: "Le bon interlocuteur est trouvé, vérifié en poste et joignable. Vous validez avant tout envoi.",
   },
   {
     number: "03",
-    title: "Close the loop",
-    text: "Emails, réponses, meetings, propositions et contrats restent réunis dans la chronologie de l'opportunité.",
+    title: "Contacter et relancer",
+    text: "Mail, relances, réponses, rendez-vous et contrat restent dans la fiche de l'opportunité.",
   },
   {
     number: "04",
-    title: "Learn & improve",
-    text: "Les outcomes structurés renforcent les statistiques et améliorent les futures recommandations contextualisées.",
+    title: "Apprendre",
+    text: "Chaque résultat affine les prochaines shortlists, les rôles à cibler et les messages qui obtiennent des réponses.",
   },
 ];
 
 const proofPoints = [
-  "Validation humaine avant outreach",
-  "Coordonnées privées côté serveur",
-  "Scores et templates versionnés",
-  "Attribution conservée jusqu'au deal",
+  "Vous validez chaque mail avant envoi",
+  "Coordonnées jamais exposées",
+  "Envoi depuis votre propre boîte mail",
+  "Chaque deal garde son origine",
 ];
 
 export default function LandingPage() {
@@ -268,7 +268,7 @@ function SiteNav() {
             href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
             className="landing-primary-cta group inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
           >
-            Démarrer
+            Réserver une démo
             <ArrowRight
               className="h-4 w-4 transition group-hover:translate-x-0.5"
               aria-hidden="true"
@@ -280,7 +280,7 @@ function SiteNav() {
           <summary className="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-2xl border border-white/[0.14] bg-black/30 text-white backdrop-blur-xl transition hover:bg-white/[0.08] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] [&::-webkit-details-marker]:hidden">
             <Menu className="h-5 w-5 group-open:hidden" aria-hidden="true" />
             <X className="hidden h-5 w-5 group-open:block" aria-hidden="true" />
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">Ouvrir le menu</span>
           </summary>
           <div className="absolute right-0 mt-3 w-[280px] rounded-3xl border border-white/[0.12] bg-[#11141D]/95 p-3 shadow-[0_28px_80px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
             {navItems.map((item) => (
@@ -303,7 +303,7 @@ function SiteNav() {
                 href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
                 className="landing-primary-cta rounded-full px-4 py-3 text-center text-sm font-semibold text-[#0B0D12]"
               >
-                Démarrer
+                Réserver une démo
               </Link>
             </div>
           </div>
@@ -326,22 +326,22 @@ function HeroSection() {
           <div className="landing-reveal mx-auto max-w-5xl text-center">
             <div className="mx-auto mb-7 flex w-fit items-center gap-2 rounded-full border border-[#FF6B3D]/25 bg-[#FF6B3D]/10 px-4 py-2 text-sm font-semibold text-[#FFE4D8] backdrop-blur-xl">
               <Sparkles className="h-4 w-4 text-[#FF6B3D]" aria-hidden="true" />
-              SponsorAI V2 · Sponsorship intelligence
+              Bêta privée · Prospection sponsoring assistée par IA
             </div>
             <h1 className="text-balance text-[44px] font-semibold leading-[0.96] tracking-[-0.06em] text-[#F6F4EF] sm:text-[72px] lg:text-[92px]">
-              Chaque campagne rend la suivante{" "}
-              <span className="text-[#FF6B3D]">plus intelligente.</span>
+              Signez plus de sponsors,{" "}
+              <span className="text-[#FF6B3D]">sans prospecter à l&apos;aveugle.</span>
             </h1>
             <p className="mx-auto mt-7 max-w-2xl text-[16px] leading-8 text-[#D5D7DF]/72 sm:text-lg">
-              Découvrez les bonnes marques, qualifiez le décideur, pilotez
-              l&apos;outreach jusqu&apos;au deal et transformez chaque résultat
-              en donnée propriétaire réutilisable.
+              Vectis trouve les marques cohérentes avec chaque sportif, identifie
+              le décideur, rédige le premier contact et suit l&apos;opportunité
+              jusqu&apos;à la signature. Vous gardez la main sur chaque envoi.
             </p>
 
             <HeroCommandBar />
 
             <div className="mt-8 flex flex-wrap justify-center gap-x-5 gap-y-3 text-sm text-[#D5D7DF]/62">
-              {["Sponsorship Graph", "Boucle fermée", "Learning Engine"].map(
+              {["Marques hors évidences", "Décideurs vérifiés", "Suivi jusqu'à la signature"].map(
                 (item) => (
                   <span key={item} className="inline-flex items-center gap-2">
                     <CheckCircle2
@@ -393,13 +393,13 @@ function HeroCommandBar() {
           <Sparkles className="h-4 w-4 text-[#FF6B3D]" aria-hidden="true" />
         </span>
         <p className="text-sm font-medium text-white/[0.76] sm:text-base">
-          Trouver les sponsors les plus pertinents pour mon portefeuille
+          Trouve des marques prêtes à sponsoriser une nageuse de niveau national, hors sponsors évidents
         </p>
       </div>
       <div className="mt-2 flex flex-col gap-2 border-t border-white/[0.09] pt-3 sm:flex-row sm:items-center sm:justify-between">
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/[0.10] bg-black/20 px-3 py-2 text-xs font-medium text-[#D5D7DF]/72">
-          <Bot className="h-3.5 w-3.5 text-[#FF6B3D]" aria-hidden="true" />6
-          agents coordonnés
+          <Bot className="h-3.5 w-3.5 text-[#FF6B3D]" aria-hidden="true" />
+          Six agents IA · vous validez chaque envoi
         </span>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Link
@@ -413,10 +413,10 @@ function HeroCommandBar() {
             />
           </Link>
           <Link
-            href="/login"
+            href="#resources"
             className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.07] px-5 py-3 text-sm font-semibold text-white/[0.82] transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.11] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
           >
-            Voir la plateforme
+            Comment ça marche
           </Link>
         </div>
       </div>
@@ -428,19 +428,19 @@ function ProductPreview() {
   const opportunities = [
     {
       brand: "Maison M",
-      profile: "Attaquant · Ligue 1",
+      profile: "Attaquant · Ligue 2",
       score: 94,
       state: "Décideur vérifié",
     },
     {
       brand: "Atlas Mobility",
-      profile: "Milieu · International",
+      profile: "Judokate · Équipe de France",
       score: 88,
-      state: "Email prêt",
+      state: "Mail à valider",
     },
     {
       brand: "North Studio",
-      profile: "Défenseur · Espoir",
+      profile: "Club de handball · Nationale 1",
       score: 82,
       state: "À qualifier",
     },
@@ -460,11 +460,11 @@ function ProductPreview() {
             <span className="h-2.5 w-2.5 rounded-full bg-[#6577FF]" />
           </div>
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#636876]">
-            Aperçu SponsorAI V2
+            Aperçu de la plateforme
           </span>
           <span className="flex items-center gap-1.5 rounded-full bg-[#FFF0EA] px-2.5 py-1 text-[10px] font-semibold text-[#B23A20]">
             <span className="h-1.5 w-1.5 rounded-full bg-[#E85832]" />
-            Démo
+            Exemple
           </span>
         </div>
 
@@ -506,10 +506,10 @@ function ProductPreview() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-medium text-[#6A6F7C]">
-                  Bonjour Hakim,
+                  Bonjour Camille,
                 </p>
                 <h2 className="mt-1 text-xl font-semibold tracking-[-0.03em] sm:text-2xl">
-                  Décisions prioritaires
+                  Vos priorités du jour
                 </h2>
               </div>
               <span className="hidden rounded-full bg-[#141720] px-4 py-2 text-xs font-semibold text-white sm:inline-flex">
@@ -520,8 +520,8 @@ function ProductPreview() {
             <div className="mt-5 grid grid-cols-3 gap-2">
               {[
                 { value: "18", label: "Marques scorées" },
-                { value: "7", label: "Contacts qualifiés" },
-                { value: "4", label: "Actions dues" },
+                { value: "7", label: "Décideurs vérifiés" },
+                { value: "4", label: "Relances à faire" },
               ].map((stat) => (
                 <div
                   key={stat.label}
@@ -540,10 +540,10 @@ function ProductPreview() {
             <div className="mt-5 overflow-hidden rounded-[20px] border border-black/[0.08] bg-white">
               <div className="flex items-center justify-between border-b border-black/[0.07] px-4 py-3">
                 <span className="text-xs font-semibold">
-                  Recommandations V2
+                  Opportunités recommandées
                 </span>
                 <span className="text-[10px] text-[#5F6570]">
-                  Mis à jour maintenant
+                  À l&apos;instant
                 </span>
               </div>
               {opportunities.map((item, index) => (
@@ -580,7 +580,7 @@ function ProductPreview() {
             <div className="mt-4 flex items-center justify-between rounded-2xl bg-[#141720] px-4 py-3 text-white">
               <span className="flex min-w-0 items-center gap-2 text-[10px] text-white/[0.68] sm:text-xs">
                 <Clock3 className="h-4 w-4 shrink-0 text-[#FF6B3D]" />3 relances
-                recommandées aujourd&apos;hui
+                à envoyer aujourd&apos;hui
               </span>
               <ArrowRight className="h-4 w-4 text-[#FF6B3D]" />
             </div>
@@ -597,24 +597,24 @@ function ProblemSection() {
       <AmbientBackdrop dark />
       <div className="relative z-10 mx-auto max-w-[1480px]">
         <SectionIntro
-          badge="La rupture V2"
+          badge="Le problème"
           title={
             <>
-              Un CRM enregistre.{" "}
-              <span className="text-[#FF6B3D]">SponsorAI apprend.</span>
+              La prospection sponsoring se fait{" "}
+              <span className="text-[#FF6B3D]">encore à la main.</span>
             </>
           }
-          text="La valeur ne vient pas seulement des marques trouvées. Elle vient du lien conservé entre une décision, son contexte et son outcome réel."
+          text="Recherche de marques sur Google, contacts LinkedIn au hasard, mails sans réponse, tableur jamais à jour. Des semaines de travail pour quelques contrats."
         />
 
         <ScrollReveal direction="scale" className="mt-16">
           <div className="grid items-center gap-10 rounded-[32px] bg-[#FFE4D8] p-6 shadow-[0_28px_90px_rgba(23,26,35,0.12)] sm:p-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-16 lg:rounded-[44px] lg:p-16">
             <div>
               <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#B23A20]">
-                Les données qui se perdaient
+                Ce que ça vous coûte
               </p>
               <h2 className="mt-5 text-3xl font-semibold tracking-[-0.04em] text-[#171A23] sm:text-5xl">
-                Fermer les angles morts du sponsoring.
+                Chaque campagne repart de zéro.
               </h2>
               <div className="mt-9 grid gap-y-4">
                 {dataBreaks.map((item) => (
@@ -634,7 +634,7 @@ function ProblemSection() {
                 href="#technology"
                 className="landing-primary-cta mt-10 inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] active:scale-[0.98]"
               >
-                Découvrir le moteur V2
+                Voir comment Vectis s&apos;y prend
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
@@ -655,14 +655,14 @@ function ContactIntelligencePreview() {
       <div className="flex items-center justify-between border-b border-black/[0.07] bg-white px-5 py-4">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#B23A20]">
-            Aperçu V2 · Contact intelligence
+            Aperçu · Décideur identifié
           </p>
           <h3 className="mt-1 text-lg font-semibold text-[#171A21]">
-            Décideur recommandé
+            Interlocuteur recommandé
           </h3>
         </div>
         <span className="rounded-full bg-[#FFF0EA] px-3 py-1.5 text-[10px] font-semibold text-[#B23A20]">
-          Validation requise
+          À valider avant envoi
         </span>
       </div>
 
@@ -679,7 +679,7 @@ function ContactIntelligencePreview() {
                     Head of Sports Partnerships
                   </p>
                   <p className="mt-1 text-sm text-[#5F6570]">
-                    Rôle normalisé · entreprise cible
+                    Responsable partenariats · marque cible
                   </p>
                 </div>
                 <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[#E85832]/25 bg-[#FFF0EA] font-mono text-base font-bold text-[#B23A20]">
@@ -689,8 +689,8 @@ function ContactIntelligencePreview() {
 
               <div className="mt-5 grid gap-2 sm:grid-cols-3">
                 {[
-                  ["Emploi actuel", "Vérifié"],
-                  ["Contactabilité", "Vérifiée"],
+                  ["En poste", "Vérifié"],
+                  ["Email", "Vérifié"],
                   ["Pertinence", "Très forte"],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-2xl bg-[#F1F0ED] p-3">
@@ -707,14 +707,14 @@ function ContactIntelligencePreview() {
           <div className="mt-5 flex items-center gap-3 rounded-2xl border border-[#B23A20]/10 bg-[#FFF4EF] px-4 py-3">
             <ShieldCheck className="h-5 w-5 shrink-0 text-[#B23A20]" />
             <p className="text-xs leading-5 text-[#66514A]">
-              Email, téléphone et URL directe restent privés côté serveur.
-              L&apos;outreach est exécuté depuis SponsorAI.
+              Email et téléphone restent privés sur nos serveurs. Le mail part
+              de votre boîte pro, après votre validation.
             </p>
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
-          {["Excellent", "Acceptable", "Mauvais"].map((feedback, index) => (
+          {["Bon contact", "Moyen", "Hors cible"].map((feedback, index) => (
             <div
               key={feedback}
               className={
@@ -729,7 +729,7 @@ function ContactIntelligencePreview() {
           ))}
         </div>
         <p className="mt-3 text-center text-[10px] text-[#5F6570]">
-          Aperçu illustratif — le feedback humain devient une donnée SponsorAI.
+          Votre avis sur chaque contact affine les prochaines recommandations.
         </p>
       </div>
     </div>
@@ -745,14 +745,14 @@ function SolutionSection() {
       <DotField />
       <div className="relative z-10 mx-auto max-w-[1480px]">
         <SectionIntro
-          badge="Sponsorship intelligence"
+          badge="La méthode Vectis"
           title={
             <>
-              Transformer les outcomes <br className="hidden sm:block" />
-              <span className="text-[#FF6B3D]">en avantage propriétaire.</span>
+              Un CRM enregistre. <br className="hidden sm:block" />
+              <span className="text-[#FF6B3D]">Vectis apprend.</span>
             </>
           }
-          text="Chaque contact sélectionné, email, réponse, meeting et deal conserve le contexte de la décision pour améliorer les recommandations futures."
+          text="Chaque marque contactée, chaque réponse, chaque rendez-vous et chaque contrat signé améliore les recommandations suivantes. Plus vous l'utilisez, plus les shortlists sont justes."
         />
 
         <ScrollReveal direction="scale" className="mt-16">
@@ -760,11 +760,10 @@ function SolutionSection() {
             <div className="space-y-5">
               <div className="mb-8">
                 <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#FF6B3D]">
-                  Data moat V2
+                  Ce qui nous distingue
                 </p>
                 <h3 className="mt-4 text-4xl font-semibold tracking-[-0.05em] text-[#F6F4EF] sm:text-5xl">
-                  La mémoire est dans les données. Pas dans une vague mémoire
-                  LLM.
+                  Vos campagnes deviennent votre avantage.
                 </h3>
               </div>
               {solutionPillars.map((pillar) => (
@@ -798,10 +797,10 @@ function SolutionSection() {
 
 function LearningEnginePreview() {
   const events = [
-    ["EMAIL_SENT", "184", "Contexte conservé"],
-    ["POSITIVE_REPLY", "31", "Outcome qualifié"],
-    ["MEETING_BOOKED", "14", "Signal business"],
-    ["SIGNED", "5", "Valeur attribuée"],
+    ["Mails envoyés", "184", "Avec leur contexte"],
+    ["Réponses positives", "31", "Classées à la lecture"],
+    ["Rendez-vous obtenus", "14", "Enregistrés dans la fiche"],
+    ["Contrats signés", "5", "Rattachés à leur origine"],
   ];
 
   return (
@@ -809,24 +808,24 @@ function LearningEnginePreview() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.07] bg-white px-5 py-4">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#B23A20]">
-            Aperçu V2 · Learning engine
+            Aperçu · Ce que la plateforme apprend
           </p>
           <h3 className="mt-1 text-lg font-semibold">
-            Performance contextualisée des rôles
+            Quels interlocuteurs répondent, par secteur
           </h3>
         </div>
         <span className="rounded-full bg-[#FFF0EA] px-3 py-1.5 text-[10px] font-semibold text-[#B23A20]">
-          Score versionné
+          Mis à jour à chaque campagne
         </span>
       </div>
 
       <div className="p-5 sm:p-7">
         <div className="flex flex-wrap gap-2">
           {[
-            "Sports partnerships",
-            "Sportswear",
+            "Partenariats sportifs",
+            "Équipementiers",
             "+5 000 salariés",
-            "Football",
+            "Tous sports",
           ].map((filter) => (
             <span
               key={filter}
@@ -858,10 +857,10 @@ function LearningEnginePreview() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs text-white/[0.55]">
-                Utilité historique lissée
+                Taux de réponse par rôle
               </p>
               <p className="mt-1 text-lg font-semibold">
-                Le volume protège contre les faux signaux
+                Les bons interlocuteurs ressortent avec le volume
               </p>
             </div>
             <BrainCircuit className="h-7 w-7 shrink-0 text-[#FF6B3D]" />
@@ -877,12 +876,12 @@ function LearningEnginePreview() {
           </div>
           <div className="mt-3 flex items-center gap-2 text-[10px] text-white/[0.55]">
             <TrendingUp className="h-3.5 w-3.5 text-[#FF6B3D]" />
-            Bayesian smoothing · scoring pondéré · versionnement
+            Pondéré par l&apos;historique · aucune boîte noire
           </div>
         </div>
 
         <p className="mt-3 text-center text-[10px] text-[#5F6570]">
-          Données illustratives — aucun résultat réel affiché.
+          Chiffres d&apos;exemple.
         </p>
       </div>
     </div>
@@ -901,28 +900,28 @@ function AgentsSection() {
         <ScrollReveal>
           <div className="mx-auto max-w-4xl text-center">
             <p className="mx-auto mb-5 w-fit rounded-full border border-[#FF6B3D]/20 bg-[#FF6B3D]/10 px-4 py-2 text-sm font-semibold text-[#FFE4D8]">
-              Disponibles en continu · sous votre contrôle
+              Six agents IA · vous gardez la main
             </p>
             <h2 className="text-balance text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-[#F6F4EF] md:text-7xl">
-              Six agents spécialisés. Une seule intelligence.
+              Six agents. Un seul objectif : signer.
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#969BA8]">
-              Chacun exécute une mission précise. Ensemble, ils conservent le
-              contexte, les décisions et les outcomes de chaque campagne.
+              Chaque agent a une mission précise. Ensemble, ils couvrent toute
+              la chaîne, de la recherche de marques au suivi des réponses.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 href="mailto:contact@vectis.agency?subject=Démo%20Vectis%20Agency"
                 className="landing-primary-cta inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-[#0B0D12] transition duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
               >
-                Voir les agents en action
+                Réserver une démo
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
               <Link
-                href="/login"
+                href="#resources"
                 className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/[0.12] bg-white/[0.06] px-5 py-3 text-sm font-semibold text-white/[0.80] transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.10] hover:text-white active:scale-[0.98]"
               >
-                Accéder à la plateforme
+                Voir le parcours complet
               </Link>
             </div>
           </div>
@@ -956,7 +955,7 @@ function AgentsSection() {
       <ScrollReveal direction="scale" className="mt-12">
         <div
           role="region"
-          aria-label="Présentation des agents SponsorAI"
+          aria-label="Présentation des agents Vectis"
           tabIndex={0}
           className="agent-showcase-track flex snap-x snap-mandatory gap-4 overflow-x-auto px-[max(1.25rem,calc((100vw-1180px)/2))] pb-7 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#FF6B3D] sm:gap-6 sm:px-[max(2rem,calc((100vw-1180px)/2))]"
         >
@@ -997,7 +996,7 @@ function AgentsSection() {
                           {agent.name} a terminé la mission
                         </p>
                         <p className="mt-0.5 text-[10px] text-[#969BA8]">
-                          Contexte enregistré dans SponsorAI
+                          Résultat enregistré dans la fiche
                         </p>
                       </div>
                     </div>
@@ -1084,10 +1083,10 @@ function WorkflowSection() {
           <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
               <p className="mb-5 w-fit rounded-full border border-[#969BA8]/35 bg-white px-4 py-2 text-sm font-semibold text-[#303543] shadow-sm">
-                Closed-loop V2
+                Comment ça marche
               </p>
               <h2 className="text-5xl font-semibold leading-[1.03] tracking-[-0.055em] text-[#F6F4EF] md:text-7xl">
-                Du premier signal au deal attribué.
+                Du premier contact au contrat signé.
               </h2>
             </div>
             <div className="rounded-[28px] border border-[#FF6B3D]/18 bg-[#FF6B3D]/[0.075] p-6 backdrop-blur-xl">
@@ -1140,13 +1139,13 @@ function WorkflowSection() {
 function ClosedLoopPreview() {
   const stages = [
     { label: "Match", icon: Target, done: true },
-    { label: "Contact", icon: Users, done: true },
-    { label: "Outreach", icon: Send, done: true },
-    { label: "Reply", icon: MessageSquareReply, done: true },
-    { label: "Meeting", icon: CalendarCheck, done: true },
-    { label: "Proposal", icon: FileText, done: true },
-    { label: "Signed", icon: CheckCircle2, done: true },
-    { label: "Learn", icon: RotateCcw, done: false },
+    { label: "Décideur", icon: Users, done: true },
+    { label: "Contact", icon: Send, done: true },
+    { label: "Réponse", icon: MessageSquareReply, done: true },
+    { label: "Rendez-vous", icon: CalendarCheck, done: true },
+    { label: "Proposition", icon: FileText, done: true },
+    { label: "Signature", icon: CheckCircle2, done: true },
+    { label: "Apprentissage", icon: RotateCcw, done: false },
   ];
 
   return (
@@ -1154,15 +1153,15 @@ function ClosedLoopPreview() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#FF6B3D]">
-            Aperçu V2 · Deal timeline
+            Aperçu · Suivi d&apos;une opportunité
           </p>
           <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-            Une opportunité, une chronologie complète
+            Une opportunité, tout son historique
           </h3>
         </div>
         <span className="inline-flex items-center gap-2 rounded-full border border-[#FF6B3D]/20 bg-[#FF6B3D]/10 px-3 py-2 text-[10px] font-semibold text-[#FFE4D8]">
           <GitBranch className="h-3.5 w-3.5 text-[#FF6B3D]" />
-          Attribution SponsorAI conservée
+          Origine conservée
         </span>
       </div>
 
@@ -1200,8 +1199,8 @@ function ClosedLoopPreview() {
           <div className="mt-5 flex items-start gap-3 rounded-2xl bg-black/25 p-4">
             <Database className="mt-0.5 h-5 w-5 shrink-0 text-[#FF6B3D]" />
             <p className="text-xs leading-6 text-white/[0.58]">
-              À chaque étape, SponsorAI conserve le contexte au moment de la
-              décision : athlète, marque, rôle, scores, versions et outcome.
+              À chaque étape, Vectis garde ce qui a été décidé : sportif,
+              marque, interlocuteur, score, message envoyé et résultat.
             </p>
           </div>
         </div>
@@ -1210,18 +1209,18 @@ function ClosedLoopPreview() {
           {[
             {
               icon: CalendarCheck,
-              title: "Meeting externe",
-              text: "Outcome enregistré manuellement ou via une future intégration calendrier.",
+              title: "Rendez-vous hors plateforme",
+              text: "Notez le résultat en un clic, le suivi continue.",
             },
             {
               icon: FileText,
-              title: "Contrat externe",
-              text: "Le document peut venir de la marque sans rendre le deal invisible.",
+              title: "Contrat envoyé par la marque",
+              text: "Ajoutez le document, le deal reste dans le pipeline.",
             },
             {
               icon: ShieldCheck,
-              title: "Attribution immutable",
-              text: "L'origine de l'opportunité reste traçable jusqu'au WON ou LOST.",
+              title: "Origine conservée",
+              text: "On sait toujours quelle recherche a mené à quelle signature.",
             },
           ].map((item) => (
             <div
@@ -1241,9 +1240,6 @@ function ClosedLoopPreview() {
         </div>
       </div>
 
-      <p className="mt-4 text-center text-[10px] text-white/[0.68]">
-        Aperçu illustratif de l&apos;architecture cible V2.
-      </p>
     </div>
   );
 }
@@ -1259,15 +1255,14 @@ function FinalCTA() {
           direction="scale"
         >
           <p className="mx-auto mb-5 w-fit rounded-full border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-semibold text-[#FFE4D8]/78">
-            V2 progressive · Bêta privée
+            Bêta privée · Sur invitation
           </p>
           <h2 className="text-5xl font-semibold leading-[1.02] tracking-[-0.055em] text-[#F6F4EF] md:text-7xl">
-            Ne perdez plus ce que vos campagnes vous apprennent.
+            Vos sportifs méritent mieux que des mails sans réponse.
           </h2>
           <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-[#D5D7DF]/72">
-            Vectis transforme progressivement chaque marque, contact, réponse,
-            meeting et deal en intelligence réutilisable — avec validation
-            humaine avant le premier outreach.
+            Réservez une démo : on vous montre la plateforme sur le profil
+            d&apos;un de vos sportifs, de la shortlist de marques au premier mail.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
             <Link

@@ -51,7 +51,7 @@ export default function LoginPage() {
             Vectis<span className="text-[#FF6B3D]">Agency</span>
           </h1>
           <p className="text-[#969BA8] text-sm">
-            Plateforme IA de sponsoring sportif
+            Prospection sponsoring pour représentants de sportifs
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/30 transition-colors focus:border-[#FF6B3D] focus:outline-none"
-              placeholder="agent@sponsorai.com"
+              placeholder="vous@votre-agence.fr"
               required
             />
           </div>
