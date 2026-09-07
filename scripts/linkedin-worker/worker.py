@@ -18,7 +18,8 @@ if BASE != "https://vectis.agency":
     raise ValueError("Worker origin must be https://vectis.agency")
 
 def command():
-    return ["--from", CONFIG["connectorPath"], "mcp-server-linkedin", "--no-auto-import",
+    prefix = ["-m", "linkedin_mcp_server"] if CONFIG.get("nativeRuntime") else ["--from", CONFIG["connectorPath"], "mcp-server-linkedin"]
+    return prefix + ["--no-auto-import",
             "--user-data-dir", CONFIG["profilePath"], "--login-inline-wait", "0", "--tool-timeout", "35"]
 
 def api(body):
@@ -34,7 +35,9 @@ async def healthy():
     process = await asyncio.create_subprocess_exec(CONFIG["uvxPath"], *command(), "--status", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
     try:
         out, _ = await asyncio.wait_for(process.communicate(), 35)
-        return process.returncode == 0 and b"Session is valid" in out
+        # A foreign-runtime bridge can only validate cookies on its first real
+        # call. Treat it as provisionally available, with failure backoff below.
+        return process.returncode == 0 and (b"Session is valid" in out or b"Source cookie validity is not verified" in out)
     except asyncio.TimeoutError:
         process.kill()
         await process.wait()
@@ -47,13 +50,19 @@ async def discover(job):
     remaining = (job["expiresAt"] - time.time()*1000) / 1000 - 5
     if remaining < 10: return empty
     profiles, excluded = [], []
-    params = StdioServerParameters(command=CONFIG["uvxPath"], args=command() + ["--transport", "stdio"])
+    failed = False
+    browser_env = {key: os.environ[key] for key in ("DISPLAY", "PLAYWRIGHT_BROWSERS_PATH", "HEADLESS", "LOG_LEVEL", "LINKEDIN_TRACE_MODE") if key in os.environ}
+    params = StdioServerParameters(command=CONFIG["uvxPath"], args=command() + ["--transport", "stdio"], env=browser_env)
     async with stdio_client(params, errlog=open(os.devnull, "w")) as (read, write):
         async with ClientSession(read, write) as session:
             await asyncio.wait_for(session.initialize(), min(15, remaining))
             async def call(tool, args):
                 result = await session.call_tool(tool, args)
-                if result.isError: raise RuntimeError("LinkedIn unavailable")
+                if result.isError:
+                    if "--probe" in sys.argv:
+                        detail = " ".join(getattr(part, "text", "") for part in result.content).lower()
+                        print(json.dumps({"event": "tool_failed", "tool": tool, "indicators": [s for s in ("login", "auth", "timeout", "permission", "display", "browser", "cookie", "session", "install", "lock", "challenge") if s in detail]}), file=sys.stderr)
+                    raise RuntimeError("LinkedIn unavailable")
                 return result.structuredContent or json.loads(result.content[0].text)
             try:
                 async with asyncio.timeout(max(0.1, (job["expiresAt"] - time.time()*1000)/1000 - 5)):
@@ -69,11 +78,11 @@ async def discover(job):
                         if exclusion: excluded.append(exclusion)
                         if len(profiles) >= 2: break
             except (TimeoutError, RuntimeError):
-                pass
+                failed = True
             finally:
                 with contextlib.suppress(Exception):
                     await asyncio.wait_for(session.call_tool("close_session", {}), 5)
-    return {"status": "success" if profiles else "empty", "profiles": profiles, "excludedProfiles": excluded}
+    return {"status": "success" if profiles else "unavailable" if failed else "empty", "profiles": profiles, "excludedProfiles": excluded}
 
 async def main():
     # launchd and manual invocations cannot browse the same session concurrently.
@@ -97,7 +106,8 @@ async def main():
                 try: result = await discover(job)
                 except Exception:
                     result = {"status": "unavailable", "profiles": [], "excludedProfiles": []}
-                    ready, checked = False, 0
+                if result["status"] == "unavailable":
+                    ready, checked = False, time.time()
                 await asyncio.to_thread(api, {"action": "complete", "id": job["id"], "claim": job["claim"], "result": result})
                 print(json.dumps({"event": "completed", "profiles": len(result["profiles"]), "excluded": len(result["excludedProfiles"]), "seconds": round(time.monotonic()-start, 1)}), flush=True)
                 continue

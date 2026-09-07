@@ -10,7 +10,19 @@
 
 Le connecteur utilise `stickerdaniel/linkedin-mcp-server` 4.23.3, révision `5448ab1fc2fcdf6e6e1bc1e4b166c81a5f5e7402`, sans installer les autres canaux d’Agent-Reach. Aucun message LinkedIn, invitation ou extraction automatique des cookies du navigateur personnel. Les refus explicites de sponsoring observés sont exclus de la recherche courante, y compris du repli Apollo lorsque son URL identifie la même personne.
 
-## Installation locale
+## Hébergement VPS
+
+Le worker peut fonctionner sans Mac dans le conteneur `vectis-linkedin-worker`, installé sous `/opt/vectis-linkedin`. Le fichier `scripts/linkedin-worker/compose.yaml` utilise l’image 4.23.3 épinglée par digest, un utilisateur non-root, aucun port publié, 2 Go de RAM au maximum, 1,5 CPU et des logs limités en taille. Les fichiers `auth/` et `state/` sont persistants, protégés et hors Git. `restart: unless-stopped` assure le redémarrage avec Docker après un redémarrage du VPS.
+
+`deploy-vps.py` copie uniquement les scripts, la configuration et le profil **dédié** LinkedIn déjà créé, vers le VPS autorisé. Il refuse d’écraser la session d’un worker VPS actif. Arrêter d’abord le LaunchAgent du Mac pour éviter deux workers avec le même compte. L’image reconstruit le navigateur Linux depuis la session macOS ; la commande `--status` seule ne prouve pas la validité d’une session transférée : un appel LinkedIn réel est nécessaire.
+
+Commandes sur le VPS : `cd /opt/vectis-linkedin && docker compose up -d`, `docker compose logs --tail 20`, `docker compose stop`. Pour une reconnexion, arrêter le worker et utiliser temporairement le login viewer officiel, lié **uniquement à 127.0.0.1**, accessible par tunnel SSH ; ne jamais exposer publiquement le navigateur ou le MCP. Le Mac n’est alors nécessaire que pour cette éventuelle reconnexion, pas pour les enrichissements courants depuis un téléphone.
+
+L’ancien LaunchAgent local doit rester arrêté et désactivé après la bascule VPS. La perte de session LinkedIn ou l’indisponibilité du VPS conserve le repli Monid. Un échec du connecteur entraîne cinq minutes de retrait avant une nouvelle vérification.
+
+Installation du 7 septembre 2026 : ressources VPS vérifiées (8 Go RAM, plus de 80 Go libres), fichiers copiés et image disponible. La session macOS transférée n’a pas passé le premier appel LinkedIn sur Linux. Un conteneur temporaire `vectis-linkedin-login` a été ouvert sur le loopback 6080, via tunnel SSH local 16080, pour une reconnexion humaine (expiration 30 minutes). **La bascule n’est pas encore validée** : après login réussi, démarrer le worker, effectuer le smoke test production et fermer le viewer/tunnel. Aucun autre service VPS n’a été modifié.
+
+## Installation locale (alternative au VPS)
 
 Après connexion manuelle dans le profil dédié du test :
 

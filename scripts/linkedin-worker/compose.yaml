@@ -1,0 +1,26 @@
+services:
+  linkedin-worker:
+    image: stickerdaniel/linkedin-mcp-server:4.23.3@sha256:8e384fc14b523c9be6eb53d34fb67987ab8b2ffaa37c3d11c647f77441d0064a
+    container_name: vectis-linkedin-worker
+    restart: unless-stopped
+    entrypoint: ["tini", "-e", "143", "--", "linkedin-mcp-entrypoint", "python", "/worker/worker.py", "/state/config.json"]
+    volumes:
+      - ./worker.py:/worker/worker.py:ro
+      - ./parser.py:/worker/parser.py:ro
+      - ./state:/state
+      - ./auth:/home/pwuser/.linkedin-mcp
+    environment:
+      LOG_LEVEL: WARNING
+      LINKEDIN_TRACE_MODE: "off"
+    mem_limit: 2g
+    cpus: 1.5
+    shm_size: 512m
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
