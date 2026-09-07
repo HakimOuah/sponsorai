@@ -65,7 +65,7 @@ async def discover(job):
                     raise RuntimeError("LinkedIn unavailable")
                 return result.structuredContent or json.loads(result.content[0].text)
             try:
-                async with asyncio.timeout(max(0.1, (job["expiresAt"] - time.time()*1000)/1000 - 5)):
+                async with asyncio.timeout(max(0.1, (job["expiresAt"] - time.time()*1000)/1000 - 12)):
                     company = await call("get_company_profile", {"company_name": url})
                     name, urn = company_identity(company)
                     if not name or not urn: return empty
@@ -80,6 +80,13 @@ async def discover(job):
             except (TimeoutError, RuntimeError):
                 failed = True
             finally:
+                # Chromium/session teardown can take tens of seconds. Publish
+                # while the lease is valid, before waiting for that cleanup.
+                if job.get("claim"):
+                    payload = {"status": "success" if profiles else "unavailable" if failed else "empty", "profiles": profiles, "excludedProfiles": excluded}
+                    with contextlib.suppress(Exception):
+                        response = await asyncio.to_thread(api, {"action": "complete", "id": job["id"], "claim": job["claim"], "result": payload})
+                        job["published"] = bool(response.get("accepted"))
                 with contextlib.suppress(Exception):
                     await asyncio.wait_for(session.call_tool("close_session", {}), 5)
     return {"status": "success" if profiles else "unavailable" if failed else "empty", "profiles": profiles, "excludedProfiles": excluded}
@@ -108,7 +115,8 @@ async def main():
                     result = {"status": "unavailable", "profiles": [], "excludedProfiles": []}
                 if result["status"] == "unavailable":
                     ready, checked = False, time.time()
-                await asyncio.to_thread(api, {"action": "complete", "id": job["id"], "claim": job["claim"], "result": result})
+                if not job.get("published"):
+                    await asyncio.to_thread(api, {"action": "complete", "id": job["id"], "claim": job["claim"], "result": result})
                 print(json.dumps({"event": "completed", "profiles": len(result["profiles"]), "excluded": len(result["excludedProfiles"]), "seconds": round(time.monotonic()-start, 1)}), flush=True)
                 continue
         except Exception as exc:

@@ -20,7 +20,9 @@ Commandes sur le VPS : `cd /opt/vectis-linkedin && docker compose up -d`, `docke
 
 L’ancien LaunchAgent local doit rester arrêté et désactivé après la bascule VPS. La perte de session LinkedIn ou l’indisponibilité du VPS conserve le repli Monid. Un échec du connecteur entraîne cinq minutes de retrait avant une nouvelle vérification.
 
-Installation du 7 septembre 2026 : ressources VPS vérifiées (8 Go RAM, plus de 80 Go libres), fichiers copiés et image disponible. La session macOS transférée n’a pas passé le premier appel LinkedIn sur Linux. Un conteneur temporaire `vectis-linkedin-login` a été ouvert sur le loopback 6080, via tunnel SSH local 16080, pour une reconnexion humaine (expiration 30 minutes). **La bascule n’est pas encore validée** : après login réussi, démarrer le worker, effectuer le smoke test production et fermer le viewer/tunnel. Aucun autre service VPS n’a été modifié.
+Validation VPS du 7 septembre 2026 : ressources vérifiées (8 Go RAM, plus de 80 Go libres), reconnexion humaine LinkedIn réussie et session Linux persistée. Le service `vectis-linkedin-worker` fonctionne avec redémarrage automatique ; l’ancien LaunchAgent Mac est désactivé. Le viewer temporaire a été supprimé et son tunnel SSH fermé, sans supprimer la session persistante. Aucun autre service VPS n’a été modifié.
+
+Le premier essai a identifié une personne mais la fermeture Chromium a retardé sa livraison au-delà des 90 secondes. Le worker publie désormais ses résultats avant cette fermeture, en conservant une marge de 12 secondes avant expiration. Le nouvel essai production → VPS → production a retourné et validé un profil Air Up en **80,1 secondes**, sans worker Mac actif, appel Monid ou envoi d’email. Sept tests Python passent. Le repli Monid reste disponible en cas d’absence de résultat ou d’expiration de session.
 
 ## Installation locale (alternative au VPS)
 
