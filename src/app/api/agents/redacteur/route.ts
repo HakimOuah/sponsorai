@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  if (!prospect) {
+  if (!prospect || prospect.archivedAt) {
     return NextResponse.json(
       { error: "Prospect not found" },
       { status: 404 }

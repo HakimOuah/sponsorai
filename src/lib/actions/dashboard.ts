@@ -73,6 +73,7 @@ export async function getDashboardData() {
     prisma.prospect.findMany({
       where: {
         priority: { in: ["A", "B"] },
+        archivedAt: null,
         status: { in: ["new", "contacted"] },
       },
       include: {

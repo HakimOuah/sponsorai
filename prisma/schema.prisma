@@ -113,6 +113,7 @@ model Prospect {
   status              String    @default("new")
   scanId              String?
   selectedContactId   String?
+  archivedAt          DateTime?
   scoreVersion        String    @default("matchmaker-v1")
   outreachApprovedAt  DateTime?
   outreachApprovedBy  String?
@@ -132,6 +133,7 @@ model Prospect {
 
   @@unique([playerId, companyId])
   @@index([selectedContactId])
+  @@index([playerId, archivedAt])
 }
 
 model Deal {

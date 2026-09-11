@@ -30,6 +30,7 @@ export async function getPlayer(id: string) {
         orderBy: { updatedAt: "desc" },
       },
       prospects: {
+        where: { archivedAt: null },
         include: { company: { select: { id: true, name: true } } },
         orderBy: { score: "desc" },
         take: 20,

@@ -14,7 +14,7 @@ export async function getProspects(playerId?: string) {
   if (!access.authenticated) return [];
 
   const prospects = await prisma.prospect.findMany({
-    where: playerId ? { playerId } : undefined,
+    where: { ...(playerId ? { playerId } : {}), archivedAt: null },
     include: {
       player: { select: { firstName: true, lastName: true, club: true } },
       company: {
@@ -122,6 +122,7 @@ export async function approveProspectOutreach(
   });
 
   if (!prospect) throw new Error("Prospect not found");
+  if (prospect.archivedAt) throw new Error("Restaurez ce prospect avant de préparer un nouvel envoi.");
 
   if (contactId) {
     const contact = await prisma.contact.findFirst({
@@ -250,7 +251,7 @@ export async function bulkCreateDeals(prospectIds: string[]) {
       include: { deal: true },
     });
 
-    if (!prospect || prospect.deal) continue;
+    if (!prospect || prospect.deal || prospect.archivedAt) continue;
 
     const deal = await prisma.deal.create({
       data: {

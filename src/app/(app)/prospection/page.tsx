@@ -5,6 +5,7 @@ import { getProspects, getScansForPlayer } from "@/lib/actions/prospection";
 import { ProspectList } from "@/components/prospection/ProspectList";
 import { PlayerSelector } from "@/components/prospection/PlayerSelector";
 import { ProspectionRefresh } from "@/components/prospection/ProspectionRefresh";
+import { ProspectCleanup } from "@/components/prospection/ProspectCleanup";
 import { getCurrentUserAccess } from "@/lib/auth/access";
 
 export const dynamic = "force-dynamic";
@@ -58,6 +59,11 @@ export default async function ProspectionPage({
       </div>
 
       {/* Scan history for selected player */}
+      {selectedPlayerId && access.canOperate && (
+        <ProspectCleanup key={selectedPlayerId} playerId={selectedPlayerId}
+          playerName={players.filter((p) => p.id === selectedPlayerId).map((p) => `${p.firstName} ${p.lastName}`).join("") || "cet athlète"}
+          isAdmin={access.isAdmin} />
+      )}
       {scans.length > 0 && (
         <div className="mb-6">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-2">

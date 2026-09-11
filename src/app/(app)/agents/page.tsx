@@ -73,6 +73,7 @@ export default async function AgentsPage({
           },
         },
         prospects: {
+          where: { archivedAt: null },
           orderBy: { score: "desc" },
           select: {
             id: true,
