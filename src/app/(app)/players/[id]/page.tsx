@@ -6,13 +6,18 @@ import { PlayerStats } from "@/components/players/PlayerStats";
 import { ArchiveButton } from "@/components/players/ArchiveButton";
 import { PlayerScanButton } from "@/components/players/PlayerScanButton";
 import { getScanRecovery } from "@/lib/agents/scan-recovery";
+import { getCurrentUserAccess } from "@/lib/auth/access";
+import { ProspectCleanup } from "@/components/prospection/ProspectCleanup";
 
 export default async function PlayerDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const player = await getPlayer(params.id);
+  const [player, access] = await Promise.all([
+    getPlayer(params.id),
+    getCurrentUserAccess(),
+  ]);
 
   if (!player) return notFound();
 
@@ -210,6 +215,16 @@ export default async function PlayerDetailPage({
       )}
 
       {/* Prospects */}
+      {access.canOperate && (
+        <div className="mt-6">
+          <ProspectCleanup
+            key={player.id}
+            playerId={player.id}
+            playerName={`${player.firstName} ${player.lastName}`}
+            isAdmin={access.isAdmin}
+          />
+        </div>
+      )}
       {player.prospects.length > 0 && (
         <div className="mt-6">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-[#969BA8] mb-3">

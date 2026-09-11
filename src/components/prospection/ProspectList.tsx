@@ -26,7 +26,8 @@ const views: Array<{ value: ProspectionView; label: string }> = [
 ];
 
 export function ProspectList({ prospects, canOperate }: ProspectListProps) {
-  const [view, setView] = useState<ProspectionView>("ready");
+  // Show every existing opportunity on entry, even before contact qualification.
+  const [view, setView] = useState<ProspectionView>("all");
   const [priority, setPriority] = useState("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
