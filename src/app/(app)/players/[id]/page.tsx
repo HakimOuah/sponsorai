@@ -8,6 +8,8 @@ import { PlayerScanButton } from "@/components/players/PlayerScanButton";
 import { getScanRecovery } from "@/lib/agents/scan-recovery";
 import { getCurrentUserAccess } from "@/lib/auth/access";
 import { ProspectCleanup } from "@/components/prospection/ProspectCleanup";
+import { PlayerRefreshButton } from "@/components/players/PlayerRefreshButton";
+import { sanitizeRefresh } from "@/lib/players/refresh";
 
 export default async function PlayerDetailPage({
   params,
@@ -70,7 +72,12 @@ export default async function PlayerDetailPage({
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+          {access.canOperate && <PlayerRefreshButton
+            key={`${player.id}-${player.updatedAt.toISOString()}`}
+            playerId={player.id} playerName={`${player.firstName} ${player.lastName}`}
+            version={player.updatedAt.toISOString()} current={sanitizeRefresh(player)}
+          />}
           <PlayerScanButton
             playerId={player.id}
             playerName={`${player.firstName} ${player.lastName}`}

@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateAIText } from "@/lib/ai";
 import { extractJSONObject } from "@/lib/utils";
 import { getCurrentUserAccess } from "@/lib/auth/access";
+import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 120;
 
 interface PlayerEnrichment {
   profileType?: "athlete" | "club" | null;
@@ -44,8 +46,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { firstName, lastName, query, profileType, sport } = await request.json();
-  const playerQuery = [firstName, lastName].filter(Boolean).join(" ").trim() || query?.trim();
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
+  const { firstName, lastName, query, profileType, sport, playerId } = body;
+  if (playerId !== undefined && typeof playerId !== "string") return NextResponse.json({ error: "Profil invalide." }, { status: 400 });
+  const existing = playerId ? await prisma.player.findUnique({ where: { id: playerId } }) : null;
+  if (playerId && !existing) return NextResponse.json({ error: "Profil introuvable." }, { status: 404 });
+  const playerQuery = existing ? `${existing.firstName} ${existing.lastName}` : [firstName, lastName, query].filter((v) => typeof v === "string").join(" ").trim().slice(0, 500);
 
   if (!playerQuery) {
     return NextResponse.json(
@@ -61,6 +68,10 @@ MISSION : retrouver les informations publiques d'un sportif, d'une équipe ou d'
 PROFIL À RECHERCHER : ${playerQuery}
 TYPE PRESSENTI : ${profileType || "Non précisé"}
 SPORT PRESSENTI : ${sport || "Non précisé"}
+DATE DE RECHERCHE : ${new Date().toISOString().slice(0, 10)}
+${existing ? `ACTUALISATION D'UN PROFIL EXISTANT. Contexte d'identification uniquement, pas une source de données actuelles : ${JSON.stringify({ sport: existing.sport, club: existing.club, instagram: existing.instagram, tiktok: existing.tiktok, twitter: existing.twitter })}.
+Recherche les données actuelles de CE profil. Ne choisis pas un homonyme : en cas de doute, retourne null pour les champs concernés.
+Les nombres d'abonnés doivent être observés sur une source récente et datée, jamais extrapolés d'anciennes valeurs. Sans preuve récente, retourne null. Ne recopie pas l'ancien profil comme résultat de recherche. Décris les évolutions observées de sa communication dans positioning et les limites de la recherche dans notes. Fournis les URL exactes des sources consultées.` : ""}
 
 Recherche sur le web des sources fiables : sport, structure/club actuel, championnat/niveau, discipline ou poste, âge si sportif individuel, localisation, réseaux sociaux publics, audience approximative, style d'image, langues probables et types de deals pertinents.
 
@@ -93,7 +104,7 @@ Retourne UNIQUEMENT un JSON strict, sans markdown :
 
 RÈGLES :
 - Ne devine pas les chiffres sociaux. Si tu n'es pas sûr, mets null.
-- Si plusieurs profils ont ce nom, choisis le profil sportif le plus probable et indique l'ambiguïté dans notes.
+- Si plusieurs profils ont ce nom, indique l'ambiguïté dans notes ; lors d'une actualisation, ne remplace jamais le talent par un homonyme.
 - Pour un club amateur, remplis firstName avec le nom du club et lastName avec la ville, la catégorie ou "Club".
 - targetPartnerships doit éviter les équipementiers sportifs majeurs quand ils sont peu accessibles (Nike, Adidas, Puma, New Balance, Under Armour, Reebok, Jordan) et privilégier des catégories plus réalistes : commerces locaux, restauration, santé, mobilité, immobilier, banques/assurances locales, nutrition, tech, tourisme, mode, équipement régional, événements, communautés locales.
 - Le champ notes doit mentionner les sources consultées et les points incertains.
@@ -104,6 +115,7 @@ RÈGLES :
       prompt,
       maxOutputTokens: 4096,
       webSearch: true,
+      timeoutMs: 100_000,
     });
 
     const enrichment = extractJSONObject<PlayerEnrichment>(text);

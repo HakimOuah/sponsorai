@@ -69,7 +69,7 @@ export function PlayerScanButton({
           ? "Voir la progression"
           : resumeScanId && !scan.result
             ? "Reprendre le scan"
-            : "Scanner"}
+            : "Rechercher des marques"}
       </button>
 
       {isOpen &&
